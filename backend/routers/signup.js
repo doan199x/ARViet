@@ -9,7 +9,7 @@ router.post("/", async (req, res) => {
             res.sendStatus(403);
          }
         } else {
-            const result = await signupModel.signup(req.bodyemail, req.body.password);
+            const result = await signupModel.signup(req.fullname, req.isPaused,req.bodyemail, req.body.password);
             res.send(result);
         }
     } catch (error) {

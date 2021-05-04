@@ -15,6 +15,7 @@ import { productAPI } from "../../config/productAPI";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { toast } from "react-toastify";
 
 function Copyright() {
   return (
@@ -40,6 +41,7 @@ const schema = yup.object().shape({
   passwordConfirm: yup
     .string()
     .required("Xác nhận mật khẩu không được bỏ trống!").oneOf([yup.ref('password'), null], 'Xác nhận mật khẩu và mật khẩu chưa khớp!'),
+  id: yup.string().required("Vui lòng nhập số CMND/CCCD hợp lệ!").min(9).max(12),
 });
 
 const useStyles = makeStyles((theme) => ({
@@ -101,11 +103,25 @@ export default function Signup() {
   } = register("passwordConfirm", {
     required: "true",
   });
+  const {
+    ref: IDFormHookRef,
+    ...IDFormHookRest
+  } = register("ID", {
+    required: "true",
+  });
 
   const onSubmit = (data) => {
     console.log("submited!");
-    console.log(data);
-    //productAPI.signup()
+    //console.log(data);
+    productAPI
+        .register(data.fullname, data.id, data.email, data.password)
+        .then((data) => {
+         console.log('aa',data);
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.error("😭 This email is used");
+        });
   };
   return (
     <Grid container component="main" className={classes.root}>
@@ -148,6 +164,21 @@ export default function Signup() {
               {...emailFormHookRest}
               error={!!errors.email}
               helperText={errors?.email?.message}
+            />
+             <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              id="id"
+              label="CMND/CCCD"
+              autoComplete="id"
+              autoFocus
+              name="id"
+              inputRef={IDFormHookRef}
+              {...IDFormHookRest}
+              error={!!errors.ID}
+              helperText={errors?.ID?.message}
             />
             <TextField
               variant="outlined"
