@@ -17,6 +17,7 @@ app.get("/", (req,res) => {
     res.send(`⚡️ Running on port ${port}! ⚡️`);
 });
 app.use("/signup", require('./routers/signup'));
+app.use("/login", require('./routers/login'));
 app.listen(`${port}`, () => {
 console.log(`⚡️ Running on port ${port}! ⚡️`);
 });
