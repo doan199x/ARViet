@@ -3,9 +3,7 @@ const router = express.Router();
 const signupModel = require('../model/signup.js');
 router.post("/", async (req, res) => {
     try {
-      console.log(req.body.email)
        const isExisted = await signupModel.checkEmail(req.body.email);
-       console.log('is')
        console.log(isExisted);
          if (isExisted && isExisted[0].count != 0) {
           {
