@@ -1,13 +1,13 @@
-const mysql = require('mysql')
-exports.load = (sql) => {
-    return new Promise((resolve, reject) => {
-        const con = mysql.createConnection({
-            host: 'localhost',
-            port: '3306',
-            user: 'root',
-            password: '123@',
-            database: 'BaiGiangAR'
+const mysql = require("mysql");
 
+ exports.load = (sql) => {
+     return new Promise((resolve, reject) => {
+         const con = mysql.createConnection({
+            host: "localhost",
+            port: "3306",
+            user: "root",
+            password: "123@",
+            database: "BaiGiangAR"
         });
         con.connect((err) => {
             if (err)

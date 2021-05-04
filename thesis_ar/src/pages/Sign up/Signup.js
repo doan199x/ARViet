@@ -41,7 +41,7 @@ const schema = yup.object().shape({
   passwordConfirm: yup
     .string()
     .required("Xác nhận mật khẩu không được bỏ trống!").oneOf([yup.ref('password'), null], 'Xác nhận mật khẩu và mật khẩu chưa khớp!'),
-  id: yup.string().required("Vui lòng nhập số CMND/CCCD hợp lệ!").min(9).max(12),
+  id: yup.string().required("Vui lòng nhập số CMND/CCCD hợp lệ!"),
 });
 
 const useStyles = makeStyles((theme) => ({
@@ -106,21 +106,21 @@ export default function Signup() {
   const {
     ref: IDFormHookRef,
     ...IDFormHookRest
-  } = register("ID", {
+  } = register("id", {
     required: "true",
   });
 
   const onSubmit = (data) => {
     console.log("submited!");
-    //console.log(data);
+    //console.log(data.ID);
     productAPI
-        .register(data.fullname, data.id, data.email, data.password)
+        .signup(data.fullname, data.ID, data.email, data.password)
         .then((data) => {
-         console.log('aa',data);
+         console.log('after api',data);
         })
         .catch((err) => {
           console.log(err);
-          toast.error("😭 This email is used");
+          toast.error("😭 This email is used!");
         });
   };
   return (
@@ -177,8 +177,8 @@ export default function Signup() {
               name="id"
               inputRef={IDFormHookRef}
               {...IDFormHookRest}
-              error={!!errors.ID}
-              helperText={errors?.ID?.message}
+              error={!!errors.id}
+              helperText={errors?.id?.message}
             />
             <TextField
               variant="outlined"
