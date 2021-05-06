@@ -1,7 +1,7 @@
 const db = require('../utils/db');
 module.exports = {
     checkEmail: async (email) => {
-        const sql = `select* from GiaoVien where Email=${email}`;
+        const sql = `select count(*) as count from GiaoVien where Email= "${email}"`;
         const isExisted = await db.load(sql);
         return isExisted;
     },

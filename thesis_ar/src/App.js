@@ -1,5 +1,7 @@
-import Home from "./pages/Home/Home.js";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import Home from "./pages/Home/Home.js";
+
+import { UserProvider } from "../src/context/UserContext.jsx";
 import Signin from "./pages/Sign in/Signin.js";
 import Signup from "./pages/Sign up/Signup.js";
 import Header from "./Header/Header.js";
@@ -26,11 +28,13 @@ function App() {
           <Signup/>
         </Route>
       </Switch>
+      <UserProvider>
       <Switch>
         <Route path="/lecture/create">
           <Create/>
         </Route>
       </Switch>
+      </UserProvider>
       <Footer/>
     </Router>
   );
