@@ -3,8 +3,6 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 import Link from '@material-ui/core/Link';
 import Paper from '@material-ui/core/Paper';
 import Box from '@material-ui/core/Box';
@@ -13,6 +11,13 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import background from '../../img/home.jpg'
+import { productAPI } from "../../config/productAPI";
+import * as yup from "yup";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import { useHistory } from 'react-router-dom';
 
 function Copyright() {
   return (
@@ -26,6 +31,14 @@ function Copyright() {
     </Typography>
   );
 }
+
+const schema = yup.object().shape({
+  email: yup
+    .string()
+    .required("Email không được trống!")
+    .email("Vui lòng điền email hợp lệ!"),
+  password: yup.string().required("Mật khẩu không được bỏ trống!"),
+});
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -60,7 +73,33 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Signin() {
   const classes = useStyles();
+  const history = useHistory();
+  const { register, handleSubmit ,formState: { errors }} = useForm({
+    resolver: yupResolver(schema),
+  });
+  const { ref: emailFormHookRef, ...emailFormHookRest } = register("email", {
+    required: "true",
+  });
+  const { ref: passwordFormHookRef, ...passwordFormHookRest } = register(
+    "password",
+    {
+      required: "true",
+    }
+  );
 
+  const onSubmit = (data) => {
+    console.log(data);
+    productAPI
+        .signin(data.email, data.password)
+        .then((data) => {
+         console.log(data.data);
+         localStorage.setItem("token", data.data.token);
+         history.push("/lecture");
+        })
+        .catch((err) => {
+          toast.error("Gặp lỗi khi đăng nhập! Vui lòng thử lại.");
+        });
+  };
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
@@ -73,7 +112,7 @@ export default function Signin() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <form className={classes.form} noValidate>
+          <form className={classes.form} onSubmit={handleSubmit(onSubmit)}>
             <TextField
               variant="outlined"
               margin="normal"
@@ -84,6 +123,10 @@ export default function Signin() {
               name="email"
               autoComplete="email"
               autoFocus
+              inputRef={emailFormHookRef}
+              {...emailFormHookRest}
+              error={!!errors.email}
+              helperText={errors?.email?.message}
             />
             <TextField
               variant="outlined"
@@ -95,10 +138,10 @@ export default function Signin() {
               type="password"
               id="password"
               autoComplete="current-password"
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
+              inputRef={passwordFormHookRef}
+              {...passwordFormHookRest}
+              error={!!errors.password}
+              helperText={errors?.password?.message}
             />
             <Button
               type="submit"

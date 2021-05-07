@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState} from "react";
+import { useHistory } from 'react-router-dom';
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -16,6 +17,7 @@ import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 function Copyright() {
   return (
@@ -77,8 +79,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+toast.configure();;
+
 export default function Signup() {
   const classes = useStyles();
+  const history = useHistory();
   const { register, handleSubmit ,formState: { errors }} = useForm({
     resolver: yupResolver(schema),
   });
@@ -111,16 +116,21 @@ export default function Signup() {
   });
 
   const onSubmit = (data) => {
-    console.log("submited!");
-    //console.log(data.ID);
     productAPI
         .signup(data.fullname, data.ID, data.email, data.password)
         .then((data) => {
-         console.log('after api',data);
+          if (data.data === "existed") {
+            toast.error("Email này đã được sử dụng!");
+          }
+          else if (data.data.affectedRows === 1)
+          {
+            toast.info("Đăng ký thành công! Vui lòng đăng nhập.");
+           //Yêu cầu đăng nhập
+            history.push('/signin');
+          }
         })
         .catch((err) => {
-          console.log(err);
-          toast.error("😭 This email is used!");
+          toast.error("Gặp lỗi khi đăng ký! Vui lòng thử lại.");
         });
   };
   return (
