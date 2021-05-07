@@ -20,4 +20,25 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.post("/mobile", async (req, res) => {
+  const hocSinh = req.body;
+  const salt = bcrypt.genSaltSync(10);
+  hocSinh.MatKhau = bcrypt.hashSync(hocSinh.MatKhau, salt);
+  const isExisted = await hocSinhModel.checkTenDangNhap(hocSinh.TenDangNhap);
+  console.log(isExisted.length);
+  if (isExisted.length!=0){
+    res.json({
+      status:'Ten Dang Nhap da ton tai'
+    })
+  }else{
+    const result = await hocSinhModel.signup(hocSinh);
+    let status = "failed";
+    if (result.affectedRows==1){
+      status = 'success'
+    }
+    res.json({
+      status:status
+    });
+  }
+})
 module.exports = router;

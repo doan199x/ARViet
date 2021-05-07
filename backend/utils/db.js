@@ -6,7 +6,7 @@ const mysql = require("mysql");
             host: "localhost",
             port: "3306",
             user: "root",
-            password: "123@",
+            password: "123456yugi",
             database: "BaiGiangAR"
         });
         con.connect((err) => {
