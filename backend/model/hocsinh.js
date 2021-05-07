@@ -13,5 +13,9 @@ module.exports = {
     checkPassword: async(TenDangNhap)=>{
         const sql=`Select MatKhau from HocSinh where TenDangNhap = "${TenDangNhap}"`;
         return await db.load(sql);
+    },
+    getByTenDangNhap: async(TenDangNhap)=>{
+        const sql = `Select* from HocSinh where TenDangNhap="${TenDangNhap}"`;
+        return await db.load(sql);
     }
 };
