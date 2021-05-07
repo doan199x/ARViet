@@ -74,6 +74,8 @@ const useStyles = makeStyles((theme) => ({
 export default function Signin() {
   const classes = useStyles();
   const history = useHistory();
+  const token = localStorage.getItem('token');
+  if (token) history.push('/lecture');
   const { register, handleSubmit ,formState: { errors }} = useForm({
     resolver: yupResolver(schema),
   });

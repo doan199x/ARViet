@@ -16,7 +16,6 @@ export const UserProvider = (props) => {
   const history = useHistory();
   const token = localStorage.getItem("token") || "";
   const [result,setResult] = useState(true);
-
   useEffect(() => {
     if (token !== "")
       {
@@ -36,6 +35,6 @@ export const UserProvider = (props) => {
     localStorage.removeItem("token");
   }
   // Redirect to signin
-  history.push("/signin");
+  history.push("/");
   return null;
 };

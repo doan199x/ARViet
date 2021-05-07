@@ -7,35 +7,37 @@ import Signup from "./pages/Sign up/Signup.js";
 import Header from "./Header/Header.js";
 import Footer from "./Footer/Footer.js";
 import Create from "./pages/Lecture/Create/Create.js";
-
+import Lecture from "./pages/Lecture/Lecture.js";
 
 function App() {
   return (
     <Router>
-      <Header/>
-       <Switch>
-        <Route exact path="/">
-          <Home/>
-        </Route>
-      </Switch>
+      <Header />
       <Switch>
-        <Route path="/signin">
+        <Route exact strict path="/">
+          <Home />
+        </Route>
+        <Route exact path="/signin">
           <Signin />
         </Route>
-      </Switch>
-      <Switch>
-        <Route path="/signup">
-          <Signup/>
+        <Route exact path="/signup">
+          <Signup />
         </Route>
+        <UserProvider>
+          <Switch>
+            <Route exact path="/lecture">
+              <Lecture />
+            </Route>
+            <Route exact path="/lecture/create">
+              <Create />
+            </Route>
+            <Route>
+              <h1>ERROR</h1>
+            </Route>
+          </Switch>
+        </UserProvider>
       </Switch>
-      <UserProvider>
-      <Switch>
-        <Route path="/lecture/create">
-          <Create/>
-        </Route>
-      </Switch>
-      </UserProvider>
-      <Footer/>
+      <Footer />
     </Router>
   );
 }

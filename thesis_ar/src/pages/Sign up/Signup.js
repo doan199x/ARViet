@@ -38,8 +38,8 @@ const schema = yup.object().shape({
     .required("Email không được trống!")
     .email("Vui lòng điền email hợp lệ!"),
   password: yup.string().required("Mật khẩu không được bỏ trống!"),
-  fullname: yup.string().required("Vui lòng điền họ và tên!").matches(/^[A-Za-z ]*$/, 'Vui lòng điền họ và tên hợp lệ!')
-  .max(40),
+  fullname: yup.string().required("Vui lòng điền họ và tên!")
+  .max(50),
   passwordConfirm: yup
     .string()
     .required("Xác nhận mật khẩu không được bỏ trống!").oneOf([yup.ref('password'), null], 'Xác nhận mật khẩu và mật khẩu chưa khớp!'),
@@ -84,6 +84,8 @@ toast.configure();;
 export default function Signup() {
   const classes = useStyles();
   const history = useHistory();
+  const token = localStorage.getItem('token');
+  if (token) history.push('/lecture');
   const { register, handleSubmit ,formState: { errors }} = useForm({
     resolver: yupResolver(schema),
   });
@@ -117,7 +119,7 @@ export default function Signup() {
 
   const onSubmit = (data) => {
     productAPI
-        .signup(data.fullname, data.ID, data.email, data.password)
+        .signup(data.fullname, data.id, data.email, data.password)
         .then((data) => {
           if (data.data === "existed") {
             toast.error("Email này đã được sử dụng!");
@@ -133,6 +135,7 @@ export default function Signup() {
           toast.error("Gặp lỗi khi đăng ký! Vui lòng thử lại.");
         });
   };
+  
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
