@@ -10,17 +10,17 @@ import Menu from "@material-ui/core/Menu";
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import MailIcon from "@material-ui/icons/Mail";
 import NotificationsIcon from "@material-ui/icons/Notifications";
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import logourl from "../img/logo.png";
 import { Link } from "react-router-dom";
 import { useHistory } from "react-router-dom";
 import { UserContext, UserProvider } from "../context/UserContext";
+import { Button } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   grow: {
     flexGrow: 1,
-    marginBottom: '1%',
-
+    marginBottom: "1%",
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -52,12 +52,12 @@ const useStyles = makeStyles((theme) => ({
     width: "50px",
   },
   linkgroup: {
-    marginLeft: '30%',
-    marginRight: '5%',
-    width: '35%',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    marginLeft: "30%",
+    marginRight: "5%",
+    width: "35%",
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-around",
     fontFamily: [
       "-apple-system",
       "BlinkMacSystemFont",
@@ -69,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
       '"Apple Color Emoji"',
       '"Segoe UI Emoji"',
       '"Segoe UI Symbol"',
-    ].join(",")
+    ].join(","),
   },
   link: {
     display: "none",
@@ -78,15 +78,14 @@ const useStyles = makeStyles((theme) => ({
     },
     fontWeight: "bold",
     color: "#273044",
-    textDecoration: 'none'
-  }
+    textDecoration: "none",
+  },
 }));
-
 
 export default function Header() {
   const classes = useStyles();
   const history = useHistory();
-  const [user,setToken] = useContext(UserContext);
+  const [user, setToken] = useContext(UserContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
@@ -105,11 +104,11 @@ export default function Header() {
     setAnchorEl(null);
     handleMobileMenuClose();
   };
- const handleLogOut = () => {
-   localStorage.removeItem("token");
-   setToken("");
-   history.push('/')
- }
+  const handleLogOut = () => {
+    localStorage.removeItem("token");
+    setToken("");
+    history.push("/");
+  };
   const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
@@ -171,7 +170,7 @@ export default function Header() {
     <div className={classes.grow}>
       <AppBar color="default" position="static">
         <Toolbar>
-          <IconButton
+          <Button
             edge="start"
             className={classes.menuButton}
             color="inherit"
@@ -181,31 +180,35 @@ export default function Header() {
             <div>
               <img src={logourl} className={classes.logo} />
             </div>
-          </IconButton>
+          </Button>
 
-          <Typography className={classes.title} variant="h5" noWrap>
+          <Typography className={classes.title} variant="h4" noWrap>
             ARViet
           </Typography>
           <div className={classes.linkgroup}>
-            <Link className={classes.link} variant="h5" noWrap>
+            <Button href="/about" className={classes.link} variant="h5" noWrap>
               ABOUT
-            </Link>
-            <Link className={classes.link} variant="h5" noWrap>
+            </Button>
+            <Button href="/guide"className={classes.link} variant="h4" noWrap>
               GUIDE
-            </Link>
-            <Link className={classes.link} variant="h5" noWrap>
+            </Button>
+            <Button href="/contact" className={classes.link} variant="h4" noWrap>
               CONTACT
-            </Link>
-            <Link className={classes.link} variant="h5" noWrap>
-              ACCOUNT
-            </Link>
+            </Button>
+            {user ? (
+              <Button href="/account" className={classes.link} variant="h4" noWrap>
+                ACCOUNT
+              </Button>
+            ) : (
+              <></>
+            )}
           </div>
 
           <div className={classes.grow} />
-          { user ? (
+          {user ? (
             <div>
-              <Link onClick = {handleLogOut}>
-              <ExitToAppIcon />
+              <Link onClick={handleLogOut}>
+                <ExitToAppIcon />
               </Link>
             </div>
           ) : (

@@ -11,6 +11,7 @@ import Create from "./pages/Lecture/Create/Create.js";
 import Lecture from "./pages/Lecture/Lecture.js";
 import { useContext } from "react";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core";
+import Error from "./pages/Error/Error.js";
 
 function App() {
   const theme = createMuiTheme({
@@ -54,10 +55,12 @@ function App() {
                   <Create />
                 </Route>
                 <Route>
-                  <h1>ERROR</h1>
+                  <Error/>
                 </Route>
               </Switch>
+             
             </Userprotect>
+                
           </Switch>
         </UserProvider>
         <Footer />
