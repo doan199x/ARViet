@@ -25,6 +25,7 @@ const useStyles = makeStyles((theme) => ({
   menuButton: {
     marginRight: theme.spacing(2),
     marginLeft: "5%",
+    background: 'none',
   },
   title: {
     display: "none",
@@ -125,57 +126,20 @@ export default function Header() {
     </Menu>
   );
 
-  const mobileMenuId = "default-search-account-menu-mobile";
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
-    >
-      <MenuItem>
-        <IconButton aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="secondary">
-            <MailIcon />
-          </Badge>
-        </IconButton>
-        <p>Messages</p>
-      </MenuItem>
-      <MenuItem>
-        <IconButton aria-label="show 11 new notifications" color="inherit">
-          <Badge badgeContent={11} color="secondary">
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
-        <p>Notifications</p>
-      </MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem>
-    </Menu>
-  );
+  
 
   return (
     <div className={classes.grow}>
       <AppBar color="default" position="static">
         <Toolbar>
-          <Button
+          <Button 
             edge="start"
             className={classes.menuButton}
             color="inherit"
             aria-label="open drawer"
             href="/"
+            style={{ backgroundColor: 'transparent' }} 
+            disableRipple={true}
           >
             <div>
               <img src={logourl} className={classes.logo} />
@@ -187,17 +151,17 @@ export default function Header() {
           </Typography>
           <div className={classes.linkgroup}>
             <Button href="/about" className={classes.link} variant="h5" noWrap>
-              ABOUT
+              GIỚI THIỆU
             </Button>
             <Button href="/guide"className={classes.link} variant="h4" noWrap>
-              GUIDE
+              HƯỚNG DẪN
             </Button>
             <Button href="/contact" className={classes.link} variant="h4" noWrap>
-              CONTACT
+              LIÊN HỆ
             </Button>
             {user ? (
               <Button href="/account" className={classes.link} variant="h4" noWrap>
-                ACCOUNT
+                TÀI KHOẢN
               </Button>
             ) : (
               <></>
@@ -216,8 +180,6 @@ export default function Header() {
           )}
         </Toolbar>
       </AppBar>
-      {renderMobileMenu}
-      {renderMenu}
     </div>
   );
 }

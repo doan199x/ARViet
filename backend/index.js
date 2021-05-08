@@ -18,8 +18,12 @@ app.use(morgan('dev'));
 app.get("/", (req,res) => {
     res.send(`⚡️ Running on port ${port}! ⚡️`);
 });
+//Web
 app.use("/signup", require('./routers/signup'));
 app.use("/signin", require('./routers/signin'));
+app.use("/lecture", require('./routers/lecture'));
+
+//Mobile
 app.use("/login", require('./routers/login'));
 app.use("/lesson", require('./routers/lesson'));
 app.listen(`${port}`, () => {

@@ -10,4 +10,7 @@ export const productAPI = {
     checkToken: () => {
       return AXIOS_INSTANCE.post(API.CHECKTOKEN);
     },
+    lecture: (userid) => {
+      return AXIOS_INSTANCE.post(API.LECTURE, {userid});
+    },
 }

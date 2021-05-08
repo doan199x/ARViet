@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import Home from "./pages/Home/Home.js";
 
 import { UserProvider } from "../src/context/UserContext.jsx";
-import {Userprotect} from "../src/context/Userprotect.jsx";
+import { Userprotect } from "../src/context/Userprotect.jsx";
 import Signin from "./pages/Sign in/Signin.js";
 import Signup from "./pages/Sign up/Signup.js";
 import Header from "./Header/Header.js";
@@ -30,7 +30,6 @@ function App() {
       ].join(","),
     },
   });
-  //mat tieu cai app rui
   return (
     <Router>
       <ThemeProvider theme={theme}>
@@ -55,12 +54,10 @@ function App() {
                   <Create />
                 </Route>
                 <Route>
-                  <Error/>
+                  <Error />
                 </Route>
               </Switch>
-             
             </Userprotect>
-                
           </Switch>
         </UserProvider>
         <Footer />

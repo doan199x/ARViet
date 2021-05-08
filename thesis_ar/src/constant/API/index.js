@@ -1,5 +1,6 @@
 export const API = {
   SIGNUP: "/signup",
   SIGNIN: "/signin",
-  CHECKTOKEN: "/token"
+  CHECKTOKEN: "/token",
+  LECTURE: "/lecture"
 };
