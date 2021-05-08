@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -18,6 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { useHistory } from 'react-router-dom';
+import { UserContext } from '../../context/UserContext';
 
 function Copyright() {
   return (
@@ -74,6 +75,9 @@ const useStyles = makeStyles((theme) => ({
 export default function Signin() {
   const classes = useStyles();
   const history = useHistory();
+  const [user,setToken] = useContext(UserContext);
+  const token = localStorage.getItem('token');
+  if (token) history.push('/lecture');
   const { register, handleSubmit ,formState: { errors }} = useForm({
     resolver: yupResolver(schema),
   });
@@ -88,16 +92,25 @@ export default function Signin() {
   );
 
   const onSubmit = (data) => {
-    console.log(data);
     productAPI
         .signin(data.email, data.password)
         .then((data) => {
-         console.log(data.data);
-         localStorage.setItem("token", data.data.token);
-         history.push("/lecture");
+          console.log(data.data);
+        if (data.data !== 'notcorrect')
+        {
+          setToken(data.data.token);
+          console.log(data.data.token);
+          localStorage.setItem("token", data.data.token);
+          if (data.data.token) history.push("/lecture");
+        }
+        else
+        {
+          toast.error("Sai mật khẩu!  ❌");
+        }
+        
         })
         .catch((err) => {
-          toast.error("Gặp lỗi khi đăng nhập! Vui lòng thử lại.");
+          toast.error("⚠️  Gặp lỗi khi đăng nhập! Vui lòng thử lại.  ⚠️");
         });
   };
   return (

@@ -15,7 +15,7 @@ export default function Create() {
     let camera, scene, renderer;
     let meshes = [];
 
-    scene = new THREE.Scene();
+    let scene = new THREE.Scene();
 
     var axesHelper = new THREE.AxesHelper(200);
     scene.background = new THREE.Color(0x838784)
@@ -71,26 +71,24 @@ export default function Create() {
     var mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.set(degreeToRadian(-90), 0, 0);
     scene.add(mesh);
-
-
     function degreeToRadian(degree) {
         return degree * Math.PI / 180.0;
     }
-    function onMouseMove(event){
-        raycaster.setFromCamera({
-            x: (event.clientX / renderer.domElement.clientWidth) * 2 - 1,
-            y: -(event.clientY / renderer.domElement.clientHeight) * 2 + 1
-        }, camera);
-        const intersects = raycaster.intersectObject(scene.children);
-        for (let i=0;i<intersects.length;i++){
-            alert("haha");
-        }
-        // intersects = raycaster.intersectObject(pickableObjects,false);
-        // intersectedObject = intersects[0].object;
-        // pickableObjects.forEach((object,i)=>{
-        //     alert("haha");
-        // })
-    }
+    // function onMouseMove(event,scene){
+    //     raycaster.setFromCamera({
+    //         x: (event.clientX / renderer.domElement.clientWidth) * 2 - 1,
+    //         y: -(event.clientY / renderer.domElement.clientHeight) * 2 + 1
+    //     }, camera);
+    //     // const intersects = raycaster.intersectObject(scene.children);
+    //     // for (let i=0;i<intersects.length;i++){
+    //     //     alert("haha");
+    //     // }
+    //     // intersects = raycaster.intersectObject(pickableObjects,false);
+    //     // intersectedObject = intersects[0].object;
+    //     // pickableObjects.forEach((object,i)=>{
+    //     //     alert("haha");
+    //     // })
+    // }
 
     function show3dModel(httpPath, transformControls) {
         const loader = new GLTFLoader()
@@ -99,7 +97,6 @@ export default function Create() {
             function (gltf) {
                 meshes.push(gltf.scene);
                 scene.add(gltf.scene);
-
             },
             (xhr) => {
                 console.log((xhr.loaded / xhr.total * 100) + '% loaded')
@@ -110,7 +107,6 @@ export default function Create() {
         );
     }
     function animation(time) {
-
         // mesh.rotation.x = time / 2000;
         // mesh.rotation.y = time / 1000;
         renderer.render(scene, camera);

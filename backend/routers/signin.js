@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
         }
       );
     } else {
-      res.send("notcorrect");
+      res.send('notfound');
     }
   } catch (error) {
     res.send(error);
