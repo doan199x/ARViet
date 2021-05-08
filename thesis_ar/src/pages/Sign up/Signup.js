@@ -122,11 +122,11 @@ export default function Signup() {
         .signup(data.fullname, data.id, data.email, data.password)
         .then((data) => {
           if (data.data === "existed") {
-            toast.error("Email này đã được sử dụng!");
+            toast.error("📩   Email này đã được sử dụng!   📩");
           }
           else if (data.data.affectedRows === 1)
           {
-            toast.info("Đăng ký thành công! Vui lòng đăng nhập.");
+            toast.info("☑️  Đăng ký thành công! Vui lòng đăng nhập.  ☑️");
            //Yêu cầu đăng nhập
             history.push('/signin');
           }

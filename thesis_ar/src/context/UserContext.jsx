@@ -14,7 +14,8 @@ export const UserProvider = (props) => {
   const { children } = props;
   // const token = localStorage.getItem("token") || "";
   const history = useHistory();
-  const token = localStorage.getItem("token") || "";
+  let user = null;
+  const [token,setToken] = useState(localStorage.getItem("token") || "");
   const [result,setResult] = useState(true);
   useEffect(() => {
     if (token !== "")
@@ -29,12 +30,7 @@ export const UserProvider = (props) => {
   }, [token]);
 
   if (token && result) {
-    const user = jwtDecode(token);
-    return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
-  } else {
-    localStorage.removeItem("token");
-  }
-  // Redirect to signin
-  history.push("/");
-  return null;
+    user = jwtDecode(token);
+  } 
+  return <UserContext.Provider value={[user,setToken]}>{children}</UserContext.Provider>;
 };
