@@ -5,5 +5,8 @@ export const API = {
   MARKER: "/marker",
   ARCONTENT: "/arcontent",
   ARCONTENTDUOCCHON: "/arcontent/duocchon",
-  LECTURE: "/lecture"
+  LECTURE: "/lecture",
+  HANHDONGKHOITAO: '/hanhdong/khoitao',
+  HANHDONG: '/hanhdong',
+  NOIDUNGARHANHDONG: '/arcontent/hanhdong'
 };

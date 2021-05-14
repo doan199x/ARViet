@@ -28,11 +28,14 @@ app.use("/signup", require('./routers/signup'));
 app.use("/signin", require('./routers/signin'));
 app.use("/lecture", require('./routers/lecture'));
 
+app.use("/arcontent", require('./routers/arcontent'));
+app.use("/marker", require('./routers/marker'));
+app.use("/hanhdong", require('./routers/hanhdong'));
+
 //Mobile
 app.use("/login", require('./routers/login'));
 app.use("/lesson", require('./routers/lesson'));
-app.use("/arcontent", require('./routers/arcontent'));
-app.use("/marker", require('./routers/marker'));
+
 app.listen(`${port}`, () => {
     console.log(`⚡️ Running on port ${port}! ⚡️`);
 });

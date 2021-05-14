@@ -25,10 +25,22 @@ export const productAPI = {
   getArContent: (maDiemDanhDau) => {
     return AXIOS_INSTANCE.get(API.ARCONTENT, { params: { maDiemDanhDau: maDiemDanhDau } });
   },
-  updateDuocChonArContent: (MaNoiDung) => {
-    return AXIOS_INSTANCE.patch(API.ARCONTENT, MaNoiDung);
+  updateDuocChonArContent: (MaNoiDung, MaHanhDong) => {
+    return AXIOS_INSTANCE.patch(API.ARCONTENT, { MaNoiDung, MaHanhDong });
   },
-  getArContentDuocChon: (maDiemDanhDau) => {
-    return AXIOS_INSTANCE.get(API.ARCONTENTDUOCCHON, { params: { maDiemDanhDau: maDiemDanhDau } });
+  getArContentDuocChon: (maHanhDong) => {
+    return AXIOS_INSTANCE.get(API.ARCONTENTDUOCCHON, { params: { maHanhDong: maHanhDong } });
+  },
+  getMaHanhDongKhoiTao: (maDiemDanhDau) => {
+    return AXIOS_INSTANCE.get(API.HANHDONGKHOITAO, { params: { maDiemDanhDau: maDiemDanhDau } });
+  },
+  themHanhDong: (noiDung, maDiemDanhDau) => {
+    return AXIOS_INSTANCE.post(API.HANHDONG, { noiDung, maDiemDanhDau });
+  },
+  getNoiDungARByHanhDong: (maHanhDong) => {
+    return AXIOS_INSTANCE.get(API.NOIDUNGARHANHDONG, { params: { maHanhDong: maHanhDong } });
+  },
+  loadHanhDong: (maDiemDanhDau) => {
+    return AXIOS_INSTANCE.get(API.HANHDONG, { params: { maDiemDanhDau: maDiemDanhDau } });
   }
 }

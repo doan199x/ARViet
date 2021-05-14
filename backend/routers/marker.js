@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const token = require('../middlewares/token.mdw')
 const diemDanhDauModel = require('../model/marker');
+const hanhDongModel = require('../model/hanhdong');
 //multer marker
 var multer = require('multer');
 var storage = multer.diskStorage({
@@ -34,15 +35,15 @@ router.post("/", upload.single("file"), async (req, res, next) => {
     }
     // Neu ton tai thi update, khong thi insert
     const getDiemDanhDau = await diemDanhDauModel.getByID(maDiemDanhDau);
-    if (getDiemDanhDau.length == 0){
-      diemDanhDauModel.add(diemDanhDau);
-    }else{
-      diemDanhDauModel.updateURL(diemDanhDau.maDiemDanhDau,diemDanhDau.URL);
+    if (getDiemDanhDau.length == 0) {
+      await diemDanhDauModel.add(diemDanhDau);
+      const add = await hanhDongModel.add(maDiemDanhDau);
+    } else {
+      await diemDanhDauModel.updateURL(diemDanhDau.maDiemDanhDau, diemDanhDau.URL);
     }
-    console.log(getDiemDanhDau);
     res.json({
       'filenname': req.file.filename,
-      'URL': 'http://localhost:3001/uploads/marker/' + req.file.filename
+      'URL': 'http://localhost:3001/uploads/marker/' + req.file.filename,
     })
   } catch (err) {
     next(err);

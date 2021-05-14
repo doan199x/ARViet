@@ -3,6 +3,7 @@ const router = express.Router();
 const token = require('../middlewares/token.mdw')
 const diemDanhDauModel = require('../model/marker');
 const noiDungArModel = require('../model/noidungar');
+const hanhDongModel = require('../model/hanhdong');
 
 //ar content
 var multer = require('multer');
@@ -32,16 +33,14 @@ var upload = multer({
 })
 router.post("/", upload.single("file"), async (req, res, next) => {
   try {
-    const maDiemDanhDau = 1;
     const noiDungAR = {
-      MaDiemDanhDau: maDiemDanhDau,
+      MaHanhDong: req.body.maHanhDongHienTai,
       ToaDoX: 0,
       ToaDoY: 0,
       ToaDoZ: 0,
       TiLe: 1,
       URL: 'http://localhost:3001/uploads/arcontent/' + req.file.filename,
       CapDo: 0,
-      DuocChon: false,
       filename: req.file.filename,
       XoayX: 0,
       XoayY: 0,
@@ -75,9 +74,12 @@ router.get("/", async (req, res, next) => {
 
 router.patch("/", async (req, res, next) => {
   try {
-    const findByMaNoiDung = await noiDungArModel.findByMaNoiDung(req.body.MaNoiDung);
+    data = req.body.MaNoiDung;
+    console.log(data);
+    const findByMaNoiDung = await noiDungArModel.findByMaNoiDung(data.MaNoiDung);
+    let maHanhDong = req.body.MaHanhDong;
     if (findByMaNoiDung.length > 0) {
-      let addNoiDungARDuocChon = await noiDungArModel.addNoiDungARDuocChon(findByMaNoiDung[0]);
+      let addNoiDungARDuocChon = await noiDungArModel.addNoiDungARDuocChon(findByMaNoiDung[0], data.MaHanhDong);
       const ArContentDuocChon = await noiDungArModel.findByMaNoiDung(addNoiDungARDuocChon.insertId);
       res.json(ArContentDuocChon[0]);
     } else {
@@ -90,15 +92,25 @@ router.patch("/", async (req, res, next) => {
 
 router.get("/duocchon", async (req, res, next) => {
   try {
-    const maDiemDanhDau = req.query.maDiemDanhDau;
-    const getDiemDanhDau = await diemDanhDauModel.getByID(maDiemDanhDau);
-    if (getDiemDanhDau.length == 0) {
+    const maHanhDong = req.query.maHanhDong;
+    const getHanhDong = await hanhDongModel.getByID(maHanhDong);
+    if (getHanhDong.length == 0) {
       res.json([]);
     } else {
       //get
-      let getArContent = await diemDanhDauModel.getARContentDuocChon(maDiemDanhDau);
+      let getArContent = await hanhDongModel.getARContentDuocChon(maHanhDong);
       res.json(getArContent);
     }
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.get("/hanhdong", async (req, res, next) => {
+  try {
+    let maHanhDong = req.query.maHanhDong;
+    const getNoiDungAR = await noiDungArModel.getNoiDungARByHanhDong(maHanhDong);
+    res.json(getNoiDungAR);
   } catch (err) {
     next(err);
   }

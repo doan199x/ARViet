@@ -56,7 +56,7 @@ create table TuongTac(
 create table HanhDong(
 	MaHanhDong int not null auto_increment,
     NoiDung varchar(50),
-    MaNoiDung int,
+    MaDiemDanhDau int,
     primary key (MaHanhDong)
 );
 
@@ -70,11 +70,10 @@ create table NoiDungAR(
     XoayZ float,
     TiLe float,
     URL varchar(200),
-    MaDiemDanhDau int,
-    CapDo varchar(50),
-    DuocChon boolean,
+    MaHanhDong int,
     filename varchar(200),
     LaFile boolean,
+    LaTam boolean,
     primary key (MaNoiDung)
 );
 create table NoiDungARVanBan(
@@ -98,8 +97,8 @@ alter table BaiGiang add constraint FK_BaiGiang_GiaoVien foreign key (MaGiaoVien
 alter table HocSinhBaiGiang add constraint FK_HSBG_HocSinh foreign key (MaHocSinh) references HocSinh(MaHocSinh);
 alter table HocSinhBaiGiang add constraint FK_HSBG_BaiGiang foreign key (MaBaiGiang) references BaiGiang(MaBaiGiang);
 alter table DiemDanhDau add constraint FK_DiemDanhDau_BaiGiang foreign key (MaBaiGiang) references BaiGiang(MaBaiGiang);
-alter table NoiDungAR add constraint FK_NoiDungAR_DiemDanhDau foreign key (MaDiemDanhDau) references DiemDanhDau(MaDiemDanhDau);
-alter table HanhDong add constraint FK_HanhDong_NoiDung foreign key (MaNoiDung) references NoiDungAR(MaNoiDung);
+alter table NoiDungAR add constraint FK_NoiDungAR_HanhDong foreign key (MaHanhDong) references HanhDong(MaHanhDong);
+alter table HanhDong add constraint FK_HanhDong_DiemDanhDau foreign key (MaDiemDanhDau) references DiemDanhDau(MaDiemDanhDau);
 alter table NoiDungARCon add constraint FK_NoiDungARCon_HanhDong foreign key (MaHanhDong) references HanhDong(MaHanhDong);
 
 /*1-1 relationship*/
@@ -108,8 +107,7 @@ alter table NoiDungARVanBan add constraint FK_NoiDungARVanBan_NoiDungAR UNIQUE (
 
 alter table NoiDungARCon add constraint FK_NoiDungARCon_NoiDungAR UNIQUE (MaNoiDung);
 
-alter table HanhDong add constraint FK_HanhDong_TuongTac foreign key (MaHanhDong) references TuongTac(MaHanhDong);
-alter table TuongTac add constraint FK_TuongTac_HanhDong foreign key (MaHanhDong) references HanhDong(MaHanhDong);
+alter table TuongTac add constraint FK_TuongTac_HanhDong UNIQUE (MaHanhDong);
 
 insert into GiaoVien(Ten,NgaySinh,TenDangNhap,Email,MatKHau) values('Nguyễn Văn B','1999-10-10','anan0s234','anan1s23@gmail.com','123456');
 insert into GiaoVien(Ten,NgaySinh,TenDangNhap,Email,MatKHau) values('Nguyễn Văn C','1998-10-10','anassn0s234','anansss1s23@gmail.com','123456');
@@ -126,3 +124,5 @@ insert into HocSinhBaiGiang(MaHocSinh,MaBaiGiang,ThoiGianTao) values(1,1,now());
 insert into HocSinhBaiGiang(MaHocSinh,MaBaiGiang,ThoiGianTao) values(1,2,now());
 
 select* from NoiDungAR;
+select* from DiemDanhDau;
+

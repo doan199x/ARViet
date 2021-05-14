@@ -11,6 +11,7 @@ import TextSprite from '@seregpie/three.text-sprite';
 import TextTexture from '@seregpie/three.text-texture';
 import { productAPI } from "../../../config/productAPI";
 import e from 'cors';
+import { API } from '../../../constant/API';
 const axios = require('axios');
 
 export default function Create() {
@@ -18,14 +19,16 @@ export default function Create() {
     // load marker
     const maBaiGiang = 1;
     const maDiemDanhDau = 1;
+
+
     let camera, renderer;
-    let meshes = [];
     let arrayTextObject = [];
 
     let currentID = 0;
     let currentMarkerID = 0;
 
     let scene = new THREE.Scene();
+    let maHanhDongHienTai = 0;
 
     //add axes
 
@@ -46,10 +49,15 @@ export default function Create() {
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.0001, 100);
     camera.position.set(10, 5, 10);
 
+
+    let scene2 = new THREE.Scene();
+
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setAnimationLoop(animation);
-
+    function animation(time) {
+        renderer.render(scene, camera);
+    }
     // add domEvents
     let domEvents = new THREEx.DomEvents(camera, renderer.domElement);
 
@@ -74,12 +82,23 @@ export default function Create() {
     //window resize
     window.addEventListener('resize', onWindowResize, false)
     function onWindowResize() {
-
         camera.aspect = window.innerWidth / window.innerHeight
         camera.updateProjectionMatrix()
         renderer.setSize(window.innerWidth, window.innerHeight)
         animation()
     }
+    document.addEventListener('DOMContentLoaded', function () {
+        // init scene
+        let sceneRender = document.getElementById("sceneRender");
+        sceneRender.appendChild(renderer.domElement);
+        let scene2 = document.getElementById("scene2");
+        showMarker();
+        showTiLeMarker();
+        getMaHanhDongKhoiTao();
+        loadArContent();
+        loadDanhSachHanhDong();
+        setEventTransform();
+    }, false);
 
     //Upload marker
     function uploadMarker() {
@@ -91,17 +110,6 @@ export default function Create() {
             showMarker();
         })
     }
-    document.addEventListener('DOMContentLoaded', function () {
-        // init scene
-        let sceneRender = document.getElementById("sceneRender");
-        sceneRender.appendChild(renderer.domElement);
-        showMarker();
-        showTiLeMarker();
-        loadArContent();
-        setEventTransform();
-        loadDanhSachDoiTuong();
-
-    }, false);
     function showMarker() {
         // check co marker chua
         productAPI.getMarker(maBaiGiang, maDiemDanhDau).then((data) => {
@@ -138,6 +146,7 @@ export default function Create() {
             currentMarkerObject.scale.set(tiLeMarker, tiLeMarker, tiLeMarker);
         }
     }
+
     function showTiLeMarker() {
         let tiLeMarker = document.getElementById("tiLeMarker");
         if (currentMarkerID == 0) {
@@ -147,16 +156,24 @@ export default function Create() {
             tiLeMarker = currentMarkerObject.scale.x;
         }
     }
+    function getMaHanhDongKhoiTao() {
+        productAPI.getMaHanhDongKhoiTao(maDiemDanhDau).then((data) => {
+            maHanhDongHienTai = data.data.maHanhDongKhoiTao;
+            loadDanhSachDoiTuong();
+        })
+    }
 
     //Upload arContent
     function uploadArContent() {
+        console.log(maHanhDongHienTai);
         let arContentFile = document.getElementById("uploadFileArContent").files[0];
         let formData = new FormData();
         formData.append("file", arContentFile);
+        formData.append("maHanhDongHienTai", maHanhDongHienTai);
         productAPI.uploadArContent(formData).then((data) => {
+            getMaHanhDongKhoiTao();
             loadArContent();
         })
-
     }
 
     // Load arContent
@@ -188,7 +205,9 @@ export default function Create() {
     }
     function loadDanhSachDoiTuong() {
         let danhSachDoiTuong = document.getElementById("danhSachDoiTuong");
-        productAPI.getArContentDuocChon(maDiemDanhDau).then((data) => {
+        danhSachDoiTuong.innerHTML = "";
+        productAPI.getArContentDuocChon(maHanhDongHienTai).then((data) => {
+            console.log(maHanhDongHienTai);
             let arContent = data.data;
             for (let i = 0; i < arContent.length; i++) {
                 let li = document.createElement("li");
@@ -202,7 +221,6 @@ export default function Create() {
         loader.load(
             httpPath,
             function (gltf) {
-                meshes.push(gltf.scene);
                 scene.add(gltf.scene)
                 domEvents.addEventListener(gltf.scene, 'dblclick', function (event) {
                     transformControls.detach();
@@ -213,7 +231,7 @@ export default function Create() {
                     showFormEdit();
                 }, false)
                 // create new instance arcontent duoc chon
-                productAPI.updateDuocChonArContent({ MaNoiDung: MaNoiDung }).then((data) => {
+                productAPI.updateDuocChonArContent({ MaNoiDung: MaNoiDung, MaHanhDong: maHanhDongHienTai }).then((data) => {
                     // update List danh sách hành dongUI
                     let danhSachHanhDong = document.getElementById("danhSachDoiTuong");
                     let hanhDongLi = document.createElement("li");
@@ -229,7 +247,31 @@ export default function Create() {
             }
         );
     }
-
+    function loadDanhSachHanhDong() {
+        productAPI.loadHanhDong(maDiemDanhDau).then((data) => {
+            let hanhDongArr = data.data;
+            let danhSachHanhDong = document.getElementById("danhSachHanhDong");
+            danhSachHanhDong.innerHTML = "";
+            for (let i = 0; i < hanhDongArr.length; i++) {
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode(hanhDongArr[i].NoiDung));
+                let id = document.createAttribute("id");
+                id.value = hanhDongArr[i].MaHanhDong + hanhDongArr[i].NoiDung;
+                li.setAttributeNode(id);
+                danhSachHanhDong.appendChild(li);
+                document.getElementById(id.value).onclick = function () {
+                    loadNoiDungARByHanhDong(hanhDongArr[i].MaHanhDong);
+                }
+            }
+        })
+    }
+    function loadNoiDungARByHanhDong(maHanhDong) {
+        maHanhDongHienTai = maHanhDong;
+        productAPI.getNoiDungARByHanhDong(maHanhDong).then((data) => {
+            loadDanhSachDoiTuong();
+            console.log(data);
+        })
+    }
     function show2DImage(URL, MaNoiDung) {
         var img = new Image();
         img.src = URL;
@@ -252,18 +294,16 @@ export default function Create() {
                 currentID = imageTexture.id;
             }, false)
             // create new instance arcontent duoc chon
-            productAPI.updateDuocChonArContent({ MaNoiDung: MaNoiDung }).then((data) => {
+            productAPI.updateDuocChonArContent({ MaNoiDung: MaNoiDung, MaHanhDong: maHanhDongHienTai }).then((data) => {
                 // update List danh sách hành dongUI
-                let danhSachHanhDong = document.getElementById("danhSachDoiTuong");
+                let danhSachDoiTuong = document.getElementById("danhSachDoiTuong");
                 let hanhDongLi = document.createElement("li");
                 hanhDongLi.appendChild(document.createTextNode(data.data.filename));
-                danhSachHanhDong.appendChild(hanhDongLi);
+                danhSachDoiTuong.appendChild(hanhDongLi);
             })
         }
     }
-
     // setText
-
     function setText2D() {
         let fontChu = document.getElementById("fontChu").value;
         let textObject = {
@@ -310,20 +350,16 @@ export default function Create() {
             currentID = textTexture.id;
         }, false)
         textObject.ID = textTexture.id;
+        textObject.maHanhDong = maHanhDongHienTai;
         arrayTextObject.push(textObject);
     }
 
     //Them hanh dong
     function themHanhDong() {
-        let hanhDong = document.getElementById("hanhDong").value;
-        let danhSachHanhDong = document.getElementById("danhSachHanhDong");
-        let hanhDongLi = document.createElement("li");
-        hanhDongLi.appendChild(document.createTextNode(hanhDong));
-        danhSachHanhDong.appendChild(hanhDongLi);
-    }
-
-    function animation(time) {
-        renderer.render(scene, camera);
+        let noiDung = document.getElementById("hanhDong").value;
+        productAPI.themHanhDong(noiDung, maDiemDanhDau).then((data) => {
+            loadDanhSachHanhDong();
+        })
     }
     function showFormEdit() {
         showToaDo();
@@ -458,6 +494,7 @@ export default function Create() {
             <p>Tải file nội dung AR (Chấp nhận glb và gltf cho mô hình 3D, jpg,png cho hình ảnh, mp4 cho phim và mp3 cho audio</p>
             <input id="uploadFileArContent" type="file"></input>
             <button onClick={() => uploadArContent()}>Hoàn tất</button>
+            <p>Danh sách nội dung đã tải</p>
             <ul id="arContentList">
 
             </ul>
@@ -474,6 +511,9 @@ export default function Create() {
                     </select>
                 </li>
             </ul>
+            <label>Thêm hành động</label>
+            <input type="text" id="hanhDong"></input>
+            <button onClick={() => themHanhDong()}>Thêm</button>
             <p>Danh sách hành động</p>
             <ul id="danhSachHanhDong">
             </ul>
@@ -527,10 +567,10 @@ export default function Create() {
                 <input id="xoayTrucZ" type="number" step="any" onBlur={() => setGocXoay()}></input>
             </div>
             <br></br>
-            <label>Thêm hành động</label>
-            <input type="text" id="hanhDong"></input>
-            <button onClick={() => themHanhDong()}>Thêm</button>
             <div id="sceneRender">
+
+            </div>
+            <div id="scene2">
 
             </div>
         </div>
