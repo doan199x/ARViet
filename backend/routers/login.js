@@ -10,7 +10,6 @@ router.post("/", async (req, res) => {
 router.post("/mobile", async (req, res, next) => {
     try {
         const hocSinh = req.body;
-        console.log(hocSinh);
         const checkPassword = await hocSinhModel.checkPassword(hocSinh.TenDangNhap);
         if (checkPassword.length == 0) {
             res.json({

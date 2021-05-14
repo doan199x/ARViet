@@ -1,129 +1,538 @@
 import React from 'react'
-// import { Component } from 'react';
-// import * as THREE from "three";
-// import { Color, PixelFormat, Vector3 } from 'three';
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-// import { DragControls } from 'three/examples/jsm/controls/DragControls';
-// import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { Component } from 'react';
+import * as THREE from "three";
+import { Color, PixelFormat, Vector3 } from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { DragControls } from 'three/examples/jsm/controls/DragControls';
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import THREEx from "./threex.domevents/threex.domevents";
+import TextSprite from '@seregpie/three.text-sprite';
+import TextTexture from '@seregpie/three.text-texture';
+import { productAPI } from "../../../config/productAPI";
+import e from 'cors';
+const axios = require('axios');
 
 export default function Create() {
+    // load 3d model
+    // load marker
+    const maBaiGiang = 1;
+    const maDiemDanhDau = 1;
+    let camera, renderer;
+    let meshes = [];
+    let arrayTextObject = [];
+
+    let currentID = 0;
+    let currentMarkerID = 0;
+
+    let scene = new THREE.Scene();
+
+    //add axes
+
+    var axesHelper = new THREE.AxesHelper(200);
+    scene.background = new THREE.Color(0x838784)
+    scene.add(axesHelper);
+
+    //grid helper:
+    var gridXZ = new THREE.GridHelper(30, 30, 0x000000, 0x000000);
+    gridXZ.position.y = 0;
+    scene.add(gridXZ);
+
+    //add light
+
+    const light = new THREE.AmbientLight(0xffffff); // soft white light
+    scene.add(light);
+
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.0001, 100);
+    camera.position.set(10, 5, 10);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setAnimationLoop(animation);
+
+    // add domEvents
+    let domEvents = new THREEx.DomEvents(camera, renderer.domElement);
+
+    //orbit control
+    const orbitControls = new OrbitControls(camera, renderer.domElement);
+    orbitControls.screenSpacePanning = true;
+    orbitControls.target.set(0, 0, 0);
+
+    // transform control
+    const transformControls = new TransformControls(camera, renderer.domElement);
+    transformControls.addEventListener('dragging-changed', function (event) {
+        orbitControls.enabled = !event.value
+    })
+    // transformControls.addEventListener('objectChange', function (event) {
+    //     showToaDo();
+    //     showTiLe();
+    //     showGocQuay();
+    // })
 
 
-    // // load 3d model
-    // // load marker
-    // let camera, scene, renderer;
-    // let meshes = [];
+    //---------------------------------------------------
+    //window resize
+    window.addEventListener('resize', onWindowResize, false)
+    function onWindowResize() {
 
-    // scene = new THREE.Scene();
+        camera.aspect = window.innerWidth / window.innerHeight
+        camera.updateProjectionMatrix()
+        renderer.setSize(window.innerWidth, window.innerHeight)
+        animation()
+    }
 
-    // var axesHelper = new THREE.AxesHelper(200);
-    // scene.background = new THREE.Color(0x838784)
-    // scene.add(axesHelper);
+    //Upload marker
+    function uploadMarker() {
+        let markerFile = document.getElementById("uploadFileMarker").files[0];
+        let formData = new FormData();
+        formData.append("file", markerFile);
+        formData.append("maDiemDanhDau", maDiemDanhDau);
+        productAPI.uploadMarker(formData).then((data) => {
+            showMarker();
+        })
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        // init scene
+        let sceneRender = document.getElementById("sceneRender");
+        sceneRender.appendChild(renderer.domElement);
+        showMarker();
+        showTiLeMarker();
+        loadArContent();
+        setEventTransform();
+        loadDanhSachDoiTuong();
 
-    // const light = new THREE.AmbientLight(0xffffff); // soft white light
-    // scene.add(light);
+    }, false);
+    function showMarker() {
+        // check co marker chua
+        productAPI.getMarker(maBaiGiang, maDiemDanhDau).then((data) => {
+            if (data.data.length == 0) {
+            } else {
+                // Load marker
+                var img = new Image();
+                img.src = data.data[0].URL;
+                img.onload = function () {
+                    var loader = new THREE.TextureLoader();
+                    // Load an image file into a custom material
+                    var material = new THREE.MeshLambertMaterial({
+                        map: loader.load(data.data[0].URL)
+                    });
+                    var geometry = new THREE.PlaneGeometry(4, 4 * img.height / img.width);
+                    // combine our image geometry and material into a mesh
+                    var marker = new THREE.Mesh(geometry, material);
+                    marker.rotation.set(degreeToRadian(-90), 0, 0);
+                    scene.remove(scene.getObjectById(currentMarkerID));
+                    currentMarkerID = marker.id;
+                    scene.add(marker);
+                }
+            }
+        })
+        // hien thi ra marker dau tien
+    }
+    // Set Marker scale
+    function setTiLeMarker() {
+        if (currentMarkerID == 0) {
+            alert("ban chua tai len marker");
+        } else {
+            let tiLeMarker = document.getElementById("tiLeMarker").value;
+            let currentMarkerObject = scene.getObjectById(currentMarkerID);
+            currentMarkerObject.scale.set(tiLeMarker, tiLeMarker, tiLeMarker);
+        }
+    }
+    function showTiLeMarker() {
+        let tiLeMarker = document.getElementById("tiLeMarker");
+        if (currentMarkerID == 0) {
+            tiLeMarker.value = 1;
+        } else {
+            let currentMarkerObject = scene.getObjectById(currentMarkerID);
+            tiLeMarker = currentMarkerObject.scale.x;
+        }
+    }
 
-    // camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.0001, 100);
-    // camera.position.set(10, 5, 10);
+    //Upload arContent
+    function uploadArContent() {
+        let arContentFile = document.getElementById("uploadFileArContent").files[0];
+        let formData = new FormData();
+        formData.append("file", arContentFile);
+        productAPI.uploadArContent(formData).then((data) => {
+            loadArContent();
+        })
 
-    // geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-    // material = new THREE.MeshNormalMaterial();
+    }
 
-    // // mesh = new THREE.Mesh(geometry, material);
-    // // scene.add(mesh);
-    // // mesh.position.set(0, 0, 0);
+    // Load arContent
+    function loadArContent() {
+        let arContentList = document.getElementById("arContentList");
+        //get All
+        productAPI.getArContent(maDiemDanhDau).then((data) => {
+            let arContent = data.data;
+            arContentList.innerHTML = "";
+            for (let i = 0; i < arContent.length; i++) {
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode(arContent[i].filename));
+                let id = document.createAttribute("id");
+                id.value = arContent[i].filename;
+                li.setAttributeNode(id);
+                arContentList.appendChild(li);
+                if (arContent[i].URL[arContent[i].URL.length - 1] == 'b') {
+                    document.getElementById(arContent[i].filename).onclick = function () {
+                        show3dModel(arContent[i].URL, arContent[i].MaNoiDung);
+                    }
+                } else if (arContent[i].URL[arContent[i].URL.length - 1] == 'g') {
+                    document.getElementById(arContent[i].filename).onclick = function () {
+                        show2DImage(arContent[i].URL, arContent[i].MaNoiDung);
+                    }
+                }
 
-    // renderer = new THREE.WebGLRenderer({ antialias: true });
-    // renderer.setSize(window.innerWidth, window.innerHeight);
-    // renderer.setAnimationLoop(animation);
-    // document.body.appendChild(renderer.domElement);
+            }
+        })
+    }
+    function loadDanhSachDoiTuong() {
+        let danhSachDoiTuong = document.getElementById("danhSachDoiTuong");
+        productAPI.getArContentDuocChon(maDiemDanhDau).then((data) => {
+            let arContent = data.data;
+            for (let i = 0; i < arContent.length; i++) {
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode(arContent[i].filename));
+                danhSachDoiTuong.appendChild(li);
+            }
+        })
+    }
+    function show3dModel(httpPath, MaNoiDung) {
+        const loader = new GLTFLoader()
+        loader.load(
+            httpPath,
+            function (gltf) {
+                meshes.push(gltf.scene);
+                scene.add(gltf.scene)
+                domEvents.addEventListener(gltf.scene, 'dblclick', function (event) {
+                    transformControls.detach();
+                    transformControls.attach(gltf.scene);
+                    transformControls.setMode("translate");
+                    scene.add(transformControls);
+                    currentID = gltf.scene.id;
+                    showFormEdit();
+                }, false)
+                // create new instance arcontent duoc chon
+                productAPI.updateDuocChonArContent({ MaNoiDung: MaNoiDung }).then((data) => {
+                    // update List danh sách hành dongUI
+                    let danhSachHanhDong = document.getElementById("danhSachDoiTuong");
+                    let hanhDongLi = document.createElement("li");
+                    hanhDongLi.appendChild(document.createTextNode(data.data.filename));
+                    danhSachHanhDong.appendChild(hanhDongLi);
+                })
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded')
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+    }
 
+    function show2DImage(URL, MaNoiDung) {
+        var img = new Image();
+        img.src = URL;
+        img.onload = function () {
+            var loader = new THREE.TextureLoader();
+            // Load an image file into a custom material
+            var material = new THREE.MeshLambertMaterial({
+                map: loader.load(URL),
+                side: THREE.DoubleSide
+            });
+            var geometry = new THREE.PlaneGeometry(4, 4 * img.height / img.width);
+            // combine our image geometry and material into a mesh
+            var imageTexture = new THREE.Mesh(geometry, material);
+            scene.add(imageTexture);
+            domEvents.addEventListener(imageTexture, 'dblclick', function (event) {
+                transformControls.detach();
+                transformControls.attach(imageTexture);
+                transformControls.setMode("translate");
+                scene.add(transformControls);
+                currentID = imageTexture.id;
+            }, false)
+            // create new instance arcontent duoc chon
+            productAPI.updateDuocChonArContent({ MaNoiDung: MaNoiDung }).then((data) => {
+                // update List danh sách hành dongUI
+                let danhSachHanhDong = document.getElementById("danhSachDoiTuong");
+                let hanhDongLi = document.createElement("li");
+                hanhDongLi.appendChild(document.createTextNode(data.data.filename));
+                danhSachHanhDong.appendChild(hanhDongLi);
+            })
+        }
+    }
 
-    // //Controls
-    // const orbitControls = new OrbitControls(camera, renderer.domElement);
-    // orbitControls.screenSpacePanning = true;
-    // orbitControls.target.set(0, 0, 0);
-    // var dragControls = new DragControls(meshes, camera, renderer.domElement);
-    // var loader = new THREE.TextureLoader();
-    // renderer.domElement.ondragstart = function (event) { event.preventDefault(); return false; };
-    // dragControls.addEventListener("hoveron", function () {
-    //     orbitControls.enabled = false;
-    // });
-    // dragControls.addEventListener("hoveroff", function () {
-    //     orbitControls.enabled = true;
-    // });
+    // setText
 
-    // //Click event
-    // let raycaster = new THREE.Raycaster();
+    function setText2D() {
+        let fontChu = document.getElementById("fontChu").value;
+        let textObject = {
+            noiDung: document.getElementById("noiDung").value,
+            coChu: document.getElementById("coChu").value,
+            mauChu: document.getElementById("mauChu").value,
+            mauNen: document.getElementById("mauNen").value,
+            transparent: false
+        }
+        let configTextture = {
+            alignment: 'center',
+            color: textObject.mauChu,
+            fontFamily: textObject.fontChu,
+            fontSize: parseInt(textObject.coChu),
+            text: [textObject.noiDung].join('\n')
+        }
+        if (document.getElementById("trongSuot").checked == true) {
+            textObject.transparent = true;
+        } else {
+            configTextture.backgroundColor = textObject.mauNen
+        }
+        if (fontChu == 'timenewsroman') {
+            configTextture.fontFamily = '\"Times New Roman\", Times, serif';
+            textObject.fontChu = '\"Times New Roman\", Times, serif';
+        } else if (fontChu == 'Arial') {
+            configTextture.fontFamily = "Arial, Helvetica, sans-serif";
+            texture.fontChu = "Arial, Helvetica, sans-serif";
+        }
+        let texture = new TextTexture(configTextture);
+        let material = new THREE.MeshLambertMaterial({
+            map: texture,
+            transparent: textObject.transparent,
+            side: THREE.DoubleSide
+        });
+        var geometry = new THREE.PlaneGeometry(texture.width / 50, texture.height / 50);
+        var textTexture = new THREE.Mesh(geometry, material);
+        texture.redraw();
+        scene.add(textTexture);
+        domEvents.addEventListener(textTexture, 'dblclick', function (event) {
+            transformControls.detach();
+            transformControls.attach(textTexture);
+            transformControls.setMode("translate");
+            scene.add(transformControls);
+            currentID = textTexture.id;
+        }, false)
+        textObject.ID = textTexture.id;
+        arrayTextObject.push(textObject);
+    }
 
+    //Them hanh dong
+    function themHanhDong() {
+        let hanhDong = document.getElementById("hanhDong").value;
+        let danhSachHanhDong = document.getElementById("danhSachHanhDong");
+        let hanhDongLi = document.createElement("li");
+        hanhDongLi.appendChild(document.createTextNode(hanhDong));
+        danhSachHanhDong.appendChild(hanhDongLi);
+    }
 
-    // // Load an image file into a custom material
-    // var material = new THREE.MeshLambertMaterial({
-    //     map: loader.load('https://testar11.herokuapp.com/images/charizard.jpg')
-    // });
+    function animation(time) {
+        renderer.render(scene, camera);
+    }
+    function showFormEdit() {
+        showToaDo();
+        showTiLe();
+        showGocQuay();
+        document.getElementById("form-edit-3d").style.display = "block"
+    }
+    function showToaDo() {
+        let currentObject = scene.getObjectById(currentID);
+        document.getElementById('toaDoX').value = currentObject.position.x;
+        document.getElementById('toaDoY').value = currentObject.position.y;
+        document.getElementById('toaDoZ').value = currentObject.position.z;
+    }
+    function showTiLe() {
+        let currentObject = scene.getObjectById(currentID);
+        document.getElementById('tiLeX').value = currentObject.scale.x;
+        document.getElementById('tiLeY').value = currentObject.scale.y;
+        document.getElementById('tiLeZ').value = currentObject.scale.z;
+    }
+    function showGocQuay() {
+        let currentObject = scene.getObjectById(currentID);
+        document.getElementById('xoayTrucX').value = radianToDegree(currentObject.rotation.x);
+        document.getElementById('xoayTrucY').value = radianToDegree(currentObject.rotation.y);
+        document.getElementById('xoayTrucZ').value = radianToDegree(currentObject.rotation.z);
+    }
+    function setToaDo() {
+        let currentObject = scene.getObjectById(currentID);
+        let toaDoX = document.getElementById('toaDoX').value.trim();
+        let toaDoY = document.getElementById('toaDoY').value.trim();
+        let toaDoZ = document.getElementById('toaDoZ').value.trim();
+        if (toaDoX.length == 0 || toaDoY.length == 0 || toaDoZ.length == 0) {
+            alert("Vui long nhap du toa do");
+            setTimeout(setToaDo, 10000);
+        } else {
+            currentObject.position.set(toaDoX, toaDoY, toaDoZ);
+        }
+    }
+    function setTiLe() {
+        let currentObject = scene.getObjectById(currentID);
+        let tiLeX = document.getElementById('tiLeX').value.trim();
+        let tiLeY = document.getElementById('tiLeY').value.trim();
+        let tiLeZ = document.getElementById('tiLeZ').value.trim();
+        if (tiLeX.length == 0 || tiLeY.length == 0 || tiLeZ.length == 0) {
+            alert("Vui long nhap du ti le");
+            setTimeout(setTiLe, 10000);
+        } else {
+            currentObject.scale.set(tiLeX, tiLeY, tiLeZ);
+        }
+    }
+    function setGocXoay() {
+        let currentObject = scene.getObjectById(currentID);
+        let xoayTrucX = document.getElementById('xoayTrucX').value.trim();
+        let xoayTrucY = document.getElementById('xoayTrucY').value.trim();
+        let xoayTrucZ = document.getElementById('xoayTrucZ').value.trim();
+        if (xoayTrucX.length == 0 || xoayTrucY.length == 0 || xoayTrucZ.length == 0) {
+            alert("Vui long nhap du ti le");
+            setTimeout(setGocXoay, 10000);
+        } else {
+            xoayTrucX = degreeToRadian(parseFloat(xoayTrucX));
+            xoayTrucY = degreeToRadian(parseFloat(xoayTrucY));
+            xoayTrucZ = degreeToRadian(parseFloat(xoayTrucZ));
+            currentObject.rotation.set(xoayTrucX, xoayTrucY, xoayTrucZ);
+        }
+    }
+    function degreeToRadian(degree) {
+        return degree * Math.PI / 180.0;
+    }
+    function radianToDegree(radian) {
+        return radian * 180.0 / Math.PI
+    }
 
-    // // create a plane geometry for the image with a width of 10
-    // // and a height that preserves the image's aspect ratio
-    // var geometry = new THREE.PlaneGeometry(5, 5 * .75);
+    function setEventTransform() {
+        window.addEventListener('keydown', function (event) {
+            switch (event.key) {
+                case "t":
+                    if (currentID != 0) {
+                        let currentObject = scene.getObjectById(currentID);
+                        transformControls.detach();
+                        transformControls.attach(currentObject);
+                        transformControls.setMode("translate");
+                        scene.add(transformControls);
+                    }
+                    break
+                case "r":
+                    if (currentID != 0) {
+                        let currentObject = scene.getObjectById(currentID);
+                        transformControls.detach();
+                        transformControls.attach(currentObject);
+                        transformControls.setMode("rotate");
+                        scene.add(transformControls);
+                    }
+                    break
+                case "s":
+                    if (currentID != 0) {
+                        let currentObject = scene.getObjectById(currentID);
+                        transformControls.detach();
+                        transformControls.attach(currentObject);
+                        transformControls.setMode("scale");
+                        scene.add(transformControls);
+                    }
+                    break
+                case "Escape":
+                    if (currentID != 0) {
+                        transformControls.detach();
+                        scene.remove(transformControls);
+                    }
+                    break
+                case "Delete":
+                    if (currentID != 0) {
+                        let currentObject = scene.getObjectById(currentID);
+                        transformControls.detach();
+                        scene.remove(currentObject);
+                        console.log(currentObject);
+                        scene.remove(transformControls);
+                        console.log(currentID);
+                        for (let i = 0; i < arrayTextObject.length; i++) {
+                            if (currentID == arrayTextObject[i].ID) {
+                                arrayTextObject.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
+            }
+        })
+    }
 
-    // // combine our image geometry and material into a mesh
-    // var mesh = new THREE.Mesh(geometry, material);
-    // mesh.rotation.set(degreeToRadian(-90), 0, 0);
-    // scene.add(mesh);
-    // function degreeToRadian(degree) {
-    //     return degree * Math.PI / 180.0;
-    // }
-    // function onMouseMove(event){
-    //     raycaster.setFromCamera({
-    //         x: (event.clientX / renderer.domElement.clientWidth) * 2 - 1,
-    //         y: -(event.clientY / renderer.domElement.clientHeight) * 2 + 1
-    //     }, camera);
-    //     // const intersects = raycaster.intersectObject(scene.children);
-    //     // for (let i=0;i<intersects.length;i++){
-    //     //     alert("haha");
-    //     // }
-    //     // intersects = raycaster.intersectObject(pickableObjects,false);
-    //     // intersectedObject = intersects[0].object;
-    //     // pickableObjects.forEach((object,i)=>{
-    //     //     alert("haha");
-    //     // })
-    // }
-
-    // function show3dModel(httpPath, transformControls) {
-    //     const loader = new GLTFLoader()
-    //     loader.load(
-    //         httpPath,
-    //         function (gltf) {
-    //             meshes.push(gltf.scene);
-    //             scene.add(gltf.scene)
-    //         },
-    //         (xhr) => {
-    //             console.log((xhr.loaded / xhr.total * 100) + '% loaded')
-    //         },
-    //         (error) => {
-    //             console.log(error);
-    //         }
-    //     );
-    // }
-    // function animation(time) {
-    //     // mesh.rotation.x = time / 2000;
-    //     // mesh.rotation.y = time / 1000;
-    //     renderer.render(scene, camera);
-
-    // }
-    // // window.addEventListener( 'mousemove', onMouseMove, false );
     return (
         <div>
-            {/* <button type="button">Alo</button>
-            Add file
-            <input type="file"></input>
-            Add marker
-            <input type="file"></input> */}
-            {/* <ul>
-                <li onClick={() => show3dModel("https://modelviewer.dev/shared-assets/models/Astronaut.glb")}>Astronaut.glb</li>
-                <li onClick={() => show3dModel("http://testar11.herokuapp.com/3dmodel/camchuy.glb")}>warrior.glb</li>
-            </ul> */}
+            <p>Tải lên điểm đánh dấu</p>
+            <input id="uploadFileMarker" type="file"></input>
+            <button onClick={() => uploadMarker()}>Hoàn tất</button>
+            <p>Tải file nội dung AR (Chấp nhận glb và gltf cho mô hình 3D, jpg,png cho hình ảnh, mp4 cho phim và mp3 cho audio</p>
+            <input id="uploadFileArContent" type="file"></input>
+            <button onClick={() => uploadArContent()}>Hoàn tất</button>
+            <ul id="arContentList">
+
+            </ul>
+            <p>Danh sách đối tượng</p>
+            <ul id="danhSachDoiTuong">
+                <li><label> Đối tượng - </label>
+                    <select>
+                        <option value="volvo">Cấp 1</option>
+                        <option value="saab">Cấp 2</option>
+                    </select>
+                    <select>
+                        <option value="volvo">Xem định nghĩa</option>
+                        <option value="saab">Xem cấu tạo</option>
+                    </select>
+                </li>
+            </ul>
+            <p>Danh sách hành động</p>
+            <ul id="danhSachHanhDong">
+            </ul>
+            <p>Thêm văn bản</p>
+            <label>Nội dung</label>
+            <textarea id="noiDung"></textarea>
+            <label>Font chữ</label>
+            <select id="fontChu">
+                <option value="timenewromans">Time new romans</option>
+                <option value="arial">Arial</option>
+            </select>
+            <label>Cỡ chữ</label>
+            <select id="coChu">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="40">40</option>
+                <option value="50">50</option>
+            </select>
+            <label>Màu chữ</label>
+            <input id="mauChu" type="text"></input>
+            <label>Màu nền</label>
+            <input id="mauNen" type="text"></input>
+            <label>Trong suốt</label>
+            <input type="checkbox" id="trongSuot"></input>
+            <button onClick={() => setText2D()}>Thêm</button>
+            <br></br>
+            <label>Tỉ lệ marker: </label>
+            <input id="tiLeMarker" type="number" min="0" onBlur={() => setTiLeMarker()}></input>
+            <div id="form-edit-3d" style={{ display: "none" }}>
+                <p>Vị trí</p>
+                <label>Tọa độ X:</label>
+                <input id="toaDoX" type="number" step="any" onBlur={() => setToaDo()}></input>
+                <label>Tọa độ Y:</label>
+                <input id="toaDoY" type="number" step="any" onBlur={() => setToaDo()}></input>
+                <label>Tọa độ Z:</label>
+                <input id="toaDoZ" type="number" step="any" onBlur={() => setToaDo()}></input>
+                <p>Tỉ lệ</p>
+                <label>Tỉ lệ X:</label>
+                <input id="tiLeX" type="number" step="any" onBlur={() => setTiLe()}></input>
+                <label>Tỉ lệ Y:</label>
+                <input id="tiLeY" type="number" step="any" onBlur={() => setTiLe()}></input>
+                <label>Tỉ lệ Z:</label>
+                <input id="tiLeZ" type="number" step="any" onBlur={() => setTiLe()}></input>
+                <p>Góc xoay</p>
+                <label>Xoay trục X:</label>
+                <input id="xoayTrucX" type="number" step="any" onBlur={() => setGocXoay()}></input>
+                <label>Xoay trục Y:</label>
+                <input id="xoayTrucY" type="number" step="any" onBlur={() => setGocXoay()}></input>
+                <label>Xoay trục Z:</label>
+                <input id="xoayTrucZ" type="number" step="any" onBlur={() => setGocXoay()}></input>
+            </div>
+            <br></br>
+            <label>Thêm hành động</label>
+            <input type="text" id="hanhDong"></input>
+            <button onClick={() => themHanhDong()}>Thêm</button>
+            <div id="sceneRender">
+
+            </div>
         </div>
     )
 }

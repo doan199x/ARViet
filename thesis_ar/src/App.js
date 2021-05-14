@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import Home from "./pages/Home/Home.js";
 
 import { UserProvider } from "../src/context/UserContext.jsx";
-import {Userprotect} from "../src/context/Userprotect.jsx";
+import { Userprotect } from "../src/context/Userprotect.jsx";
 import Signin from "./pages/Sign in/Signin.js";
 import Signup from "./pages/Sign up/Signup.js";
 import Header from "./Header/Header.js";
@@ -46,21 +46,17 @@ function App() {
             <Route exact path="/signup">
               <Signup />
             </Route>
-            <Userprotect>
-              <Switch>
-                <Route exact path="/lecture">
-                  <Lecture />
-                </Route>
-                <Route exact path="/lecture/create">
-                  <Create />
-                </Route>
-                <Route>
-                  <Error/>
-                </Route>
-              </Switch>
-             
-            </Userprotect>
-                
+            <Switch>
+              <Route exact path="/lecture">
+                <Lecture />
+              </Route>
+              <Route exact path="/lecture/create">
+                <Create />
+              </Route>
+              <Route>
+                <Error />
+              </Route>
+            </Switch>
           </Switch>
         </UserProvider>
         <Footer />
