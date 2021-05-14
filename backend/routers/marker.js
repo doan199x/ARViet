@@ -24,6 +24,8 @@ var upload = multer({
 router.post("/", upload.single("file"), async (req, res, next) => {
   try {
     // Luu marker vao danh sach
+    let khoiTaoCreated = false;
+    let khoiTaoID = 0;
     const maBaiGiang = 1;
     const maDiemDanhDau = 1;
     const diemDanhDau = {
@@ -38,12 +40,16 @@ router.post("/", upload.single("file"), async (req, res, next) => {
     if (getDiemDanhDau.length == 0) {
       await diemDanhDauModel.add(diemDanhDau);
       const add = await hanhDongModel.add(maDiemDanhDau);
+      khoiTaoCreated = true;
+      khoiTaoID = 1;
     } else {
       await diemDanhDauModel.updateURL(diemDanhDau.maDiemDanhDau, diemDanhDau.URL);
     }
     res.json({
       'filenname': req.file.filename,
       'URL': 'http://localhost:3001/uploads/marker/' + req.file.filename,
+      'khoiTaoCreated': khoiTaoCreated,
+      'khoiTaoID': khoiTaoID
     })
   } catch (err) {
     next(err);

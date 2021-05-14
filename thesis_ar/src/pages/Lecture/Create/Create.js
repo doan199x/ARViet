@@ -107,6 +107,9 @@ export default function Create() {
         formData.append("file", markerFile);
         formData.append("maDiemDanhDau", maDiemDanhDau);
         productAPI.uploadMarker(formData).then((data) => {
+            if (data.data.khoiTaoCreated) {
+                maHanhDongHienTai = data.data.khoiTaoID;
+            }
             showMarker();
         })
     }
@@ -165,7 +168,6 @@ export default function Create() {
 
     //Upload arContent
     function uploadArContent() {
-        console.log(maHanhDongHienTai);
         let arContentFile = document.getElementById("uploadFileArContent").files[0];
         let formData = new FormData();
         formData.append("file", arContentFile);
@@ -207,7 +209,6 @@ export default function Create() {
         let danhSachDoiTuong = document.getElementById("danhSachDoiTuong");
         danhSachDoiTuong.innerHTML = "";
         productAPI.getArContentDuocChon(maHanhDongHienTai).then((data) => {
-            console.log(maHanhDongHienTai);
             let arContent = data.data;
             for (let i = 0; i < arContent.length; i++) {
                 let li = document.createElement("li");
