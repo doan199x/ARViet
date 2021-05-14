@@ -12,7 +12,9 @@ export default function Home() {
        <div className = "main">
          <div className = "main__box">
         
-         <Button href= "/signin" variant="contained" color="secondary">
+         <Button href= "/signin" 
+         variant="contained" 
+         color="secondary">
         Sign in
       </Button>
       <Button href= "/signup" variant="contained" color="primary">

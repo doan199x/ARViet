@@ -10,6 +10,9 @@ export const productAPI = {
   checkToken: () => {
     return AXIOS_INSTANCE.post(API.CHECKTOKEN);
   },
+  lecture: (userid) => {
+    return AXIOS_INSTANCE.post(API.LECTURE, { userid });
+  },
   uploadMarker: (formData) => {
     return FILEUPLOAD_AXIOS_INSTANCE.post(API.MARKER, formData);
   },
@@ -27,5 +30,5 @@ export const productAPI = {
   },
   getArContentDuocChon: (maDiemDanhDau) => {
     return AXIOS_INSTANCE.get(API.ARCONTENTDUOCCHON, { params: { maDiemDanhDau: maDiemDanhDau } });
-  },
+  }
 }

@@ -95,17 +95,15 @@ export default function Signin() {
     productAPI
         .signin(data.email, data.password)
         .then((data) => {
-          console.log(data.data);
         if (data.data !== 'notcorrect')
         {
           setToken(data.data.token);
-          console.log(data.data.token);
           localStorage.setItem("token", data.data.token);
           if (data.data.token) history.push("/lecture");
         }
         else
         {
-          toast.error("Sai mật khẩu!  ❌");
+          toast.error("Sai tài khoản hoặc mật khẩu!  ❌");
         }
         
         })

@@ -30,7 +30,6 @@ function App() {
       ].join(","),
     },
   });
-  //mat tieu cai app rui
   return (
     <Router>
       <ThemeProvider theme={theme}>

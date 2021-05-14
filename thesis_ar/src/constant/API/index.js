@@ -4,5 +4,6 @@ export const API = {
   CHECKTOKEN: "/token",
   MARKER: "/marker",
   ARCONTENT: "/arcontent",
-  ARCONTENTDUOCCHON: "/arcontent/duocchon"
+  ARCONTENTDUOCCHON: "/arcontent/duocchon",
+  LECTURE: "/lecture"
 };
