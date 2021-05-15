@@ -2,5 +2,15 @@ export const API = {
   SIGNUP: "/signup",
   SIGNIN: "/signin",
   CHECKTOKEN: "/token",
-  LECTURE: "/lecture"
+  MARKER: "/marker",
+  ARCONTENT: "/arcontent",
+  ARCONTENTDUOCCHON: "/arcontent/duocchon",
+  LECTURE: "/lecture",
+  HANHDONGKHOITAO: '/hanhdong/khoitao',
+  HANHDONG: '/hanhdong',
+  NOIDUNGARHANHDONG: '/arcontent/hanhdong',
+  HANHDONGDOITUONG: '/hanhdong/doituong',
+  ARCONTENTTHAT: '/arcontent/that',
+  NOIDUNGTEXT: '/arcontent/text',
+  NOIDUNG: '/arcontent/noidung'
 };

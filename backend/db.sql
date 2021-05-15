@@ -1,6 +1,7 @@
 drop database if exists BaiGiangAR;
 create database BaiGiangAR;
 use BaiGiangAR;
+SET SQL_SAFE_UPDATES = 0;
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456yugi';
 create table HocSinh(
 	MaHocSinh int not null auto_increment,
@@ -40,9 +41,10 @@ create table HocSinhBaiGiang(
 
 create table DiemDanhDau(
 	MaDiemDanhDau int not null auto_increment,
-    URL varchar(50),
+    URL varchar(200),
     TiLe float,
     MaBaiGiang int,
+    filename varchar(200),
     primary key (MaDiemDanhDau)
 );
 
@@ -55,7 +57,7 @@ create table TuongTac(
 create table HanhDong(
 	MaHanhDong int not null auto_increment,
     NoiDung varchar(50),
-    MaNoiDung int,
+    MaDiemDanhDau int,
     primary key (MaHanhDong)
 );
 
@@ -63,28 +65,27 @@ create table NoiDungAR(
 	MaNoiDung int not null auto_increment,
     ToaDoX float,
     ToaDoY float,
-    Xoay float,
-    TiLe float,
-    URL varchar(50),
-    MaDiemDanhDau int,
-    CapDo varchar(50),
-    primary key (MaNoiDung)
-);
-
-create table NoiDungAR3D(
-	MaNoiDung int not null auto_increment,
     ToaDoZ float,
     XoayX float,
     XoayY float,
     XoayZ float,
-    xoayW float,
+    TiLeX float,
+    TiLeY float,
+    TiLeZ float,
+    URL varchar(200),
+    MaHanhDong int,
+    filename varchar(200),
+    LaFile boolean,
+    LaTam boolean,
     primary key (MaNoiDung)
 );
-
 create table NoiDungARVanBan(
 	MaNoiDung int not null auto_increment,
     NoiDungVanBan varchar(200),
-    CoChu int,
+    FontChu varchar(200),
+    MauChu varchar(200),
+    MauNen varchar(200),
+    TrongSuot bool,
     primary key (MaNoiDung)
 );
 
@@ -99,21 +100,34 @@ alter table BaiGiang add constraint FK_BaiGiang_GiaoVien foreign key (MaGiaoVien
 alter table HocSinhBaiGiang add constraint FK_HSBG_HocSinh foreign key (MaHocSinh) references HocSinh(MaHocSinh);
 alter table HocSinhBaiGiang add constraint FK_HSBG_BaiGiang foreign key (MaBaiGiang) references BaiGiang(MaBaiGiang);
 alter table DiemDanhDau add constraint FK_DiemDanhDau_BaiGiang foreign key (MaBaiGiang) references BaiGiang(MaBaiGiang);
-alter table NoiDungAR add constraint FK_NoiDungAR_DiemDanhDau foreign key (MaDiemDanhDau) references DiemDanhDau(MaDiemDanhDau);
-alter table HanhDong add constraint FK_HanhDong_NoiDung foreign key (MaNoiDung) references NoiDungAR(MaNoiDung);
+alter table NoiDungAR add constraint FK_NoiDungAR_HanhDong foreign key (MaHanhDong) references HanhDong(MaHanhDong);
+alter table HanhDong add constraint FK_HanhDong_DiemDanhDau foreign key (MaDiemDanhDau) references DiemDanhDau(MaDiemDanhDau);
 alter table NoiDungARCon add constraint FK_NoiDungARCon_HanhDong foreign key (MaHanhDong) references HanhDong(MaHanhDong);
 
 /*1-1 relationship*/
-alter table NoiDungAR add constraint FK_NoiDungAR_NoiDungAR3D foreign key (MaNoiDung) references NoiDungAR3D(MaNoiDung);
-alter table NoiDungAR3D add constraint FK_NoiDungAR3D_NoiDungAR foreign key(MaNoiDung) references NoiDungAR(MaNoiDung);
 
-alter table NoiDungAR add constraint FK_NoiDungAR_NoiDungARVanBan foreign key (MaNoiDung) references NoiDungARVanBan(MaNoiDung);
-alter table NoiDungARVanBan add constraint FK_NoiDungARVanBan_NoiDungAR foreign key (MaNoiDung) references NoiDungAR(MaNoiDung);
+alter table NoiDungARVanBan add constraint FK_NoiDungARVanBan_NoiDungAR UNIQUE (MaNoiDung);
 
-alter table NoiDungAR add constraint FK_NoiDungAR_NoiDungARCon foreign key (MaNoiDung) references NoiDungARCon(MaNoiDung);
-alter table NoiDungARCon add constraint FK_NoiDungARCon_NoiDungAR foreign key (MaNoiDung) references NoiDungAR(MaNoiDung);
+alter table NoiDungARCon add constraint FK_NoiDungARCon_NoiDungAR UNIQUE (MaNoiDung);
 
-alter table HanhDong add constraint FK_HanhDong_TuongTac foreign key (MaHanhDong) references TuongTac(MaHanhDong);
-alter table TuongTac add constraint FK_TuongTac_HanhDong foreign key (MaHanhDong) references HanhDong(MaHanhDong);
+alter table TuongTac add constraint FK_TuongTac_HanhDong UNIQUE (MaHanhDong);
 
-insert into GiaoVien(Ten,NgaySinh,TenDangNhap,Email,MatKHau) values('Nguyễn Văn An','1999-10-10','anan0234','anan123@gmail.com','123456');
+insert into GiaoVien(Ten,NgaySinh,TenDangNhap,Email,MatKHau) values('Nguyễn Văn B','1999-10-10','anan0s234','anan1s23@gmail.com','123456');
+insert into GiaoVien(Ten,NgaySinh,TenDangNhap,Email,MatKHau) values('Nguyễn Văn C','1998-10-10','anassn0s234','anansss1s23@gmail.com','123456');
+
+
+insert into HocSinh (Ten,NgaySinh,TenDangNhap,MatKhau) values('Nguyễn Văn B','1999-01-01','haha0234','123456');
+insert into HocSinh (Ten,NgaySinh,TenDangNhap,MatKhau) values('Nguyễn Văn C','1999-01-01','haha02342','123456');
+
+insert into BaiGiang(Ten,MoTa,ThoiGianTao,ThoiGianCapNhat,MaGiaoVien) values ('Hệ điều hành','hahaha','2001-01-01','2002-01-01',1);
+insert into BaiGiang(Ten,MoTa,ThoiGianTao,ThoiGianCapNhat,MaGiaoVien) values ('CSDL','hahaha','2001-01-01','2002-01-01',2);
+insert into BaiGiang(Ten,MoTa,ThoiGianTao,ThoiGianCapNhat,MaGiaoVien) values ('Hóa học','hahaha','2001-01-01','2002-01-01',1);
+
+insert into HocSinhBaiGiang(MaHocSinh,MaBaiGiang,ThoiGianTao) values(1,1,now());
+insert into HocSinhBaiGiang(MaHocSinh,MaBaiGiang,ThoiGianTao) values(1,2,now());
+
+select* from NoiDungAR;
+update NoiDungAR set ToaDoY = 2;
+select* from DiemDanhDau;
+select* from HanhDong;
+
