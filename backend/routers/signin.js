@@ -14,10 +14,9 @@ router.post("/", async (req, res) => {
         JSON.stringify(profile[0]),
         primaryKey,
         (err,token) => {
-            //console.log('aâa')
           if (err) {
             res.sendStatus(503);
-          } else {
+          } else if (token){
             res.send({
               token,
               userID:  profile[0].MaGiaoVien,

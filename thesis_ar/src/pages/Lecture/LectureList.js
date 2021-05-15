@@ -19,22 +19,22 @@ import QueueIcon from "@material-ui/icons/Queue";
 
 const useStyles = makeStyles((theme) => ({
   data: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4,1fr)',
+    display: "grid",
+    gridTemplateColumns: "repeat(4,1fr)",
     textAlign: "center",
-    columnGap: '5%',
+    columnGap: "5%",
   },
   img: {
     width: "50%",
     marginTop: "2%",
+    marginLeft: "25%",
   },
   lectures: {
-    width: '100%',
+    width: "100%",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#273044'
   },
   btn: {},
 }));
@@ -44,9 +44,9 @@ export default function LectureList() {
   const [user] = useContext(UserContext);
   const userid = user.MaGiaoVien;
   const [lectures, setLectures] = useState(null);
-  useEffect(async () => {
+  useEffect(() => {
     if (userid) {
-     await productAPI
+      productAPI
         .lecture(userid)
         .then((data) => {
           if (data.data.length > 0) {
@@ -61,31 +61,29 @@ export default function LectureList() {
         });
     }
   }, [userid]);
-  console.log("aâa", lectures);
   return (
     <div>
       <div className={classes.lectures}>
-        <h3 style={{ textAlign: "center", color: "white" }}>
-          {" "}
-          Danh sách bài giảng
-        </h3>
-        <div >
+        <h3 style={{ textAlign: "center", color: "" }}> Danh sách bài giảng</h3>
         <div>
-                <IconButton
-                  color="primary"
-                  aria-label="upload picture"
-                  component="span"
-                >
-                  <QueueIcon />
-                </IconButton>
-              </div>
+          <IconButton
+            color="primary"
+            aria-label="upload picture"
+            component="span"
+          >
+            <QueueIcon />
+          </IconButton>
+        </div>
+        <div>
           {lectures ? (
             <div>
-              {lectures? (<div className={classes.data}>
-                {lectures.map((ele, i) => (
-                  <Lecture key={i} data={ele} />
-                ))}
-              </div>) : ( <CircularProgress color="secondary" />)}
+                <div className={classes.data}>
+                  {lectures.map((ele, i) => (
+                    <Lecture key={i} data={ele} />
+                  ))}
+                </div>
+              ) : (
+                <CircularProgress color="secondary" />
             </div>
           ) : (
             <div>

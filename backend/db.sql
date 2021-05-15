@@ -15,8 +15,7 @@ create table HocSinh(
 create table GiaoVien(
 	MaGiaoVien int not null auto_increment,
     Ten varchar(50),
-    NgaySinh date,
-	TenDangNhap varchar(50),
+    CMND varchar(12),
     Email varchar(50),
     MatKhau varchar(50),
     primary key (MaGiaoVien)
@@ -111,9 +110,11 @@ alter table NoiDungARVanBan add constraint FK_NoiDungARVanBan_NoiDungAR UNIQUE (
 alter table NoiDungARCon add constraint FK_NoiDungARCon_NoiDungAR UNIQUE (MaNoiDung);
 
 alter table TuongTac add constraint FK_TuongTac_HanhDong UNIQUE (MaHanhDong);
+/*root*/
+/* ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123@'; */
 
-insert into GiaoVien(Ten,NgaySinh,TenDangNhap,Email,MatKHau) values('Nguyễn Văn B','1999-10-10','anan0s234','anan1s23@gmail.com','123456');
-insert into GiaoVien(Ten,NgaySinh,TenDangNhap,Email,MatKHau) values('Nguyễn Văn C','1998-10-10','anassn0s234','anansss1s23@gmail.com','123456');
+insert into GiaoVien(Ten,CMND,Email,MatKHau) values('Nguyễn Văn B','123456789','anan1s23@gmail.com','123456');
+insert into GiaoVien(Ten,CMND,Email,MatKHau) values('Nguyễn Văn C','112345547','anansss1s23@gmail.com','123456');
 
 
 insert into HocSinh (Ten,NgaySinh,TenDangNhap,MatKhau) values('Nguyễn Văn B','1999-01-01','haha0234','123456');
@@ -125,9 +126,4 @@ insert into BaiGiang(Ten,MoTa,ThoiGianTao,ThoiGianCapNhat,MaGiaoVien) values ('H
 
 insert into HocSinhBaiGiang(MaHocSinh,MaBaiGiang,ThoiGianTao) values(1,1,now());
 insert into HocSinhBaiGiang(MaHocSinh,MaBaiGiang,ThoiGianTao) values(1,2,now());
-
-select* from NoiDungAR;
-update NoiDungAR set ToaDoY = 2;
-select* from DiemDanhDau;
-select* from HanhDong;
 

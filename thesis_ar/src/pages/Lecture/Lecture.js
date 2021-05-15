@@ -15,7 +15,7 @@ import FavoriteIcon from '@material-ui/icons/Favorite';
 import ShareIcon from '@material-ui/icons/Share';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-import logourl from "../../img/logo.png";
+import logourl from "../../img/lecture.jpg";
 
 const useStyles = makeStyles((theme) => ({
   root: {
