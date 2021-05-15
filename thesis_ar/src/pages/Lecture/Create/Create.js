@@ -16,11 +16,11 @@ import { useParams } from 'react-router';
 const axios = require('axios');
 
 export default function Create() {
+    const param = useParams();
     // load 3d model
     // load marker
-    const params = useParams();
-    const maBaiGiang = params.lecid;
-    const maDiemDanhDau = params.markerid;
+    const maBaiGiang = param.lecid;
+    const maDiemDanhDau = param.markerid;
 
 
     let camera, renderer;
