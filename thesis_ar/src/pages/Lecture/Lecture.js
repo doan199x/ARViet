@@ -1,96 +1,115 @@
-import React, { useContext, useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
-import { productAPI } from "../../config/productAPI";
-import { UserContext } from "../../context/UserContext";
-import { makeStyles } from "@material-ui/core/styles";
-import { DataGrid } from "@material-ui/data-grid";
-import clone from "clone";
-import nodata from "../../img/nodata.jpg";
-import { Button, Divider, TextField } from "@material-ui/core";
+import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import clsx from 'clsx';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardMedia from '@material-ui/core/CardMedia';
+import CardContent from '@material-ui/core/CardContent';
+import CardActions from '@material-ui/core/CardActions';
+import Collapse from '@material-ui/core/Collapse';
+import Avatar from '@material-ui/core/Avatar';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import { red } from '@material-ui/core/colors';
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import ShareIcon from '@material-ui/icons/Share';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
+import logourl from "../../img/logo.png";
 
 const useStyles = makeStyles((theme) => ({
-  grid: {
-    display: "flex",
-    justifyContent: "center",
-    textAlign: "center",
+  root: {
+    width: '100%',
+    marginTop: '5%',
+    marginBottom: '5%',
+    // /backgroundColor: '#e5eef5'
   },
-  img: {
-    width: "50%",
-    marginTop: "2%",
+  media: {
+    height: 0,
+    paddingTop: '56.25%', // 16:9
   },
-  lectures: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: 'center'
+  expand: {
+    transform: 'rotate(0deg)',
+    marginLeft: 'auto',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
   },
-  btn:{
-    
+  expandOpen: {
+    transform: 'rotate(180deg)',
+  },
+  avatar: {
+    backgroundColor: '#f23276',
+  },
+  header: {
+    color: '#195cc5',
+
+    fontSize: '10px'
   }
 }));
-export default function Lecture() {
-  const [user] = useContext(UserContext);
-  const userid = user.MaGiaoVien;
-  const [lectures, setLectures] = useState(null);
-  const rows = null;
-  useEffect(() => {
-    if (userid) {
-      productAPI
-        .lecture(userid)
-        .then((data) => {
-          if (data.data.length > 0) {
-            const lec = clone(data.data);
-            setLectures(lec);
-          } else {
-            console.log("aâa", lectures);
-            //setLectures(data.data);
-          }
-        })
-        .catch((error) => {
-          console.log("error", error);
-        });
-    }
-  }, []);
-  const columns = [
-    { field: "MaBaiGiang", headerName: "Mã", width: 100 },
-    { field: "Ten", headerName: "Tên", width: 200 },
-    { field: "MoTa", headerName: "Mô tả", width: 300 },
-    { field: "ThoiGianTao", headerName: "Thời gian tạo", width: 150 },
-    { field: "ThoiGianCapNhat", headerName: "Thời gian cập nhật", width: 150 },
-  ];
 
-  if (lectures?.length > 0) {
-    for (let i = 0; i < lectures.length; i++) {
-      lectures[i].id = i;
-    }
-  }
+export default function Lecture(data) {
   const classes = useStyles();
-  return (
-    <div>
-      <div className={classes.lectures}>
-      <div className = {classes.btn}>
-          <Button href="#" variant="contained" color="primary">
-                Tạo ngay
-          </Button>
-        </div>
-        <h3 style={{ textAlign: "center", color: "#00033e" }}>
-          {" "}
-          Danh sách bài giảng
-        </h3>
-      
+  const [expanded, setExpanded] = React.useState(false);
 
-        <div className={classes.grid}>
-          {lectures ? (
-            <div style={{ height: "400px", width: "1000px" }}>
-              <DataGrid rows={lectures} columns={columns} pageSize={5} />
-            </div>
-          ) : (
-            <div>
-              <img src={nodata} className={classes.img} />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
+  const lecture = data.data;
+
+  return (
+    <Card className={classes.root}>
+      <CardHeader className = {classes.header}
+        avatar={
+          <Avatar aria-label="recipe" className={classes.avatar}>
+           {lecture.MaBaiGiang}
+          </Avatar>
+        }
+        action={
+          <IconButton aria-label="settings">
+            <MoreVertIcon />
+          </IconButton>
+        }
+        titleTypographyProps={{variant:'h5',fontWeight: 'bold'}}
+        title={lecture.Ten}
+        subheader={lecture.ThoiGianCapNhat}
+      />
+      <CardMedia
+        className={classes.media}
+        image={logourl}
+        title="Paella dish"
+      />
+      <CardContent>
+        <Typography variant="body2" color="textSecondary" component="p">
+         {lecture.MoTa}
+        </Typography>
+      </CardContent>
+      <CardActions disableSpacing>
+        <IconButton aria-label="add to favorites">
+          <FavoriteIcon />
+        </IconButton>
+        <IconButton aria-label="share">
+          <ShareIcon />
+        </IconButton>
+        <IconButton
+          className={clsx(classes.expand, {
+            [classes.expandOpen]: expanded,
+          })}
+          onClick={handleExpandClick}
+          aria-expanded={expanded}
+          aria-label="show more"
+        >
+          <ExpandMoreIcon />
+        </IconButton>
+      </CardActions>
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <CardContent>
+          <Typography paragraph>Mô tả:</Typography>
+          <Typography paragraph>
+            {lecture.MoTa}
+          </Typography>
+        </CardContent>
+      </Collapse>
+    </Card>
   );
 }

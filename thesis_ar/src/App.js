@@ -8,10 +8,11 @@ import Signup from "./pages/Sign up/Signup.js";
 import Header from "./Header/Header.js";
 import Footer from "./Footer/Footer.js";
 import Create from "./pages/Lecture/Create/Create.js";
-import Lecture from "./pages/Lecture/Lecture.js";
 import { useContext } from "react";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core";
 import Error from "./pages/Error/Error.js";
+import New from "./pages/Lecture/New/New.js";
+import LectureList from "./pages/Lecture/LectureList.js";
 
 function App() {
   const theme = createMuiTheme({
@@ -48,7 +49,10 @@ function App() {
             <Userprotect>
               <Switch>
                 <Route exact path="/lecture">
-                  <Lecture />
+                  <LectureList/>
+                </Route>
+                <Route exact path="/lecture/new">
+                  <New />
                 </Route>
                 <Route exact path="/lecture/create">
                   <Create />

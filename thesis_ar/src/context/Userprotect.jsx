@@ -9,7 +9,7 @@ export const Userprotect = ({ children }) => {
   if (user) {
     return <h1>{children}</h1>;
   }
-  history.push("/");// Ua pass cua no la 123 ma sao go 123456 van vo dc
+  history.push("/");
   return null;
 };
 

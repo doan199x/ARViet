@@ -36,7 +36,7 @@ router.post("/", async (req, res) => {
   }
 });
 router.post("/token", checkAuthorization, async (req, res) => {
-  const profile = await signinModel.findByID(req.body.email);
+  const profile = await signinModel.findByEmail(req.body.email);
     if (profile[0]) {
        res.send(true);
     } else res.send(false);

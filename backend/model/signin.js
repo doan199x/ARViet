@@ -5,7 +5,7 @@ module.exports = {
         const signin = await db.load(sql);
         return signin;
     },
-    findByID: async (email) => {
+    findByEmail: async (email) => {
         const sql = `select * from GiaoVien where (Email= "${email}");` 
         const signin = await db.load(sql);
         return signin;
