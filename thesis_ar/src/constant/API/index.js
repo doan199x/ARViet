@@ -12,5 +12,6 @@ export const API = {
   HANHDONGDOITUONG: '/hanhdong/doituong',
   ARCONTENTTHAT: '/arcontent/that',
   NOIDUNGTEXT: '/arcontent/text',
-  NOIDUNG: '/arcontent/noidung'
+  NOIDUNG: '/arcontent/noidung',
+  NEW: '/lecture/new'
 };

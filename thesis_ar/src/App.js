@@ -51,9 +51,6 @@ function App() {
                 <Route exact path="/lecture">
                   <LectureList/>
                 </Route>
-                <Route exact path="/lecture/new">
-                  <New />
-                </Route>
                 <Route exact path="/lecture/create">
                   <Create />
                 </Route>

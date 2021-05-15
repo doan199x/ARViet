@@ -79,7 +79,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-toast.configure();;
+toast.configure();
 
 export default function Signup() {
   const classes = useStyles();

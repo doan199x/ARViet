@@ -12,4 +12,14 @@ router.post("/", async (req, res) => {
     }
   });
 
+  router.post("/new", async (req, res) => {
+    try {
+      const result = await lectureModel.new(req.body.userid,req.body.lecname,req.body.description)
+        res.send(result);
+      }
+       catch (error) {
+      res.send(error);
+    }
+  });
+
   module.exports = router;

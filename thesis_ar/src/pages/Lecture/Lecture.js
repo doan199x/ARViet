@@ -16,10 +16,12 @@ import ShareIcon from '@material-ui/icons/Share';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import logourl from "../../img/lecture.jpg";
+import { useHistory } from 'react-router';
+import { Link } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    width: '100%',
+    width: '350px',
     marginTop: '5%',
     marginBottom: '5%',
     // /backgroundColor: '#e5eef5'
@@ -45,13 +47,16 @@ const useStyles = makeStyles((theme) => ({
     color: '#195cc5',
 
     fontSize: '10px'
+  },
+  link:{
+    textDecoration: 'none'
   }
 }));
 
 export default function Lecture(data) {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
-
+  const history = useHistory();
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -59,21 +64,18 @@ export default function Lecture(data) {
 
   return (
     <Card className={classes.root}>
-      <CardHeader className = {classes.header}
+       <Link  className={classes.link} onClick = { () => history.push(`/lecture/${lecture.MaBaiGiang}`)}>
+       <CardHeader className = {classes.header}
         avatar={
           <Avatar aria-label="recipe" className={classes.avatar}>
            {lecture.MaBaiGiang}
           </Avatar>
         }
-        action={
-          <IconButton aria-label="settings">
-            <MoreVertIcon />
-          </IconButton>
-        }
         titleTypographyProps={{variant:'h5',fontWeight: 'bold'}}
         title={lecture.Ten}
-        subheader={lecture.ThoiGianCapNhat}
       />
+    </Link>
+     
       <CardMedia
         className={classes.media}
         image={logourl}
@@ -81,7 +83,7 @@ export default function Lecture(data) {
       />
       <CardContent>
         <Typography variant="body2" color="textSecondary" component="p">
-         {lecture.MoTa}
+         Mô tả: {lecture.MoTa}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
@@ -104,9 +106,11 @@ export default function Lecture(data) {
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
-          <Typography paragraph>Mô tả:</Typography>
           <Typography paragraph>
-            {lecture.MoTa}
+          Thời gian tạo: {lecture.ThoiGianTao}
+          </Typography>
+          <Typography paragraph>
+          Thời gian cập nhật: {lecture.ThoiGianCapNhat}
           </Typography>
         </CardContent>
       </Collapse>

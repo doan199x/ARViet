@@ -57,5 +57,8 @@ export const productAPI = {
   },
   updateNoiDungAR: (NoiDungAR)=>{
     return AXIOS_INSTANCE.post(API.NOIDUNG, {NoiDungAR});
-  }
+  },
+  new: (userid,lecname,description)=>{
+    return AXIOS_INSTANCE.post(API.NEW, {userid,lecname,description});
+  },
 }

@@ -16,13 +16,15 @@ import Lecture from "./Lecture";
 import nodata from "../../img/nodata.jpg";
 import "./style.scss";
 import QueueIcon from "@material-ui/icons/Queue";
+import New from "./New/New";
 
 const useStyles = makeStyles((theme) => ({
   data: {
     display: "grid",
-    gridTemplateColumns: "repeat(4,1fr)",
+    gridTemplateColumns: "auto auto auto",
     textAlign: "center",
     columnGap: "5%",
+    justifyContent: "center",
   },
   img: {
     width: "50%",
@@ -36,7 +38,19 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "center",
     alignItems: "center",
   },
-  btn: {},
+  center: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  line: {
+    display: "flex",
+    flexDirection: "row",
+  },
+  btn: {
+    marginTop: "80%",
+    marginLeft: "10%",
+  },
 }));
 export default function LectureList() {
   const classes = useStyles();
@@ -44,9 +58,10 @@ export default function LectureList() {
   const [user] = useContext(UserContext);
   const userid = user.MaGiaoVien;
   const [lectures, setLectures] = useState(null);
-  useEffect(() => {
+  const [open, setOpen] = useState(false);
+  useEffect(async () => {
     if (userid) {
-      productAPI
+      await productAPI
         .lecture(userid)
         .then((data) => {
           if (data.data.length > 0) {
@@ -61,36 +76,53 @@ export default function LectureList() {
         });
     }
   }, [userid]);
+
+  function changeOpen (){
+    setOpen(!open);
+  };
   return (
     <div>
       <div className={classes.lectures}>
-        <h3 style={{ textAlign: "center", color: "" }}> Danh sách bài giảng</h3>
-        <div>
-          <IconButton
-            color="primary"
-            aria-label="upload picture"
-            component="span"
-          >
-            <QueueIcon />
-          </IconButton>
+        <div className={classes.line}>
+          <h3 style={{ textAlign: "center", color: "#195cc5" }}>
+            {" "}
+            Danh sách bài giảng
+          </h3>
+          <div>
+            <Button
+              color="primary"
+              className={classes.btn}
+              onClick={() => changeOpen()}
+            >
+              <QueueIcon />
+            </Button>
+          </div>
         </div>
-        <div>
-          {lectures ? (
-            <div>
-                <div className={classes.data}>
-                  {lectures.map((ele, i) => (
-                    <Lecture key={i} data={ele} />
-                  ))}
-                </div>
-              ) : (
-                <CircularProgress color="secondary" />
-            </div>
-          ) : (
-            <div>
-              <img src={nodata} className={classes.img} />
-            </div>
-          )}
-        </div>
+        {open ? (
+          <New open = {open} 
+          changeOpen = {changeOpen}/>
+        ) : (
+          <div>
+            {lectures ? (
+              <div className={classes.center}>
+                {lectures ? (
+                  <div className={classes.data}
+                 >
+                    {lectures.slice(0).reverse().map((ele, i) => (
+                      <Lecture key={i} data={ele} />
+                    ))}
+                  </div>
+                ) : (
+                  <CircularProgress color="secondary" />
+                )}
+              </div>
+            ) : (
+              <div>
+                <img src={nodata} className={classes.img} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

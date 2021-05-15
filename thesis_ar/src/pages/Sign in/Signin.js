@@ -95,7 +95,7 @@ export default function Signin() {
     productAPI
         .signin(data.email, data.password)
         .then((data) => {
-        if (data.data !== 'notcorrect')
+        if (data.data !== 'notfound')
         {
           setToken(data.data.token);
           localStorage.setItem("token", data.data.token);

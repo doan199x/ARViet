@@ -150,8 +150,8 @@ export default function Header() {
             ARViet
           </Typography>
           <div className={classes.linkgroup}>
-            <Button href="/about" className={classes.link} variant="h5" noWrap>
-              GIỚI THIỆU
+            <Button href="/lecture" className={classes.link} variant="h5" noWrap>
+              BÀI GIẢNG
             </Button>
             <Button href="/guide"className={classes.link} variant="h4" noWrap>
               HƯỚNG DẪN
