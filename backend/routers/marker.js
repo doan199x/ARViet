@@ -67,4 +67,14 @@ router.get('/', async (req, res, next) => {
   }
 })
 
+router.post("/add", async (req, res) => {
+  try {
+    const marker = await diemDanhDauModel.addMarker(req.body.lecid);
+      res.send(marker);
+    }
+     catch (error) {
+    res.send(error);
+  }
+});
+
 module.exports = router;

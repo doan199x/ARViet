@@ -13,5 +13,7 @@ export const API = {
   ARCONTENTTHAT: '/arcontent/that',
   NOIDUNGTEXT: '/arcontent/text',
   NOIDUNG: '/arcontent/noidung',
-  NEW: '/lecture/new'
+  NEW: '/lecture/new',
+  MARKER: '/lecture/marker',
+  ADDMARKER: '/marker/add'
 };

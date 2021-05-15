@@ -61,4 +61,10 @@ export const productAPI = {
   new: (userid,lecname,description)=>{
     return AXIOS_INSTANCE.post(API.NEW, {userid,lecname,description});
   },
+  getAllMarker: (lecid)=>{
+    return AXIOS_INSTANCE.post(API.MARKER, {lecid});
+  },
+  addMarker: (lecid)=>{
+    return AXIOS_INSTANCE.post(API.ADDMARKER, {lecid});
+  },
 }

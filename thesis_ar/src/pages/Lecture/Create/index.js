@@ -12,15 +12,13 @@ import TextTexture from '@seregpie/three.text-texture';
 import { productAPI } from "../../../config/productAPI";
 import e from 'cors';
 import { API } from '../../../constant/API';
-import { useParams } from 'react-router';
 const axios = require('axios');
 
 export default function Create() {
     // load 3d model
     // load marker
-    const params = useParams();
-    const maBaiGiang = params.lecid;
-    const maDiemDanhDau = params.markerid;
+    const maBaiGiang = 1;
+    const maDiemDanhDau = 1;
 
 
     let camera, renderer;

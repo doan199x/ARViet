@@ -27,5 +27,10 @@ module.exports = {
         const sql = `select* from NoiDungAR as a, HanhDong as b where b.MaDiemDanhDau = ${maDiemDanhDau} 
         and a.LaFile = true and LaTam = false and b.MaHanhDong = a.MaHanhDong`;
         return await db.load(sql);
-    }
+    },
+    addMarker: async (lecid) => {
+        const sql = `insert into DiemDanhDau (MaBaiGiang) values ("${lecid}");` 
+        const result = await db.load(sql);
+        return result;
+    },
 };

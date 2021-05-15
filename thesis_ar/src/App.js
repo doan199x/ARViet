@@ -13,6 +13,7 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core";
 import Error from "./pages/Error/Error.js";
 import New from "./pages/Lecture/New/New.js";
 import LectureList from "./pages/Lecture/LectureList.js";
+import MarkerList from "./pages/Lecture/Marker/MarkerList.js";
 
 function App() {
   const theme = createMuiTheme({
@@ -51,7 +52,10 @@ function App() {
                 <Route exact path="/lecture">
                   <LectureList/>
                 </Route>
-                <Route exact path="/lecture/create">
+                <Route exact path="/lecture/:id">
+                  <MarkerList/>
+                </Route>
+                <Route exact path="/lecture/:lecid/:markerid">
                   <Create />
                 </Route>
                 <Route>

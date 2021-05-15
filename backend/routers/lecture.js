@@ -21,5 +21,14 @@ router.post("/", async (req, res) => {
       res.send(error);
     }
   });
+  router.post("/marker", async (req, res) => {
+    try {
+      const marker = await lectureModel.getAllMarker(req.body.lecid);
+        res.send(marker);
+      }
+       catch (error) {
+      res.send(error);
+    }
+  });
 
   module.exports = router;

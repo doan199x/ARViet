@@ -11,4 +11,9 @@ module.exports = {
         const result = await db.load(sql);
         return result;
     },
+    getAllMarker: async (lecid) => {
+        const sql = `select * from DiemDanhDau where MaBaiGiang = "${lecid}";` 
+        const result = await db.load(sql);
+        return result;
+    },
 };
