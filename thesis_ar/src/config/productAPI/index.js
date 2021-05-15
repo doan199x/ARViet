@@ -42,5 +42,20 @@ export const productAPI = {
   },
   loadHanhDong: (maDiemDanhDau) => {
     return AXIOS_INSTANCE.get(API.HANHDONG, { params: { maDiemDanhDau: maDiemDanhDau } });
+  },
+  deleteDoiTuongHanhDong: (maHanhDong, maNoiDung) => {
+    return AXIOS_INSTANCE.delete(API.HANHDONGDOITUONG, { params: { maHanhDong: maHanhDong, maNoiDung: maNoiDung } });
+  },
+  loadArContentThat: (maDiemDanhDau) => {
+    return AXIOS_INSTANCE.get(API.ARCONTENTTHAT, { params: { maDiemDanhDau: maDiemDanhDau } })
+  },
+  LuuText: (textObject) => {
+    return AXIOS_INSTANCE.post(API.NOIDUNGTEXT, { textObject });
+  },
+  getNoiDungVanBan: (MaNoiDung)=>{
+    return  AXIOS_INSTANCE.get(API.NOIDUNGTEXT, { params: { MaNoiDung: MaNoiDung } });
+  },
+  updateNoiDungAR: (NoiDungAR)=>{
+    return AXIOS_INSTANCE.post(API.NOIDUNG, {NoiDungAR});
   }
 }

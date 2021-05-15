@@ -50,8 +50,6 @@ export default function Create() {
     camera.position.set(10, 5, 10);
 
 
-    let scene2 = new THREE.Scene();
-
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setAnimationLoop(animation);
@@ -71,11 +69,11 @@ export default function Create() {
     transformControls.addEventListener('dragging-changed', function (event) {
         orbitControls.enabled = !event.value
     })
-    // transformControls.addEventListener('objectChange', function (event) {
-    //     showToaDo();
-    //     showTiLe();
-    //     showGocQuay();
-    // })
+    transformControls.addEventListener('objectChange', function (event) {
+        showToaDo();
+        showTiLe();
+        showGocQuay();
+    })
 
 
     //---------------------------------------------------
@@ -91,13 +89,13 @@ export default function Create() {
         // init scene
         let sceneRender = document.getElementById("sceneRender");
         sceneRender.appendChild(renderer.domElement);
-        let scene2 = document.getElementById("scene2");
         showMarker();
         showTiLeMarker();
         getMaHanhDongKhoiTao();
         loadArContent();
         loadDanhSachHanhDong();
         setEventTransform();
+        loadDanhSachDoiTuong();
     }, false);
 
     //Upload marker
@@ -110,6 +108,7 @@ export default function Create() {
             if (data.data.khoiTaoCreated) {
                 maHanhDongHienTai = data.data.khoiTaoID;
             }
+            loadDanhSachHanhDong();
             showMarker();
         })
     }
@@ -178,7 +177,7 @@ export default function Create() {
         })
     }
 
-    // Load arContent
+    // Load arContent "TAM"
     function loadArContent() {
         let arContentList = document.getElementById("arContentList");
         //get All
@@ -189,15 +188,16 @@ export default function Create() {
                 let li = document.createElement("li");
                 li.appendChild(document.createTextNode(arContent[i].filename));
                 let id = document.createAttribute("id");
-                id.value = arContent[i].filename;
+                id.value = arContent[i].filename + arContent[i].MaNoiDung;
+                console.log(id.value);
                 li.setAttributeNode(id);
                 arContentList.appendChild(li);
                 if (arContent[i].URL[arContent[i].URL.length - 1] == 'b') {
-                    document.getElementById(arContent[i].filename).onclick = function () {
+                    document.getElementById(id.value).onclick = function () {
                         show3dModel(arContent[i].URL, arContent[i].MaNoiDung);
                     }
                 } else if (arContent[i].URL[arContent[i].URL.length - 1] == 'g') {
-                    document.getElementById(arContent[i].filename).onclick = function () {
+                    document.getElementById(id.value).onclick = function () {
                         show2DImage(arContent[i].URL, arContent[i].MaNoiDung);
                     }
                 }
@@ -206,16 +206,18 @@ export default function Create() {
         })
     }
     function loadDanhSachDoiTuong() {
-        let danhSachDoiTuong = document.getElementById("danhSachDoiTuong");
-        danhSachDoiTuong.innerHTML = "";
-        productAPI.getArContentDuocChon(maHanhDongHienTai).then((data) => {
-            let arContent = data.data;
-            for (let i = 0; i < arContent.length; i++) {
-                let li = document.createElement("li");
-                li.appendChild(document.createTextNode(arContent[i].filename));
-                danhSachDoiTuong.appendChild(li);
-            }
-        })
+        if (maHanhDongHienTai != 0) {
+            let danhSachDoiTuong = document.getElementById("danhSachDoiTuong");
+            danhSachDoiTuong.innerHTML = "";
+            productAPI.getArContentDuocChon(maHanhDongHienTai).then((data) => {
+                let arContent = data.data;
+                for (let i = 0; i < arContent.length; i++) {
+                    let li = document.createElement("li");
+                    li.appendChild(document.createTextNode(arContent[i].filename));
+                    danhSachDoiTuong.appendChild(li);
+                }
+            })
+        }
     }
     function show3dModel(httpPath, MaNoiDung) {
         const loader = new GLTFLoader()
@@ -224,20 +226,19 @@ export default function Create() {
             function (gltf) {
                 scene.add(gltf.scene)
                 domEvents.addEventListener(gltf.scene, 'dblclick', function (event) {
+                    gltf.scene.parent = scene;
+                    currentID = gltf.scene.id;
+                    console.log(gltf.scene);
                     transformControls.detach();
                     transformControls.attach(gltf.scene);
                     transformControls.setMode("translate");
                     scene.add(transformControls);
-                    currentID = gltf.scene.id;
                     showFormEdit();
                 }, false)
                 // create new instance arcontent duoc chon
                 productAPI.updateDuocChonArContent({ MaNoiDung: MaNoiDung, MaHanhDong: maHanhDongHienTai }).then((data) => {
-                    // update List danh sách hành dongUI
-                    let danhSachHanhDong = document.getElementById("danhSachDoiTuong");
-                    let hanhDongLi = document.createElement("li");
-                    hanhDongLi.appendChild(document.createTextNode(data.data.filename));
-                    danhSachHanhDong.appendChild(hanhDongLi);
+                    gltf.scene.maNoiDung = data.data.MaNoiDung;
+                    loadDanhSachDoiTuong();
                 })
             },
             (xhr) => {
@@ -266,13 +267,140 @@ export default function Create() {
             }
         })
     }
+    function load3DModel(noiDungAR) {
+        const loader = new GLTFLoader()
+        loader.load(
+            noiDungAR.URL,
+            function (gltf) {
+                gltf.scene.maNoiDung = noiDungAR.MaNoiDung;
+                scene.add(gltf.scene)
+                gltf.scene.position.set(noiDungAR.ToaDoX, noiDungAR.ToaDoY, noiDungAR.ToaDoZ);
+                gltf.scene.rotation.set(noiDungAR.XoayX, noiDungAR.XoayY, noiDungAR.XoayZ)
+                gltf.scene.scale.set(noiDungAR.TiLeX, noiDungAR.TiLeY, noiDungAR.TiLeZ);
+                domEvents.addEventListener(gltf.scene, 'dblclick', function (event) {
+                    currentID = gltf.scene.id;
+                    transformControls.detach();
+                    transformControls.attach(gltf.scene);
+                    transformControls.setMode("translate");
+                    scene.add(transformControls);
+                    showFormEdit();
+                }, false)
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded')
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+    }
+    function load2DImage(noiDungAR) {
+        var img = new Image();
+        img.src = noiDungAR.URL;
+        img.onload = function () {
+            var loader = new THREE.TextureLoader();
+            // Load an image file into a custom material
+            var material = new THREE.MeshLambertMaterial({
+                map: loader.load(noiDungAR.URL),
+                side: THREE.DoubleSide
+            });
+            var geometry = new THREE.PlaneGeometry(4, 4 * img.height / img.width);
+            // combine our image geometry and material into a mesh
+            var imageTexture = new THREE.Mesh(geometry, material);
+            imageTexture.maNoiDung = noiDungAR.MaNoiDung;
+            scene.add(imageTexture);
+            imageTexture.position.set(noiDungAR.ToaDoX, noiDungAR.ToaDoY, noiDungAR.ToaDoZ);
+            imageTexture.rotation.set(noiDungAR.XoayX, noiDungAR.XoayY, noiDungAR.XoayZ)
+            imageTexture.scale.set(noiDungAR.TiLeX, noiDungAR.TiLeY, noiDungAR.TiLeZ);
+            domEvents.addEventListener(imageTexture, 'dblclick', function (event) {
+                currentID = imageTexture.id;
+                transformControls.detach();
+                transformControls.attach(imageTexture);
+                transformControls.setMode("translate");
+                scene.add(transformControls);
+            }, false)
+        }
+    }
+    function loadVanBan(noiDungAR) {
+        productAPI.getNoiDungVanBan(noiDungAR.MaNoiDung).then((data) => {
+            let transparent = false;
+            if (data.data.length > 0) {
+                let noiDungVanBan = data.data[0];
+                let configTextture = {
+                    alignment: 'center',
+                    color: noiDungVanBan.MauChu,
+                    fontFamily: noiDungVanBan.FontChu,
+                    fontSize: noiDungVanBan.CoChu,
+                    text: [noiDungVanBan.NoiDungVanBan].join('\n')
+                }
+                if (noiDungVanBan.TrongSuot == true) {
+                    transparent = true;
+                } else {
+                    configTextture.backgroundColor = noiDungVanBan.MauNen;
+                }
+                if (noiDungVanBan.FontChu == 'timenewromans') {
+                    configTextture.fontFamily = '\"Times New Roman\", Times, serif';
+                } else if (noiDungVanBan.fontChu == 'arial') {
+                    configTextture.FontFamily = "Arial, Helvetica, sans-serif";
+                }
+                let texture = new TextTexture(configTextture);
+                let material = new THREE.MeshLambertMaterial({
+                    map: texture,
+                    transparent: transparent,
+                    side: THREE.DoubleSide
+                });
+                var geometry = new THREE.PlaneGeometry(texture.width / 50, texture.height / 50);
+                var textTexture = new THREE.Mesh(geometry, material);
+                texture.redraw();
+                textTexture.maNoiDung = noiDungAR.MaNoiDung;
+                scene.add(textTexture);
+                textTexture.position.set(noiDungAR.ToaDoX, noiDungAR.ToaDoY, noiDungAR.ToaDoZ);
+                textTexture.rotation.set(noiDungAR.XoayX, noiDungAR.XoayY, noiDungAR.XoayZ)
+                textTexture.scale.set(noiDungAR.TiLeX, noiDungAR.TiLeY, noiDungAR.TiLeZ);
+                domEvents.addEventListener(textTexture, 'dblclick', function (event) {
+                    currentID = textTexture.id;
+                    transformControls.detach();
+                    transformControls.attach(textTexture);
+                    transformControls.setMode("translate");
+                    scene.add(transformControls);
+                }, false)
+            }
+        })
+    }
+    function clearAllContent() {
+        let length = scene.children.length;
+        transformControls.detach();
+        for (let i = 0; i < length; i++) {
+            if (scene.children[i].maNoiDung !== undefined) {
+                domEvents.removeEventListener(scene.children[i], 'dblclick', function () {
+                }, false);
+                scene.remove(scene.children[i]);
+                length--;
+                i--;
+            }
+        }
+    }
     function loadNoiDungARByHanhDong(maHanhDong) {
+        clearAllContent();
         maHanhDongHienTai = maHanhDong;
         productAPI.getNoiDungARByHanhDong(maHanhDong).then((data) => {
             loadDanhSachDoiTuong();
-            console.log(data);
+            let noiDungAR = data.data;
+            for (let i = 0; i < noiDungAR.length; i++) {
+                let filename = noiDungAR[i].filename;
+                if (filename[filename.length - 1] == "b") {
+                    load3DModel(noiDungAR[i]);
+                } else if (filename[filename.length - 1] == "g") {
+                    load2DImage(noiDungAR[i]);
+                } else if (filename == "text") {
+                    loadVanBan(noiDungAR[i]);
+                }
+            }
         })
+        // console.log(scene);
     }
+
+
     function show2DImage(URL, MaNoiDung) {
         var img = new Image();
         img.src = URL;
@@ -288,19 +416,17 @@ export default function Create() {
             var imageTexture = new THREE.Mesh(geometry, material);
             scene.add(imageTexture);
             domEvents.addEventListener(imageTexture, 'dblclick', function (event) {
+                currentID = imageTexture.id;
                 transformControls.detach();
                 transformControls.attach(imageTexture);
                 transformControls.setMode("translate");
                 scene.add(transformControls);
-                currentID = imageTexture.id;
+                showFormEdit();
             }, false)
             // create new instance arcontent duoc chon
             productAPI.updateDuocChonArContent({ MaNoiDung: MaNoiDung, MaHanhDong: maHanhDongHienTai }).then((data) => {
-                // update List danh sách hành dongUI
-                let danhSachDoiTuong = document.getElementById("danhSachDoiTuong");
-                let hanhDongLi = document.createElement("li");
-                hanhDongLi.appendChild(document.createTextNode(data.data.filename));
-                danhSachDoiTuong.appendChild(hanhDongLi);
+                imageTexture.maNoiDung = data.data.MaNoiDung;
+                loadDanhSachDoiTuong();
             })
         }
     }
@@ -312,26 +438,25 @@ export default function Create() {
             coChu: document.getElementById("coChu").value,
             mauChu: document.getElementById("mauChu").value,
             mauNen: document.getElementById("mauNen").value,
-            transparent: false
+            transparent: false,
+            fontChu: fontChu
         }
         let configTextture = {
             alignment: 'center',
             color: textObject.mauChu,
             fontFamily: textObject.fontChu,
             fontSize: parseInt(textObject.coChu),
-            text: [textObject.noiDung].join('\n')
+            text: [textObject.noiDung].join('\n'),
         }
         if (document.getElementById("trongSuot").checked == true) {
             textObject.transparent = true;
         } else {
             configTextture.backgroundColor = textObject.mauNen
         }
-        if (fontChu == 'timenewsroman') {
+        if (fontChu == 'timenewromans') {
             configTextture.fontFamily = '\"Times New Roman\", Times, serif';
-            textObject.fontChu = '\"Times New Roman\", Times, serif';
-        } else if (fontChu == 'Arial') {
+        } else if (fontChu == 'arial') {
             configTextture.fontFamily = "Arial, Helvetica, sans-serif";
-            texture.fontChu = "Arial, Helvetica, sans-serif";
         }
         let texture = new TextTexture(configTextture);
         let material = new THREE.MeshLambertMaterial({
@@ -343,16 +468,17 @@ export default function Create() {
         var textTexture = new THREE.Mesh(geometry, material);
         texture.redraw();
         scene.add(textTexture);
+        textObject.MaHanhDong = maHanhDongHienTai;
+        productAPI.LuuText(textObject).then((data) => {
+            textTexture.maNoiDung = data.data.MaNoiDung;
+        })
         domEvents.addEventListener(textTexture, 'dblclick', function (event) {
+            currentID = textTexture.id;
             transformControls.detach();
             transformControls.attach(textTexture);
             transformControls.setMode("translate");
             scene.add(transformControls);
-            currentID = textTexture.id;
         }, false)
-        textObject.ID = textTexture.id;
-        textObject.maHanhDong = maHanhDongHienTai;
-        arrayTextObject.push(textObject);
     }
 
     //Them hanh dong
@@ -362,29 +488,38 @@ export default function Create() {
             loadDanhSachHanhDong();
         })
     }
+
+    // Load AR content theo hanh dong
+
     function showFormEdit() {
         showToaDo();
         showTiLe();
         showGocQuay();
-        document.getElementById("form-edit-3d").style.display = "block"
     }
     function showToaDo() {
-        let currentObject = scene.getObjectById(currentID);
-        document.getElementById('toaDoX').value = currentObject.position.x;
-        document.getElementById('toaDoY').value = currentObject.position.y;
-        document.getElementById('toaDoZ').value = currentObject.position.z;
+        if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            document.getElementById('toaDoX').value = currentObject.position.x;
+            document.getElementById('toaDoY').value = currentObject.position.y;
+            document.getElementById('toaDoZ').value = currentObject.position.z;
+        }
     }
     function showTiLe() {
-        let currentObject = scene.getObjectById(currentID);
-        document.getElementById('tiLeX').value = currentObject.scale.x;
-        document.getElementById('tiLeY').value = currentObject.scale.y;
-        document.getElementById('tiLeZ').value = currentObject.scale.z;
+        if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            document.getElementById('tiLeX').value = currentObject.scale.x;
+            document.getElementById('tiLeY').value = currentObject.scale.y;
+            document.getElementById('tiLeZ').value = currentObject.scale.z;
+        }
+
     }
     function showGocQuay() {
-        let currentObject = scene.getObjectById(currentID);
-        document.getElementById('xoayTrucX').value = radianToDegree(currentObject.rotation.x);
-        document.getElementById('xoayTrucY').value = radianToDegree(currentObject.rotation.y);
-        document.getElementById('xoayTrucZ').value = radianToDegree(currentObject.rotation.z);
+        if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            document.getElementById('xoayTrucX').value = radianToDegree(currentObject.rotation.x);
+            document.getElementById('xoayTrucY').value = radianToDegree(currentObject.rotation.y);
+            document.getElementById('xoayTrucZ').value = radianToDegree(currentObject.rotation.z);
+        }
     }
     function setToaDo() {
         let currentObject = scene.getObjectById(currentID);
@@ -432,6 +567,46 @@ export default function Create() {
         return radian * 180.0 / Math.PI
     }
 
+    function deleteDoiTuongHanhDong() {
+        let maNoiDung = scene.getObjectById(currentID).maNoiDung;
+        productAPI.deleteDoiTuongHanhDong(maHanhDongHienTai, maNoiDung).then((data) => {
+            loadDanhSachDoiTuong();
+        })
+    }
+    function luuHanhDong() {
+        // Lam chung chua lam text
+        let maHanhDong = maHanhDongHienTai;
+        productAPI.getNoiDungARByHanhDong(maHanhDong).then((data) => {
+            let contentArr = data.data;
+            let maNoiDungFileArr = [];
+            // let maNoiDungTextArr = [];
+            for (let i = 0; i < contentArr.length; i++) {
+                maNoiDungFileArr.push(contentArr[i].MaNoiDung);
+            }
+            for (let i = 0; i < maNoiDungFileArr.length; i++) {
+                for (let j = 0; j < scene.children.length; j++) {
+                    if (scene.children[j].maNoiDung == maNoiDungFileArr[i]) {
+                        let NoiDungAR = {
+                            MaNoiDung: scene.children[j].maNoiDung,
+                            ToaDoX: scene.children[j].position.x,
+                            ToaDoY: scene.children[j].position.y,
+                            ToaDoZ: scene.children[j].position.z,
+                            XoayX: scene.children[j].rotation.x,
+                            XoayY: scene.children[j].rotation.y,
+                            XoayZ: scene.children[j].rotation.z,
+                            TiLeX: scene.children[j].scale.x,
+                            TiLeY: scene.children[j].scale.y,
+                            TiLeZ: scene.children[j].scale.z,
+                        }
+                        productAPI.updateNoiDungAR(NoiDungAR).then((data) => {
+                            console.log(data);
+                        })
+                    }
+                }
+            }
+        })
+    }
+
     function setEventTransform() {
         window.addEventListener('keydown', function (event) {
             switch (event.key) {
@@ -470,18 +645,21 @@ export default function Create() {
                     break
                 case "Delete":
                     if (currentID != 0) {
+                        deleteDoiTuongHanhDong();
                         let currentObject = scene.getObjectById(currentID);
                         transformControls.detach();
                         scene.remove(currentObject);
-                        console.log(currentObject);
                         scene.remove(transformControls);
-                        console.log(currentID);
+                        domEvents.removeEventListener(currentObject, 'dblclick', function () {
+
+                        }, false);
                         for (let i = 0; i < arrayTextObject.length; i++) {
                             if (currentID == arrayTextObject[i].ID) {
                                 arrayTextObject.splice(i, 1);
                                 break;
                             }
                         }
+                        currentID = 0;
                     }
             }
         })
@@ -501,16 +679,6 @@ export default function Create() {
             </ul>
             <p>Danh sách đối tượng</p>
             <ul id="danhSachDoiTuong">
-                <li><label> Đối tượng - </label>
-                    <select>
-                        <option value="volvo">Cấp 1</option>
-                        <option value="saab">Cấp 2</option>
-                    </select>
-                    <select>
-                        <option value="volvo">Xem định nghĩa</option>
-                        <option value="saab">Xem cấu tạo</option>
-                    </select>
-                </li>
             </ul>
             <label>Thêm hành động</label>
             <input type="text" id="hanhDong"></input>
@@ -544,7 +712,7 @@ export default function Create() {
             <br></br>
             <label>Tỉ lệ marker: </label>
             <input id="tiLeMarker" type="number" min="0" onBlur={() => setTiLeMarker()}></input>
-            <div id="form-edit-3d" style={{ display: "none" }}>
+            <div id="form-edit-3d">
                 <p>Vị trí</p>
                 <label>Tọa độ X:</label>
                 <input id="toaDoX" type="number" step="any" onBlur={() => setToaDo()}></input>
@@ -566,12 +734,11 @@ export default function Create() {
                 <input id="xoayTrucY" type="number" step="any" onBlur={() => setGocXoay()}></input>
                 <label>Xoay trục Z:</label>
                 <input id="xoayTrucZ" type="number" step="any" onBlur={() => setGocXoay()}></input>
+                <br></br>
+                <button onClick={() => luuHanhDong()}>Lưu</button>
             </div>
             <br></br>
             <div id="sceneRender">
-
-            </div>
-            <div id="scene2">
 
             </div>
         </div>

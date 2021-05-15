@@ -8,5 +8,9 @@ export const API = {
   LECTURE: "/lecture",
   HANHDONGKHOITAO: '/hanhdong/khoitao',
   HANHDONG: '/hanhdong',
-  NOIDUNGARHANHDONG: '/arcontent/hanhdong'
+  NOIDUNGARHANHDONG: '/arcontent/hanhdong',
+  HANHDONGDOITUONG: '/hanhdong/doituong',
+  ARCONTENTTHAT: '/arcontent/that',
+  NOIDUNGTEXT: '/arcontent/text',
+  NOIDUNG: '/arcontent/noidung'
 };
