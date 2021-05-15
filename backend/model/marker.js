@@ -22,5 +22,10 @@ module.exports = {
         const sql = `select* from NoiDungAR as a, HanhDong as b where b.MaDiemDanhDau = ${maDiemDanhDau} 
         and a.LaFile = true and LaTam = true and b.MaHanhDong = a.MaHanhDong`;
         return await db.load(sql);
+    },
+    getARContentThat: async (maDiemDanhDau) => {
+        const sql = `select* from NoiDungAR as a, HanhDong as b where b.MaDiemDanhDau = ${maDiemDanhDau} 
+        and a.LaFile = true and LaTam = false and b.MaHanhDong = a.MaHanhDong`;
+        return await db.load(sql);
     }
 };

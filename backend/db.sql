@@ -1,6 +1,7 @@
 drop database if exists BaiGiangAR;
 create database BaiGiangAR;
 use BaiGiangAR;
+SET SQL_SAFE_UPDATES = 0;
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456yugi';
 create table HocSinh(
 	MaHocSinh int not null auto_increment,
@@ -68,7 +69,9 @@ create table NoiDungAR(
     XoayX float,
     XoayY float,
     XoayZ float,
-    TiLe float,
+    TiLeX float,
+    TiLeY float,
+    TiLeZ float,
     URL varchar(200),
     MaHanhDong int,
     filename varchar(200),
@@ -124,5 +127,7 @@ insert into HocSinhBaiGiang(MaHocSinh,MaBaiGiang,ThoiGianTao) values(1,1,now());
 insert into HocSinhBaiGiang(MaHocSinh,MaBaiGiang,ThoiGianTao) values(1,2,now());
 
 select* from NoiDungAR;
+update NoiDungAR set ToaDoY = 2;
 select* from DiemDanhDau;
+select* from HanhDong;
 
