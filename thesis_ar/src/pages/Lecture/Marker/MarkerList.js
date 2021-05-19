@@ -56,7 +56,7 @@ export default function MarkerList() {
   const classes = useStyles();
   const history = useHistory();
   const [user] = useContext(UserContext);
-  const userid = user.MaGiaoVien;
+  const userid = user.teacherID;
   const [markers, setMarkers] = useState(null);
   const [open, setOpen] = useState(false);
   const params = useParams();
@@ -96,7 +96,6 @@ export default function MarkerList() {
         console.log("error", error);
       });
   };
-  console.log(markers);
   return (
     <div>
       <div className={classes.lectures}>

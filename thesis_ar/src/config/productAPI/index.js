@@ -14,57 +14,60 @@ export const productAPI = {
     return AXIOS_INSTANCE.post(API.LECTURE, { userid });
   },
   uploadMarker: (formData) => {
-    return FILEUPLOAD_AXIOS_INSTANCE.post(API.MARKER, formData);
+    return FILEUPLOAD_AXIOS_INSTANCE.post('/marker', formData);
   },
-  uploadArContent: (formData) => {
-    return FILEUPLOAD_AXIOS_INSTANCE.post(API.ARCONTENT, formData);
+  uploadArContentTemp: (formData) => {
+    return FILEUPLOAD_AXIOS_INSTANCE.post('/arcontent/temp', formData);
   },
-  getMarker: (maBaiGiang, maDiemDanhDau) => {
-    return AXIOS_INSTANCE.get(API.MARKER, { params: { maBaiGiang: maBaiGiang, maDiemDanhDau: maDiemDanhDau } })
+  getMarker: (markerID) => {
+    return AXIOS_INSTANCE.get('/marker', { params: { markerID: markerID } })
   },
-  getArContent: (maDiemDanhDau) => {
-    return AXIOS_INSTANCE.get(API.ARCONTENT, { params: { maDiemDanhDau: maDiemDanhDau } });
+  getTempARContent: (markerID) => {
+    return AXIOS_INSTANCE.get('/arcontent', { params: { markerID: markerID } });
   },
-  updateDuocChonArContent: (MaNoiDung, MaHanhDong) => {
-    return AXIOS_INSTANCE.patch(API.ARCONTENT, { MaNoiDung, MaHanhDong });
+  addNewInstanceARContent: (actionID, contentID) => {
+    return AXIOS_INSTANCE.post('/arcontent/newinstance', { actionID, contentID });
   },
-  getArContentDuocChon: (maHanhDong) => {
-    return AXIOS_INSTANCE.get(API.ARCONTENTDUOCCHON, { params: { maHanhDong: maHanhDong } });
+  getTempARContentByActionID: (actionID) => {
+    return AXIOS_INSTANCE.get('/arcontent/actionid', { params: { actionID: actionID } });
   },
-  getMaHanhDongKhoiTao: (maDiemDanhDau) => {
-    return AXIOS_INSTANCE.get(API.HANHDONGKHOITAO, { params: { maDiemDanhDau: maDiemDanhDau } });
+  getMarkerID: (markerID) => {
+    return AXIOS_INSTANCE.get('/action/init', { params: { markerID: markerID } });
   },
-  themHanhDong: (noiDung, maDiemDanhDau) => {
-    return AXIOS_INSTANCE.post(API.HANHDONG, { noiDung, maDiemDanhDau });
+  addAction: (name, markerID) => {
+    return AXIOS_INSTANCE.post('/action', { name, markerID });
   },
-  getNoiDungARByHanhDong: (maHanhDong) => {
-    return AXIOS_INSTANCE.get(API.NOIDUNGARHANHDONG, { params: { maHanhDong: maHanhDong } });
+  getAllARContentByActionID: (actionID) => {
+    return AXIOS_INSTANCE.get('/arcontent/all', { params: { actionID: actionID } });
   },
-  loadHanhDong: (maDiemDanhDau) => {
-    return AXIOS_INSTANCE.get(API.HANHDONG, { params: { maDiemDanhDau: maDiemDanhDau } });
+  getAllARContentChoosen: (actionID) => {
+    return AXIOS_INSTANCE.get('/arcontent/choosen', { params: { actionID: actionID } });
   },
-  deleteDoiTuongHanhDong: (maHanhDong, maNoiDung) => {
-    return AXIOS_INSTANCE.delete(API.HANHDONGDOITUONG, { params: { maHanhDong: maHanhDong, maNoiDung: maNoiDung } });
+  loadMarker: (markerID) => {
+    return AXIOS_INSTANCE.get('/action', { params: { markerID: markerID } });
+  },
+  deleteARContent: (contentID) => {
+    return AXIOS_INSTANCE.delete('/arcontent', { params: { contentID: contentID } });
   },
   loadArContentThat: (maDiemDanhDau) => {
     return AXIOS_INSTANCE.get(API.ARCONTENTTHAT, { params: { maDiemDanhDau: maDiemDanhDau } })
   },
-  LuuText: (textObject) => {
-    return AXIOS_INSTANCE.post(API.NOIDUNGTEXT, { textObject });
+  saveText: (textObject) => {
+    return AXIOS_INSTANCE.post('arcontent/text', { textObject });
   },
-  getNoiDungVanBan: (MaNoiDung)=>{
-    return  AXIOS_INSTANCE.get(API.NOIDUNGTEXT, { params: { MaNoiDung: MaNoiDung } });
+  getTextARContent: (contentID) => {
+    return AXIOS_INSTANCE.get('arcontent/text', { params: { contentID: contentID } });
   },
-  updateNoiDungAR: (NoiDungAR)=>{
-    return AXIOS_INSTANCE.post(API.NOIDUNG, {NoiDungAR});
+  updateARContent: (ARContent) => {
+    return AXIOS_INSTANCE.patch('/arcontent', { ARContent });
   },
-  new: (userid,lecname,description)=>{
-    return AXIOS_INSTANCE.post(API.NEW, {userid,lecname,description});
+  new: (userid, lecname, description) => {
+    return AXIOS_INSTANCE.post(API.NEW, { userid, lecname, description });
   },
-  getAllMarker: (lecid)=>{
-    return AXIOS_INSTANCE.post(API.MARKER, {lecid});
+  getAllMarker: (lecid) => {
+    return AXIOS_INSTANCE.post(API.MARKER, { lecid });
   },
-  addMarker: (lecid)=>{
-    return AXIOS_INSTANCE.post(API.ADDMARKER, {lecid});
+  addMarker: (lecid) => {
+    return AXIOS_INSTANCE.post(API.ADDMARKER, { lecid });
   },
 }

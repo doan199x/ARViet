@@ -64,15 +64,15 @@ export default function Lecture(data) {
 
   return (
     <Card className={classes.root}>
-       <Link  className={classes.link} onClick = { () => history.push(`/lecture/${lecture.MaBaiGiang}`)}>
+       <Link  className={classes.link} onClick = { () => history.push(`/lecture/${lecture.lessonID}`)}>
        <CardHeader className = {classes.header}
         avatar={
           <Avatar aria-label="recipe" className={classes.avatar}>
-           {lecture.MaBaiGiang}
+           {lecture.lessonID}
           </Avatar>
         }
         titleTypographyProps={{variant:'h5',fontWeight: 'bold'}}
-        title={lecture.Ten}
+        title={lecture.name}
       />
     </Link>
      
@@ -83,7 +83,7 @@ export default function Lecture(data) {
       />
       <CardContent>
         <Typography variant="body2" color="textSecondary" component="p">
-         Mô tả: {lecture.MoTa}
+         Mô tả: {lecture.description}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
@@ -107,10 +107,10 @@ export default function Lecture(data) {
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
           <Typography paragraph>
-          Thời gian tạo: {lecture.ThoiGianTao}
+          Thời gian tạo: {lecture.timeCreated}
           </Typography>
           <Typography paragraph>
-          Thời gian cập nhật: {lecture.ThoiGianCapNhat}
+          Thời gian cập nhật: {lecture.timeUpdated}
           </Typography>
         </CardContent>
       </Collapse>

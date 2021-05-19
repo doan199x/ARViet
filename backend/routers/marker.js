@@ -1,18 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const token = require('../middlewares/token.mdw')
-const diemDanhDauModel = require('../model/marker');
-const hanhDongModel = require('../model/hanhdong');
+const markerModel = require('../model/marker');
+const actionModel = require('../model/action');
+const config = require('../utils/config');
+
 //multer marker
 var multer = require('multer');
 var storage = multer.diskStorage({
   destination: function (req, file, next) {
-    next(null, 'public/uploads/marker')
+    next(null, 'public/upload/marker')
   },
   filename: function (req, file, next) {
-    if (file.originalname[file.originalname.length - 1] == 'g' && (file.originalname[file.originalname.length - 2] == 'n')) {
+    if (file.mimetype == 'image/png') {
       next(null, file.originalname.substr(0, file.originalname.length - 4) + '-' + Date.now() + '.png')
-    } else if (file.originalname[file.originalname.length - 1] == 'g' && (file.originalname[file.originalname.length - 2] == 'p')) {
+    } else if (file.mimetype == 'image/jpeg') {
       next(null, file.originalname.substr(0, file.originalname.length - 4) + '-' + Date.now() + '.jpg')
     }
   }
@@ -23,34 +25,14 @@ var upload = multer({
 })
 router.post("/", upload.single("file"), async (req, res, next) => {
   try {
+    // update lai marker
     // Luu marker vao danh sach
-    let khoiTaoCreated = false;
-    let khoiTaoID = 0;
-    const maBaiGiang = 1;
-    const maDiemDanhDau = 1;
-    const diemDanhDau = {
-      'maBaiGiang': maBaiGiang,
-      'URL': 'http://localhost:3001/uploads/marker/' + req.file.filename,
-      'tiLe': 1,
-      'filename': req.file.filename,
-      'maDiemDanhDau': maDiemDanhDau
-    }
-    // Neu ton tai thi update, khong thi insert
-    const getDiemDanhDau = await diemDanhDauModel.getByID(maDiemDanhDau);
-    if (getDiemDanhDau.length == 0) {
-      await diemDanhDauModel.add(diemDanhDau);
-      const add = await hanhDongModel.add(maDiemDanhDau);
-      khoiTaoCreated = true;
-      khoiTaoID = 1;
-    } else {
-      await diemDanhDauModel.updateURL(diemDanhDau.maDiemDanhDau, diemDanhDau.URL);
-    }
-    res.json({
-      'filenname': req.file.filename,
-      'URL': 'http://localhost:3001/uploads/marker/' + req.file.filename,
-      'khoiTaoCreated': khoiTaoCreated,
-      'khoiTaoID': khoiTaoID
-    })
+    markerID = req.body.markerID;
+    let file = req.file;
+    let URL = config.baseURL + '/upload/marker/' + file.filename;
+    const lessonID = req.body.lessonID;
+    const updateMarker = await markerModel.updateURL(markerID, URL);
+    res.json(URL);
   } catch (err) {
     next(err);
   }
@@ -58,10 +40,9 @@ router.post("/", upload.single("file"), async (req, res, next) => {
 
 router.get('/', async (req, res, next) => {
   try {
-    const maBaiGiang = req.query.maBaiGiang;
-    const maDiemDanhDau = req.query.maDiemDanhDau;
-    const getDiemDanhDau = await diemDanhDauModel.getByID(maDiemDanhDau);
-    res.json(getDiemDanhDau);
+    const markerID = req.query.markerID;
+    const getMarker = await markerModel.getByID(markerID);
+    res.json(getMarker);
   } catch (err) {
     next(err);
   }
@@ -69,10 +50,13 @@ router.get('/', async (req, res, next) => {
 
 router.post("/add", async (req, res) => {
   try {
-    const marker = await diemDanhDauModel.addMarker(req.body.lecid);
-      res.send(marker);
-    }
-     catch (error) {
+    let URL = config.baseURL + '/upload/marker/no-image.png';
+    const marker = await markerModel.addMarker(req.body.lecid, URL);
+    // add new action
+    const newAction = await actionModel.add(marker.insertId, 'Khởi tạo');
+    res.send(marker);
+  }
+  catch (error) {
     res.send(error);
   }
 });

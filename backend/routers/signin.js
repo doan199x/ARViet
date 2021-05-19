@@ -8,7 +8,7 @@ router.post("/", async (req, res) => {
   try {
     const profile = await signinModel.signin(req.body.email, req.body.password);
     if (profile && (profile.length === 1)) {
-      profile[0].MatKhau = "";
+      profile[0].password = "";
      // console.log(JSON.stringify(profile[0]));
       jwt.sign(
         JSON.stringify(profile[0]),
@@ -19,10 +19,10 @@ router.post("/", async (req, res) => {
           } else if (token){
             res.send({
               token,
-              userID:  profile[0].MaGiaoVien,
+              userID:  profile[0].teacherID,
               email:  profile[0].email,
-              fullname:  profile[0].Ten,
-              ID:  profile[0].CMND,
+              fullname:  profile[0].name,
+              ID:  profile[0].iNumber,
             });
           }
         }

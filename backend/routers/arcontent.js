@@ -1,26 +1,27 @@
 const express = require("express");
 const router = express.Router();
 const token = require('../middlewares/token.mdw')
-const diemDanhDauModel = require('../model/marker');
-const noiDungArModel = require('../model/noidungar');
-const hanhDongModel = require('../model/hanhdong');
+const markerModel = require('../model/marker');
+const ARContentModel = require('../model/arcontent');
+const actionModel = require('../model/action');
+const config = require('../utils/config');
 
 //ar content
 var multer = require('multer');
 var storage = multer.diskStorage({
   destination: function (req, file, next) {
-    next(null, 'public/uploads/arcontent')
+    next(null, 'public/upload/arcontent')
   },
   filename: function (req, file, next) {
     if (file.originalname[file.originalname.length - 1] == 'f') {
       next(null, file.originalname.substr(0, file.originalname.length - 5) + '-' + Date.now() + '.gltf')
     } else if (file.originalname[file.originalname.length - 1] == 'b') {
       next(null, file.originalname.substr(0, file.originalname.length - 4) + '-' + Date.now() + '.glb')
-    } else if (file.originalname[file.originalname.length - 1] == 'g' && (file.originalname[file.originalname.length - 2] == 'n')) {
-      next(null, file.originalname.substr(0, file.originalname.length - 4) + '-' + Date.now() + '.png')
-    } else if (file.originalname[file.originalname.length - 1] == 'g' && (file.originalname[file.originalname.length - 2] == 'p')) {
+    } else if (file.mimetype == 'image/jpeg') {
       next(null, file.originalname.substr(0, file.originalname.length - 4) + '-' + Date.now() + '.jpg')
-    } else if (file.originalname[file.originalname.length - 1] == '4') {
+    } else if (file.mimetype == 'image/png') {
+      next(null, file.originalname.substr(0, file.originalname.length - 4) + '-' + Date.now() + '.png')
+    } else if (file.mimetype == 'video/mp4') {
       next(null, file.originalname.substr(0, file.originalname.length - 4) + '-' + Date.now() + '.mp4')
     } else if (file.originalname[file.originalname.length - 1] == '3') {
       next(null, file.originalname.substr(0, file.originalname.length - 4) + '-' + Date.now() + '.mp3')
@@ -31,27 +32,27 @@ var storage = multer.diskStorage({
 var upload = multer({
   storage: storage,
 })
-router.post("/", upload.single("file"), async (req, res, next) => {
+router.post("/temp", upload.single("file"), async (req, res, next) => {
   try {
-    const noiDungAR = {
-      MaHanhDong: req.body.maHanhDongHienTai,
-      ToaDoX: 0,
-      ToaDoY: 0,
-      ToaDoZ: 0,
-      TiLeX: 1,
-      TiLeY: 1,
-      TiLeZ: 1,
-      URL: 'http://localhost:3001/uploads/arcontent/' + req.file.filename,
-      CapDo: 0,
+    console.log(req.body);
+    const ARContent = {
+      actionID: req.body.actionID,
+      xPosition: 0,
+      yPosition: 0,
+      zPosition: 0,
+      xScale: 1,
+      yScale: 1,
+      zScale: 1,
+      URL: config.baseURL + '/upload/arcontent/' + req.file.filename,
       filename: req.file.filename,
-      XoayX: 0,
-      XoayY: 0,
-      XoayZ: 0,
-      LaFile: true,
-      LaTam: true
+      xRotation: 0,
+      yRotation: 0,
+      zRotation: 0,
+      isFile: true,
+      isTemp: true
     };
-    let addNoiDungAR = await noiDungArModel.addNoiDungAR(noiDungAR);
-    res.json({ 'filenname': req.file.filename });
+    let addTempARContent = await ARContentModel.addARContentTemp(ARContent);
+    res.json({ 'filenname': req.file.filename, 'contentID': addTempARContent.insertId });
   } catch (err) {
     next(err);
   }
@@ -60,15 +61,132 @@ router.post("/", upload.single("file"), async (req, res, next) => {
 router.get("/", async (req, res, next) => {
   try {
     //check
-    const maDiemDanhDau = req.query.maDiemDanhDau;
-    const getDiemDanhDau = await diemDanhDauModel.getByID(maDiemDanhDau);
-    if (getDiemDanhDau.length == 0) {
+    const markerID = req.query.markerID;
+    const getMarkerID = await markerModel.getByID(markerID);
+    if (getMarkerID.length == 0) {
       res.json([]);
     } else {
       //get
-      let getArContent = await diemDanhDauModel.getARContent(maDiemDanhDau);
-      res.json(getArContent);
+      let getTempARContent = await markerModel.getTempARContent(markerID);
+      res.json(getTempARContent);
     }
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.post("/newinstance", async (req, res, next) => {
+  try {
+    let data = req.body.actionID;
+    console.log(data);
+    const findByContentID = await ARContentModel.findByID(data.contentID);
+    if (findByContentID.length > 0) {
+      let addARContentNotTemp = await ARContentModel.addARContentNotTemp(findByContentID[0], data.actionID);
+      const ARContentNotTemp = await ARContentModel.findByID(addARContentNotTemp.insertId);
+      res.json(ARContentNotTemp[0]);
+    } else {
+      res.json([]);
+    }
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.get("/actionid", async (req, res, next) => {
+  try {
+    const actionID = req.query.actionID;
+    const getAction = await actionModel.getByID(actionID);
+    if (getAction.length == 0) {
+      res.json([]);
+    } else {
+      //get
+      let getARContentNotTemp = await actionModel.getARContentNotTempByActionID(actionID);
+      res.json(getARContentNotTemp);
+    }
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.get("/choosen", async (req, res, next) => {
+  try {
+    let actionID = req.query.actionID;
+    const getAllARContent = await ARContentModel.getARContentChoosen(actionID);
+    res.json(getAllARContent);
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.get("/all", async (req, res, next) => {
+  try {
+    let actionID = req.query.actionID;
+    const getAll = await ARContentModel.getAllARContent(actionID);
+    res.json(getAll);
+  } catch (err) {
+    next(err);
+  }
+})
+
+// router.get("/that", async (req, res, next) => {
+//   try {
+//     //check
+//     const maDiemDanhDau = req.query.maDiemDanhDau;
+//     const getDiemDanhDau = await diemDanhDauModel.getByID(maDiemDanhDau);
+//     if (getDiemDanhDau.length == 0) {
+//       res.json([]);
+//     } else {
+//       //get
+//       let getArContent = await diemDanhDauModel.getARContentThat(maDiemDanhDau);
+//       res.json(getArContent);
+//     }
+//   } catch (err) {
+//     next(err);
+//   }
+// })
+
+router.post("/text", async (req, res, next) => {
+  try {
+    let textObject = req.body.textObject;
+    // chen vao noidungAr
+    const ARContent = {
+      actionID: textObject.actionID,
+      xPosition: 0,
+      yPosition: 0,
+      zPosition: 0,
+      xScale: 1,
+      yScale: 1,
+      zScale: 1,
+      URL: "text",
+      filename: "text",
+      xRotation: 0,
+      yRotation: 0,
+      zRotation: 0,
+      isFile: false,
+      isTemp: false
+    };
+    let addARContent = await ARContentModel.addARContentNotTemp(ARContent, ARContent.actionID);
+    const TextARContent = {
+      contentID: addARContent.insertId,
+      text: textObject.text,
+      font: textObject.font,
+      color: textObject.color,
+      backgroundColor: textObject.backgroundColor,
+      isTransparent: textObject.isTransparent,
+      size: textObject.size
+    }
+    let AddtextARContent = await ARContentModel.addTextARContent(TextARContent);
+    // tra ra ma noi dung
+    res.json({ contentID: AddtextARContent.insertId })
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.get("/text", async (req, res, next) => {
+  try {
+    const getTextARContent = await ARContentModel.getTextARContent(req.query.contentID);
+    res.json(getTextARContent);
   } catch (err) {
     next(err);
   }
@@ -76,119 +194,28 @@ router.get("/", async (req, res, next) => {
 
 router.patch("/", async (req, res, next) => {
   try {
-    let data = req.body.MaNoiDung;
-    console.log(data);
-    const findByMaNoiDung = await noiDungArModel.findByMaNoiDung(data.MaNoiDung);
-    if (findByMaNoiDung.length > 0) {
-      let addNoiDungARDuocChon = await noiDungArModel.addNoiDungARDuocChon(findByMaNoiDung[0], data.MaHanhDong);
-      const ArContentDuocChon = await noiDungArModel.findByMaNoiDung(addNoiDungARDuocChon.insertId);
-      res.json(ArContentDuocChon[0]);
-    } else {
-      res.json([]);
-    }
-  } catch (err) {
-    next(err);
-  }
-})
-
-router.get("/duocchon", async (req, res, next) => {
-  try {
-    const maHanhDong = req.query.maHanhDong;
-    const getHanhDong = await hanhDongModel.getByID(maHanhDong);
-    if (getHanhDong.length == 0) {
-      res.json([]);
-    } else {
-      //get
-      let getArContent = await hanhDongModel.getARContentDuocChon(maHanhDong);
-      res.json(getArContent);
-    }
-  } catch (err) {
-    next(err);
-  }
-})
-
-router.get("/hanhdong", async (req, res, next) => {
-  try {
-    let maHanhDong = req.query.maHanhDong;
-    const getNoiDungAR = await noiDungArModel.getNoiDungARByHanhDong(maHanhDong);
-    res.json(getNoiDungAR);
-  } catch (err) {
-    next(err);
-  }
-})
-
-router.get("/that", async (req, res, next) => {
-  try {
-    //check
-    const maDiemDanhDau = req.query.maDiemDanhDau;
-    const getDiemDanhDau = await diemDanhDauModel.getByID(maDiemDanhDau);
-    if (getDiemDanhDau.length == 0) {
-      res.json([]);
-    } else {
-      //get
-      let getArContent = await diemDanhDauModel.getARContentThat(maDiemDanhDau);
-      res.json(getArContent);
-    }
-  } catch (err) {
-    next(err);
-  }
-})
-
-router.post("/text", async (req, res, next) => {
-  try {
-    let textObject = req.body.textObject;
-    // chen vao noidungAr
-    const noiDungAR = {
-      MaHanhDong: textObject.MaHanhDong,
-      ToaDoX: 0,
-      ToaDoY: 0,
-      ToaDoZ: 0,
-      TiLeX: 1,
-      TiLeY: 1,
-      TiLeZ: 1,
-      URL: "text",
-      filename: "text",
-      XoayX: 0,
-      XoayY: 0,
-      XoayZ: 0,
-      LaFile: false,
-      LaTam: false
-    };
-    let addNoiDungAR = await noiDungArModel.addNoiDungAR(noiDungAR);
-    // chen vao noidungartext
-    const noiDungARVanBan = {
-      MaNoiDung: addNoiDungAR.insertId,
-      NoiDungVanBan: textObject.noiDung,
-      FontChu: textObject.fontChu,
-      MauChu: textObject.mauChu,
-      MauNen: textObject.mauNen,
-      TrongSuot: textObject.transparent,
-      CoChu: textObject.coChu
-    }
-    let addNoiDungARVanBan = await noiDungArModel.addNoiDungARVanBan(noiDungARVanBan);
-    // tra ra ma noi dung
-    res.json({ MaNoiDung: addNoiDungARVanBan.insertId })
-  } catch (err) {
-    next(err);
-  }
-})
-
-router.get("/text",async (req,res,next)=>{
-  try{
-    const getNoiDungVanBan = await noiDungArModel.getNoiDungVanBan(req.query.MaNoiDung);
-    console.log(getNoiDungVanBan);
-    res.json(getNoiDungVanBan);
-  }catch(err){
-    next(err);
-  }
-})
-
-router.post("/noidung",async(req,res,next)=>{
-  try{
-    let noiDungUpdate = req.body.NoiDungAR;
-    let updateNoiDung = await noiDungArModel.update(noiDungUpdate);
+    let ARContent = req.body.ARContent;
+    ARContent.isChoosen = true;
+    let updateARContent = await ARContentModel.update(ARContent);
     res.json([]);
-  }catch(err){
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.delete("/", async (req, res, next) => {
+  try {
+    contentID = req.query.contentID;
+    let getARcontentByID = await ARContentModel.findByID(contentID);
+    //if content is text, delete textarcontent
+    if (getARcontentByID.length > 0) {
+      if (getARcontentByID[0].filename = "text") {
+        await ARContentModel.deleteTextARContent(contentID);
+      }
+    }
+    await ARContentModel.delete(contentID);
+    res.json([]);
+  } catch (err) {
     next(err);
   }
 })

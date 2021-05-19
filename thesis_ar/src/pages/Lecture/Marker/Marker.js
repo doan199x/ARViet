@@ -61,11 +61,11 @@ export default function Marker(data) {
     setExpanded(!expanded);
   };
   const marker = data.data;
-  return (
+    return (
     <Card className={classes.root}>
       <Link
         className={classes.link}
-        onClick={() => history.push(`/lecture/${marker.MaBaiGiang}/${marker.MaDiemDanhDau}`)}
+        onClick={() => history.push(`/lecture/${marker.lessonID}/${marker.markerID}`)}
       >
         <CardHeader
           className={classes.header}
@@ -75,12 +75,12 @@ export default function Marker(data) {
             </Avatar>
           }
           titleTypographyProps={{ variant: "h5", fontWeight: "bold" }}
-          title=  { "Điểm đánh dấu " + marker.MaDiemDanhDau}
+          title=  { "Điểm đánh dấu " + marker.markerID}
         />
       </Link>
       <CardContent>
         <Typography variant="body2" color="textSecondary" component="p">
-        
+        sadsada
         </Typography>
       </CardContent>
     </Card>

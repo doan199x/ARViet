@@ -10,17 +10,17 @@ module.exports = {
         const sql = `UPDATE DiemDanhDau set DuocChon = false`;
         return await db.load(sql);
     },
-    getByID: async (maDiemDanhDau) => {
-        const sql = `select* from DiemDanhDau where MaDiemDanhDau = ${maDiemDanhDau}`;
+    getByID: async (markerID) => {
+        const sql = `select* from Marker where markerID = ${markerID}`;
         return await db.load(sql);
     },
-    updateURL: async (maDiemDanhDau, URL) => {
-        const sql = `update DiemDanhDau set URL="${URL}" where MaDiemDanhDau = ${maDiemDanhDau}`;
+    updateURL: async (markerID, URL) => {
+        const sql = `update Marker set URL="${URL}" where markerID = ${markerID}`;
         return await db.load(sql);
     },
-    getARContent: async (maDiemDanhDau) => {
-        const sql = `select* from NoiDungAR as a, HanhDong as b where b.MaDiemDanhDau = ${maDiemDanhDau} 
-        and a.LaFile = true and LaTam = true and b.MaHanhDong = a.MaHanhDong`;
+    getTempARContent: async (markerID) => {
+        const sql = `select* from ARContent as a, Action as b where b.markerID = ${markerID} 
+        and a.isFile = true and isTemp = true and b.actionID = a.actionID`;
         return await db.load(sql);
     },
     getARContentThat: async (maDiemDanhDau) => {
@@ -28,8 +28,8 @@ module.exports = {
         and a.LaFile = true and LaTam = false and b.MaHanhDong = a.MaHanhDong`;
         return await db.load(sql);
     },
-    addMarker: async (lecid) => {
-        const sql = `insert into DiemDanhDau (MaBaiGiang) values ("${lecid}");` 
+    addMarker: async (lecid, URL) => {
+        const sql = `insert into Marker (lessonID,URL,scale) values (${lecid},"${URL}",1);`
         const result = await db.load(sql);
         return result;
     },

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Component } from "react";
 import * as THREE from "three";
 import { Color, PixelFormat, Vector3 } from "three";
@@ -27,7 +27,7 @@ const axios = require("axios");
 const useStyles = makeStyles((theme) => ({
   grid: {
     display: "grid",
-    gridTemplateColumns: "20% 60% 20%",
+    gridTemplateColumns: "15% 70% 15%",
     margin: "1%",
   },
   column1: {},
@@ -54,8 +54,8 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: "5%",
   },
   title: {
-color: '#2763c5',
-fontWeight: 'bold'
+    color: '#2763c5',
+    fontWeight: 'bold'
   },
 }));
 
@@ -64,54 +64,52 @@ export default function Create() {
   const classes = useStyles();
   //params
   const param = useParams();
-  // load 3d model
-  // load marker
-  const maBaiGiang = param.lecid;
-  const maDiemDanhDau = param.markerid;
 
+  const lessonID = param.lecid;
+  const markerID = param.markerid;
   let camera, renderer;
-  let arrayTextObject = [];
+  // let arrayTextObject = [];
 
   let currentID = 0;
-  let currentMarkerID = 0;
+  let currentSceneMarkerID = 0;
+  let currentActionID = 0;
+  const px2m = 0.0002645833;
 
   let scene = new THREE.Scene();
-  let maHanhDongHienTai = 0;
+  // let maHanhDongHienTai = 0;
 
   //add axes
-
   var axesHelper = new THREE.AxesHelper(200);
   scene.background = new THREE.Color(0x838784);
   scene.add(axesHelper);
 
   //grid helper:
-  var gridXZ = new THREE.GridHelper(30, 30, 0x000000, 0x000000);
+  var gridXZ = new THREE.GridHelper(1, 100, 0x000000, 0x000000);
   gridXZ.position.y = 0;
   scene.add(gridXZ);
 
   //add light
-
   const light = new THREE.AmbientLight(0xffffff); // soft white light
   scene.add(light);
 
+  // add camera
   camera = new THREE.PerspectiveCamera(
     60,
     window.innerWidth / window.innerHeight,
     0.0001,
-    100
+    200
   );
-  camera.position.set(10, 5, 10);
+  camera.position.set(0.1, 0.1, 0.1);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   //renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setSize(800, 400);
+  renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7);
   renderer.setAnimationLoop(animation);
   function animation(time) {
     renderer.render(scene, camera);
   }
   // add domEvents
   let domEvents = new THREEx.DomEvents(camera, renderer.domElement);
-
   //orbit control
   const orbitControls = new OrbitControls(camera, renderer.domElement);
   orbitControls.screenSpacePanning = true;
@@ -123,191 +121,178 @@ export default function Create() {
     orbitControls.enabled = !event.value;
   });
   transformControls.addEventListener("objectChange", function (event) {
-    showToaDo();
-    showTiLe();
-    showGocQuay();
+    showFormEdit();
   });
 
-  //---------------------------------------------------
-  //window resize
+  // window resize
   window.addEventListener("resize", onWindowResize, false);
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7);
     animation();
   }
-  document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-      // init scene
-      let sceneRender = document.getElementById("sceneRender");
-      sceneRender.appendChild(renderer.domElement);
-      showMarker();
-      showTiLeMarker();
-      getMaHanhDongKhoiTao();
-      loadArContent();
-      loadDanhSachHanhDong();
-      setEventTransform();
-      loadDanhSachDoiTuong();
-    },
-    false
-  );
+  useEffect(() => {
+    // init scene
+    let sceneRender = document.getElementById("sceneRender");
+    sceneRender.appendChild(renderer.domElement);
+    setEventTransform();
+    showMarker();
+    loadActionList();
+    getCurrentActionID();
+    loadTempARContentList();
+  })
 
   //Upload marker
   function uploadMarker() {
     let markerFile = document.getElementById("uploadFileMarker").files[0];
     let formData = new FormData();
     formData.append("file", markerFile);
-    formData.append("maDiemDanhDau", maDiemDanhDau);
+    formData.append("markerID", markerID);
     productAPI.uploadMarker(formData).then((data) => {
-      if (data.data.khoiTaoCreated) {
-        maHanhDongHienTai = data.data.khoiTaoID;
-      }
-      loadDanhSachHanhDong();
       showMarker();
     });
   }
   function showMarker() {
-    // check co marker chua
-    productAPI.getMarker(maBaiGiang, maDiemDanhDau).then((data) => {
-      if (data.data.length == 0) {
-      } else {
-        // Load marker
-        var img = new Image();
-        img.src = data.data[0].URL;
-        img.onload = function () {
-          var loader = new THREE.TextureLoader();
-          // Load an image file into a custom material
-          var material = new THREE.MeshLambertMaterial({
-            map: loader.load(data.data[0].URL),
-          });
-          var geometry = new THREE.PlaneGeometry(
-            4,
-            (4 * img.height) / img.width
-          );
-          // combine our image geometry and material into a mesh
-          var marker = new THREE.Mesh(geometry, material);
-          marker.rotation.set(degreeToRadian(-90), 0, 0);
-          scene.remove(scene.getObjectById(currentMarkerID));
-          currentMarkerID = marker.id;
-          scene.add(marker);
+    // get marker roi show ra.
+    productAPI.getMarker(markerID).then((data) => {
+      var img = new Image();
+      img.src = data.data[0].URL;
+      img.onload = function () {
+        var loader = new THREE.TextureLoader();
+        // Load an image file into a custom material
+        var material = new THREE.MeshLambertMaterial({
+          map: loader.load(data.data[0].URL)
+        });
+        var geometry = new THREE.PlaneGeometry(img.width * px2m, img.height * px2m);
+        // combine our image geometry and material into a mesh
+        var marker = new THREE.Mesh(geometry, material);
+        marker.rotation.set(degreeToRadian(-90), 0, 0);
+        if (currentSceneMarkerID != 0) {
+          scene.remove(scene.getObjectById(currentSceneMarkerID));
+        }
+        currentSceneMarkerID = marker.id;
+        scene.add(marker);
+
+        // show ti le marker
+        let markerScale = document.getElementById('markerScale');
+        markerScale.value = data.data[0].scale;
+      }
+    });
+  }
+  // Set Marker scale
+  function setMarkerScale() {
+    let markerScale = document.getElementById("markerScale").value;
+    let marker = scene.getObjectById(currentSceneMarkerID);
+    marker.getObjectById(currentSceneMarkerID).scale.set(markerScale, markerScale, markerScale);
+  }
+  function loadActionList() {
+    productAPI.loadMarker(markerID).then((data) => {
+      let actionArr = data.data;
+      let actionList = document.getElementById("actionList");
+      actionList.innerHTML = "";
+      for (let i = 0; i < actionArr.length; i++) {
+        let li = document.createElement("li");
+        li.appendChild(document.createTextNode(actionArr[i].name));
+        let id = document.createAttribute("id");
+        id.value = actionArr[i].actionID + actionArr[i].name;
+        li.setAttributeNode(id);
+        actionList.appendChild(li);
+        document.getElementById(id.value).onclick = function () {
+          loadARContentByActionID(actionArr[i].actionID);
         };
       }
     });
-    // hien thi ra marker dau tien
   }
-  // Set Marker scale
-  function setTiLeMarker() {
-    if (currentMarkerID == 0) {
-      alert("ban chua tai len marker");
-    } else {
-      let tiLeMarker = document.getElementById("tiLeMarker").value;
-      let currentMarkerObject = scene.getObjectById(currentMarkerID);
-      currentMarkerObject.scale.set(tiLeMarker, tiLeMarker, tiLeMarker);
+
+  function getCurrentActionID() {
+    if (currentActionID == 0) {
+      // get id action khoi tao
+      productAPI.getMarkerID(markerID).then((data) => {
+        currentActionID = data.data[0].actionID;
+        loadObjectList();
+        loadARContentByActionID(currentActionID);
+      })
     }
   }
 
-  function showTiLeMarker() {
-    let tiLeMarker = document.getElementById("tiLeMarker");
-    if (currentMarkerID == 0) {
-      tiLeMarker.value = 1;
-    } else {
-      let currentMarkerObject = scene.getObjectById(currentMarkerID);
-      tiLeMarker = currentMarkerObject.scale.x;
-    }
-  }
-  function getMaHanhDongKhoiTao() {
-    productAPI.getMaHanhDongKhoiTao(maDiemDanhDau).then((data) => {
-      maHanhDongHienTai = data.data.maHanhDongKhoiTao;
-      loadDanhSachDoiTuong();
+  function addAction() {
+    let actionName = document.getElementById("actionName").value;
+    productAPI.addAction(actionName, markerID).then((data) => {
+      currentActionID = data.data.insertId;
+      loadActionList();
     });
   }
 
-  //Upload arContent
-  function uploadArContent() {
+  //Upload arContent temp
+  function uploadArContentTemp() {
     let arContentFile = document.getElementById("uploadFileArContent").files[0];
     let formData = new FormData();
     formData.append("file", arContentFile);
-    formData.append("maHanhDongHienTai", maHanhDongHienTai);
-    productAPI.uploadArContent(formData).then((data) => {
-      getMaHanhDongKhoiTao();
-      loadArContent();
+    formData.append("actionID", currentActionID);
+    productAPI.uploadArContentTemp(formData).then((data) => {
+      loadTempARContentList();
     });
   }
 
-  // Load arContent "TAM"
-  function loadArContent() {
-    let arContentList = document.getElementById("arContentList");
+  // Load danh sach noi dung da tai TempARContentList
+  function loadTempARContentList() {
+    let tempARContentList = document.getElementById("tempARContentList");
     //get All
-    productAPI.getArContent(maDiemDanhDau).then((data) => {
-      let arContent = data.data;
-      arContentList.innerHTML = "";
-      for (let i = 0; i < arContent.length; i++) {
+    productAPI.getTempARContent(markerID).then((data) => {
+      let ARContent = data.data;
+      tempARContentList.innerHTML = "";
+      for (let i = 0; i < ARContent.length; i++) {
         let li = document.createElement("li");
-        li.appendChild(document.createTextNode(arContent[i].filename));
+        li.appendChild(document.createTextNode(ARContent[i].filename));
         let id = document.createAttribute("id");
-        id.value = arContent[i].filename + arContent[i].MaNoiDung;
-        console.log(id.value);
+        id.value = ARContent[i].filename + ARContent[i].contentID;
         li.setAttributeNode(id);
-        arContentList.appendChild(li);
-        if (arContent[i].URL[arContent[i].URL.length - 1] == "b") {
+        tempARContentList.appendChild(li);
+        if (ARContent[i].URL[ARContent[i].URL.length - 1] == "b") {
           document.getElementById(id.value).onclick = function () {
-            show3dModel(arContent[i].URL, arContent[i].MaNoiDung);
+            show3dModel(ARContent[i].URL, ARContent[i].contentID);
           };
-        } else if (arContent[i].URL[arContent[i].URL.length - 1] == "g") {
+        } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "g") {
           document.getElementById(id.value).onclick = function () {
-            show2DImage(arContent[i].URL, arContent[i].MaNoiDung);
+            show2DImage(ARContent[i].URL, ARContent[i].contentID);
           };
         }
       }
     });
   }
-  function loadDanhSachDoiTuong() {
-    if (maHanhDongHienTai != 0) {
-      let danhSachDoiTuong = document.getElementById("danhSachDoiTuong");
-      danhSachDoiTuong.innerHTML = "";
-      productAPI.getArContentDuocChon(maHanhDongHienTai).then((data) => {
-        let arContent = data.data;
-        for (let i = 0; i < arContent.length; i++) {
-          let li = document.createElement("li");
-          li.appendChild(document.createTextNode(arContent[i].filename));
-          danhSachDoiTuong.appendChild(li);
-        }
-      });
-    }
-  }
-  function show3dModel(httpPath, MaNoiDung) {
+
+  // show 3D model
+  function show3dModel(URL, contentID) {
     const loader = new GLTFLoader();
     loader.load(
-      httpPath,
+      URL,
       function (gltf) {
         scene.add(gltf.scene);
         domEvents.addEventListener(
           gltf.scene,
           "dblclick",
           function (event) {
-            gltf.scene.parent = scene;
             currentID = gltf.scene.id;
-            console.log(gltf.scene);
             transformControls.detach();
             transformControls.attach(gltf.scene);
             transformControls.setMode("translate");
             scene.add(transformControls);
             showFormEdit();
-          },
-          false
-        );
-        // create new instance arcontent duoc chon
+            // create new instance of this arcontent and set istemp = false;
+          });
         productAPI
-          .updateDuocChonArContent({
-            MaNoiDung: MaNoiDung,
-            MaHanhDong: maHanhDongHienTai,
+          .addNewInstanceARContent({
+            contentID: contentID,
+            actionID: currentActionID,
           })
           .then((data) => {
-            gltf.scene.maNoiDung = data.data.MaNoiDung;
-            loadDanhSachDoiTuong();
-          });
+            gltf.scene.contentID = data.data.contentID;
+            gltf.scene.type = "3DModel";
+            loadObjectList();
+          },
+            false
+          );
       },
       (xhr) => {
         console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
@@ -316,209 +301,10 @@ export default function Create() {
         console.log(error);
       }
     );
-  }
-  function loadDanhSachHanhDong() {
-    productAPI.loadHanhDong(maDiemDanhDau).then((data) => {
-      let hanhDongArr = data.data;
-      let danhSachHanhDong = document.getElementById("danhSachHanhDong");
-      danhSachHanhDong.innerHTML = "";
-      for (let i = 0; i < hanhDongArr.length; i++) {
-        let li = document.createElement("li");
-        li.appendChild(document.createTextNode(hanhDongArr[i].NoiDung));
-        let id = document.createAttribute("id");
-        id.value = hanhDongArr[i].MaHanhDong + hanhDongArr[i].NoiDung;
-        li.setAttributeNode(id);
-        danhSachHanhDong.appendChild(li);
-        document.getElementById(id.value).onclick = function () {
-          loadNoiDungARByHanhDong(hanhDongArr[i].MaHanhDong);
-        };
-      }
-    });
-  }
-  function load3DModel(noiDungAR) {
-    const loader = new GLTFLoader();
-    loader.load(
-      noiDungAR.URL,
-      function (gltf) {
-        gltf.scene.maNoiDung = noiDungAR.MaNoiDung;
-        scene.add(gltf.scene);
-        gltf.scene.position.set(
-          noiDungAR.ToaDoX,
-          noiDungAR.ToaDoY,
-          noiDungAR.ToaDoZ
-        );
-        gltf.scene.rotation.set(
-          noiDungAR.XoayX,
-          noiDungAR.XoayY,
-          noiDungAR.XoayZ
-        );
-        gltf.scene.scale.set(noiDungAR.TiLeX, noiDungAR.TiLeY, noiDungAR.TiLeZ);
-        domEvents.addEventListener(
-          gltf.scene,
-          "dblclick",
-          function (event) {
-            currentID = gltf.scene.id;
-            transformControls.detach();
-            transformControls.attach(gltf.scene);
-            transformControls.setMode("translate");
-            scene.add(transformControls);
-            showFormEdit();
-          },
-          false
-        );
-      },
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
-  }
-  function load2DImage(noiDungAR) {
-    var img = new Image();
-    img.src = noiDungAR.URL;
-    img.onload = function () {
-      var loader = new THREE.TextureLoader();
-      // Load an image file into a custom material
-      var material = new THREE.MeshLambertMaterial({
-        map: loader.load(noiDungAR.URL),
-        side: THREE.DoubleSide,
-      });
-      var geometry = new THREE.PlaneGeometry(4, (4 * img.height) / img.width);
-      // combine our image geometry and material into a mesh
-      var imageTexture = new THREE.Mesh(geometry, material);
-      imageTexture.maNoiDung = noiDungAR.MaNoiDung;
-      scene.add(imageTexture);
-      imageTexture.position.set(
-        noiDungAR.ToaDoX,
-        noiDungAR.ToaDoY,
-        noiDungAR.ToaDoZ
-      );
-      imageTexture.rotation.set(
-        noiDungAR.XoayX,
-        noiDungAR.XoayY,
-        noiDungAR.XoayZ
-      );
-      imageTexture.scale.set(noiDungAR.TiLeX, noiDungAR.TiLeY, noiDungAR.TiLeZ);
-      domEvents.addEventListener(
-        imageTexture,
-        "dblclick",
-        function (event) {
-          currentID = imageTexture.id;
-          transformControls.detach();
-          transformControls.attach(imageTexture);
-          transformControls.setMode("translate");
-          scene.add(transformControls);
-        },
-        false
-      );
-    };
-  }
-  function loadVanBan(noiDungAR) {
-    productAPI.getNoiDungVanBan(noiDungAR.MaNoiDung).then((data) => {
-      let transparent = false;
-      if (data.data.length > 0) {
-        let noiDungVanBan = data.data[0];
-        let configTextture = {
-          alignment: "center",
-          color: noiDungVanBan.MauChu,
-          fontFamily: noiDungVanBan.FontChu,
-          fontSize: noiDungVanBan.CoChu,
-          text: [noiDungVanBan.NoiDungVanBan].join("\n"),
-        };
-        if (noiDungVanBan.TrongSuot == true) {
-          transparent = true;
-        } else {
-          configTextture.backgroundColor = noiDungVanBan.MauNen;
-        }
-        if (noiDungVanBan.FontChu == "timenewromans") {
-          configTextture.fontFamily = '"Times New Roman", Times, serif';
-        } else if (noiDungVanBan.fontChu == "arial") {
-          configTextture.FontFamily = "Arial, Helvetica, sans-serif";
-        }
-        let texture = new TextTexture(configTextture);
-        let material = new THREE.MeshLambertMaterial({
-          map: texture,
-          transparent: transparent,
-          side: THREE.DoubleSide,
-        });
-        var geometry = new THREE.PlaneGeometry(
-          texture.width / 50,
-          texture.height / 50
-        );
-        var textTexture = new THREE.Mesh(geometry, material);
-        texture.redraw();
-        textTexture.maNoiDung = noiDungAR.MaNoiDung;
-        scene.add(textTexture);
-        textTexture.position.set(
-          noiDungAR.ToaDoX,
-          noiDungAR.ToaDoY,
-          noiDungAR.ToaDoZ
-        );
-        textTexture.rotation.set(
-          noiDungAR.XoayX,
-          noiDungAR.XoayY,
-          noiDungAR.XoayZ
-        );
-        textTexture.scale.set(
-          noiDungAR.TiLeX,
-          noiDungAR.TiLeY,
-          noiDungAR.TiLeZ
-        );
-        domEvents.addEventListener(
-          textTexture,
-          "dblclick",
-          function (event) {
-            currentID = textTexture.id;
-            transformControls.detach();
-            transformControls.attach(textTexture);
-            transformControls.setMode("translate");
-            scene.add(transformControls);
-          },
-          false
-        );
-      }
-    });
-  }
-  function clearAllContent() {
-    let length = scene.children.length;
-    transformControls.detach();
-    for (let i = 0; i < length; i++) {
-      if (scene.children[i].maNoiDung !== undefined) {
-        domEvents.removeEventListener(
-          scene.children[i],
-          "dblclick",
-          function () {},
-          false
-        );
-        scene.remove(scene.children[i]);
-        length--;
-        i--;
-      }
-    }
-  }
-  function loadNoiDungARByHanhDong(maHanhDong) {
-    clearAllContent();
-    maHanhDongHienTai = maHanhDong;
-    productAPI.getNoiDungARByHanhDong(maHanhDong).then((data) => {
-      loadDanhSachDoiTuong();
-      let noiDungAR = data.data;
-      for (let i = 0; i < noiDungAR.length; i++) {
-        let filename = noiDungAR[i].filename;
-        if (filename[filename.length - 1] == "b") {
-          load3DModel(noiDungAR[i]);
-        } else if (filename[filename.length - 1] == "g") {
-          load2DImage(noiDungAR[i]);
-        } else if (filename == "text") {
-          loadVanBan(noiDungAR[i]);
-        }
-      }
-    });
-    // console.log(scene);
   }
 
-  function show2DImage(URL, MaNoiDung) {
+  //Show 2D image
+  function show2DImage(URL, contentID) {
     var img = new Image();
     img.src = URL;
     img.onload = function () {
@@ -528,7 +314,7 @@ export default function Create() {
         map: loader.load(URL),
         side: THREE.DoubleSide,
       });
-      var geometry = new THREE.PlaneGeometry(4, (4 * img.height) / img.width);
+      var geometry = new THREE.PlaneGeometry(img.width * px2m, img.height * px2m);
       // combine our image geometry and material into a mesh
       var imageTexture = new THREE.Mesh(geometry, material);
       scene.add(imageTexture);
@@ -547,60 +333,64 @@ export default function Create() {
       );
       // create new instance arcontent duoc chon
       productAPI
-        .updateDuocChonArContent({
-          MaNoiDung: MaNoiDung,
-          MaHanhDong: maHanhDongHienTai,
+        .addNewInstanceARContent({
+          contentID: contentID,
+          actionID: currentActionID,
         })
         .then((data) => {
-          imageTexture.maNoiDung = data.data.MaNoiDung;
-          loadDanhSachDoiTuong();
+          imageTexture.contentID = data.data.contentID;
+          imageTexture.type = "2DImage"
+          loadObjectList();
         });
     };
   }
-  // setText
-  function setText2D() {
-    let fontChu = document.getElementById("fontChu").value;
+
+  // show 2D Text
+  function show2DText() {
+    let font = document.getElementById("font").value;
     let textObject = {
-      noiDung: document.getElementById("noiDung").value,
-      coChu: document.getElementById("coChu").value,
-      mauChu: document.getElementById("mauChu").value,
-      mauNen: document.getElementById("mauNen").value,
-      transparent: false,
-      fontChu: fontChu,
+      text: document.getElementById("text").value,
+      size: document.getElementById("size").value,
+      color: document.getElementById("color").value,
+      backgroundColor: document.getElementById("backgroundColor").value,
+      isTransparent: false,
+      font: font,
     };
+    console.log(textObject.text);
     let configTextture = {
       alignment: "center",
-      color: textObject.mauChu,
-      fontFamily: textObject.fontChu,
-      fontSize: parseInt(textObject.coChu),
-      text: [textObject.noiDung].join("\n"),
+      color: textObject.color,
+      fontFamily: textObject.font,
+      fontSize: parseInt(textObject.size),
+      text: [textObject.text].join("\n"),
     };
-    if (document.getElementById("trongSuot").checked == true) {
-      textObject.transparent = true;
+    if (document.getElementById("isTransparent").checked == true) {
+      textObject.isTransparent = true;
     } else {
-      configTextture.backgroundColor = textObject.mauNen;
+      configTextture.backgroundColor = textObject.backgroundColor;
     }
-    if (fontChu == "timenewromans") {
+    if (font == "timenewromans") {
       configTextture.fontFamily = '"Times New Roman", Times, serif';
-    } else if (fontChu == "arial") {
+    } else if (font == "arial") {
       configTextture.fontFamily = "Arial, Helvetica, sans-serif";
     }
     let texture = new TextTexture(configTextture);
     let material = new THREE.MeshLambertMaterial({
       map: texture,
-      transparent: textObject.transparent,
+      transparent: textObject.isTransparent,
       side: THREE.DoubleSide,
     });
     var geometry = new THREE.PlaneGeometry(
-      texture.width / 50,
-      texture.height / 50
+      texture.width * px2m,
+      texture.height * px2m
     );
     var textTexture = new THREE.Mesh(geometry, material);
     texture.redraw();
     scene.add(textTexture);
-    textObject.MaHanhDong = maHanhDongHienTai;
-    productAPI.LuuText(textObject).then((data) => {
-      textTexture.maNoiDung = data.data.MaNoiDung;
+    textObject.actionID = currentActionID;
+    productAPI.saveText(textObject).then((data) => {
+      textTexture.contentID = data.data.contentID;
+      textTexture.type = "2DText"
     });
     domEvents.addEventListener(
       textTexture,
@@ -611,148 +401,246 @@ export default function Create() {
         transformControls.attach(textTexture);
         transformControls.setMode("translate");
         scene.add(transformControls);
+        showFormEdit();
       },
       false
     );
   }
 
-  //Them hanh dong
-  function themHanhDong() {
-    let noiDung = document.getElementById("hanhDong").value;
-    productAPI.themHanhDong(noiDung, maDiemDanhDau).then((data) => {
-      loadDanhSachHanhDong();
+  // load objects list in the scene
+  function loadObjectList() {
+    let objectList = document.getElementById("objectList");
+    objectList.innerHTML = "";
+    productAPI.getTempARContentByActionID(currentActionID).then((data) => {
+      let ARContent = data.data;
+      for (let i = 0; i < ARContent.length; i++) {
+        let li = document.createElement("li");
+        li.appendChild(document.createTextNode(ARContent[i].filename + ` - ` + ARContent[i].contentID));
+        objectList.appendChild(li);
+      }
+    });
+  }
+  function clearAllContent() {
+    let length = scene.children.length;
+    transformControls.detach();
+    for (let i = 0; i < length; i++) {
+      if (scene.children[i].contentID !== undefined) {
+        domEvents.removeEventListener(
+          scene.children[i],
+          "dblclick",
+          function () { },
+          false
+        );
+        scene.remove(scene.children[i]);
+        length--;
+        i--;
+      }
+    }
+  }
+  function loadARContentByActionID(actionID) {
+    currentActionID = actionID;
+    clearAllContent();
+    productAPI.getAllARContentChoosen(actionID).then((data) => {
+      loadObjectList();
+      let ARContent = data.data;
+      for (let i = 0; i < ARContent.length; i++) {
+        let filename = ARContent[i].filename;
+        if (filename[filename.length - 1] == "b") {
+          load3DModel(ARContent[i]);
+        } else if (filename[filename.length - 1] == "g") {
+          load2DImage(ARContent[i]);
+        } else if (filename == "text") {
+          load2DText(ARContent[i]);
+        }
+      }
+    });
+  }
+  function load3DModel(ARContent) {
+    const loader = new GLTFLoader();
+    loader.load(
+      ARContent.URL,
+      function (gltf) {
+        gltf.scene.contentID = ARContent.contentID;
+        gltf.scene.type = "3DModel"
+        scene.add(gltf.scene);
+        gltf.scene.position.set(
+          ARContent.xPosition,
+          ARContent.yPosition,
+          ARContent.zPosition
+        );
+        gltf.scene.rotation.set(
+          ARContent.xRotation,
+          ARContent.yRotation,
+          ARContent.zRotation
+        );
+        gltf.scene.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+        domEvents.addEventListener(
+          gltf.scene,
+          "dblclick",
+          function (event) {
+            currentID = gltf.scene.id;
+            transformControls.detach();
+            transformControls.attach(gltf.scene);
+            transformControls.setMode("translate");
+            scene.add(transformControls);
+            showFormEdit();
+          },
+          false
+        );
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  }
+  function load2DImage(ARContent) {
+    var img = new Image();
+    img.src = ARContent.URL;
+    img.onload = function () {
+      var loader = new THREE.TextureLoader();
+      // Load an image file into a custom material
+      var material = new THREE.MeshLambertMaterial({
+        map: loader.load(ARContent.URL),
+        side: THREE.DoubleSide,
+      });
+      var geometry = new THREE.PlaneGeometry(img.width * px2m, img.height * px2m);
+      // combine our image geometry and material into a mesh
+      var imageTexture = new THREE.Mesh(geometry, material);
+      imageTexture.contentID = ARContent.contentID;
+      imageTexture.type = "2DImage"
+      scene.add(imageTexture);
+      imageTexture.position.set(
+        ARContent.xPosition,
+        ARContent.yPosition,
+        ARContent.zPosition
+      );
+      imageTexture.rotation.set(
+        ARContent.xRotation,
+        ARContent.yRotation,
+        ARContent.zRotation
+      );
+      imageTexture.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zS);
+      domEvents.addEventListener(
+        imageTexture,
+        "dblclick",
+        function (event) {
+          currentID = imageTexture.id;
+          transformControls.detach();
+          transformControls.attach(imageTexture);
+          transformControls.setMode("translate");
+          scene.add(transformControls);
+          showFormEdit();
+        },
+        false
+      );
+    };
+  }
+  function load2DText(ARContent) {
+    productAPI.getTextARContent(ARContent.contentID).then((data) => {
+      let isTransparent = false;
+      if (data.data.length > 0) {
+        let textARContent = data.data[0];
+        console.log(textARContent);
+        let configTextture = {
+          alignment: "center",
+          color: textARContent.color,
+          fontFamily: textARContent.font,
+          fontSize: textARContent.size,
+          text: [textARContent.text].join("\n"),
+        };
+        if (textARContent.isTransparent == true) {
+          isTransparent = true;
+        } else {
+          configTextture.backgroundColor = textARContent.backgroundColor;
+        }
+        if (textARContent.font == "timenewromans") {
+          configTextture.fontFamily = '"Times New Roman", Times, serif';
+        } else if (textARContent.font == "arial") {
+          configTextture.FontFamily = "Arial, Helvetica, sans-serif";
+        }
+        let texture = new TextTexture(configTextture);
+        let material = new THREE.MeshLambertMaterial({
+          map: texture,
+          transparent: isTransparent,
+          side: THREE.DoubleSide,
+        });
+        var geometry = new THREE.PlaneGeometry(
+          texture.width * px2m,
+          texture.height * px2m
+        );
+        var textTexture = new THREE.Mesh(geometry, material);
+        texture.redraw();
+        textTexture.contentID = ARContent.contentID;
+        textTexture.type = "2DText"
+        scene.add(textTexture);
+        textTexture.position.set(
+          ARContent.xPosition,
+          ARContent.yPosition,
+          ARContent.zPosition
+        );
+        textTexture.rotation.set(
+          ARContent.xRotation,
+          ARContent.yRotation,
+          ARContent.zRotation
+        );
+        textTexture.scale.set(
+          ARContent.xScale,
+          ARContent.yScale,
+          ARContent.zScale
+        );
+        domEvents.addEventListener(
+          textTexture,
+          "dblclick",
+          function (event) {
+            currentID = textTexture.id;
+            transformControls.detach();
+            transformControls.attach(textTexture);
+            transformControls.setMode("translate");
+            scene.add(transformControls);
+            showFormEdit();
+          },
+          false
+        );
+      }
     });
   }
 
-  // Load AR content theo hanh dong
-
-  function showFormEdit() {
-    showToaDo();
-    showTiLe();
-    showGocQuay();
-  }
-  function showToaDo() {
-    if (currentID != 0) {
-      let currentObject = scene.getObjectById(currentID);
-      document.getElementById("toaDoX").value = currentObject.position.x;
-      document.getElementById("toaDoY").value = currentObject.position.y;
-      document.getElementById("toaDoZ").value = currentObject.position.z;
-    }
-  }
-  function showTiLe() {
-    if (currentID != 0) {
-      let currentObject = scene.getObjectById(currentID);
-      document.getElementById("tiLeX").value = currentObject.scale.x;
-      document.getElementById("tiLeY").value = currentObject.scale.y;
-      document.getElementById("tiLeZ").value = currentObject.scale.z;
-    }
-  }
-  function showGocQuay() {
-    if (currentID != 0) {
-      let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xoayTrucX").value = radianToDegree(
-        currentObject.rotation.x
-      );
-      document.getElementById("xoayTrucY").value = radianToDegree(
-        currentObject.rotation.y
-      );
-      document.getElementById("xoayTrucZ").value = radianToDegree(
-        currentObject.rotation.z
-      );
-    }
-  }
-  function setToaDo() {
-    let currentObject = scene.getObjectById(currentID);
-    let toaDoX = document.getElementById("toaDoX").value.trim();
-    let toaDoY = document.getElementById("toaDoY").value.trim();
-    let toaDoZ = document.getElementById("toaDoZ").value.trim();
-    if (toaDoX.length == 0 || toaDoY.length == 0 || toaDoZ.length == 0) {
-      alert("Vui long nhap du toa do");
-      setTimeout(setToaDo, 10000);
-    } else {
-      currentObject.position.set(toaDoX, toaDoY, toaDoZ);
-    }
-  }
-  function setTiLe() {
-    let currentObject = scene.getObjectById(currentID);
-    let tiLeX = document.getElementById("tiLeX").value.trim();
-    let tiLeY = document.getElementById("tiLeY").value.trim();
-    let tiLeZ = document.getElementById("tiLeZ").value.trim();
-    if (tiLeX.length == 0 || tiLeY.length == 0 || tiLeZ.length == 0) {
-      alert("Vui long nhap du ti le");
-      setTimeout(setTiLe, 10000);
-    } else {
-      currentObject.scale.set(tiLeX, tiLeY, tiLeZ);
-    }
-  }
-  function setGocXoay() {
-    let currentObject = scene.getObjectById(currentID);
-    let xoayTrucX = document.getElementById("xoayTrucX").value.trim();
-    let xoayTrucY = document.getElementById("xoayTrucY").value.trim();
-    let xoayTrucZ = document.getElementById("xoayTrucZ").value.trim();
-    if (
-      xoayTrucX.length == 0 ||
-      xoayTrucY.length == 0 ||
-      xoayTrucZ.length == 0
-    ) {
-      alert("Vui long nhap du ti le");
-      setTimeout(setGocXoay, 10000);
-    } else {
-      xoayTrucX = degreeToRadian(parseFloat(xoayTrucX));
-      xoayTrucY = degreeToRadian(parseFloat(xoayTrucY));
-      xoayTrucZ = degreeToRadian(parseFloat(xoayTrucZ));
-      currentObject.rotation.set(xoayTrucX, xoayTrucY, xoayTrucZ);
-    }
-  }
-  function degreeToRadian(degree) {
-    return (degree * Math.PI) / 180.0;
-  }
-  function radianToDegree(radian) {
-    return (radian * 180.0) / Math.PI;
-  }
-
-  function deleteDoiTuongHanhDong() {
-    let maNoiDung = scene.getObjectById(currentID).maNoiDung;
-    productAPI
-      .deleteDoiTuongHanhDong(maHanhDongHienTai, maNoiDung)
-      .then((data) => {
-        loadDanhSachDoiTuong();
-      });
-  }
-  function luuHanhDong() {
+  function saveAction() {
     // Lam chung chua lam text
-    let maHanhDong = maHanhDongHienTai;
-    productAPI.getNoiDungARByHanhDong(maHanhDong).then((data) => {
-      let contentArr = data.data;
-      let maNoiDungFileArr = [];
+    let actionID = currentActionID;
+    productAPI.getAllARContentByActionID(actionID).then((data) => {
+      let ARContentArr = data.data;
+      let contenIDFileArr = [];
       // let maNoiDungTextArr = [];
-      for (let i = 0; i < contentArr.length; i++) {
-        maNoiDungFileArr.push(contentArr[i].MaNoiDung);
+      for (let i = 0; i < ARContentArr.length; i++) {
+        contenIDFileArr.push(ARContentArr[i].contentID);
       }
-      for (let i = 0; i < maNoiDungFileArr.length; i++) {
+      for (let i = 0; i < contenIDFileArr.length; i++) {
         for (let j = 0; j < scene.children.length; j++) {
-          if (scene.children[j].maNoiDung == maNoiDungFileArr[i]) {
-            let NoiDungAR = {
-              MaNoiDung: scene.children[j].maNoiDung,
-              ToaDoX: scene.children[j].position.x,
-              ToaDoY: scene.children[j].position.y,
-              ToaDoZ: scene.children[j].position.z,
-              XoayX: scene.children[j].rotation.x,
-              XoayY: scene.children[j].rotation.y,
-              XoayZ: scene.children[j].rotation.z,
-              TiLeX: scene.children[j].scale.x,
-              TiLeY: scene.children[j].scale.y,
-              TiLeZ: scene.children[j].scale.z,
+          if (scene.children[j].contentID == contenIDFileArr[i]) {
+            let ARContent = {
+              contentID: scene.children[j].contentID,
+              xPosition: scene.children[j].position.x,
+              yPosition: scene.children[j].position.y,
+              zPosition: scene.children[j].position.z,
+              xRotation: scene.children[j].rotation.x,
+              yRotation: scene.children[j].rotation.y,
+              zRotation: scene.children[j].rotation.z,
+              xScale: scene.children[j].scale.x,
+              yScale: scene.children[j].scale.y,
+              zScale: scene.children[j].scale.z,
             };
-            productAPI.updateNoiDungAR(NoiDungAR).then((data) => {
-              console.log(data);
+            productAPI.updateARContent(ARContent).then((data) => {
+              // console.log(data);
             });
           }
         }
       }
     });
   }
-
   function setEventTransform() {
     window.addEventListener("keydown", function (event) {
       switch (event.key) {
@@ -791,7 +679,7 @@ export default function Create() {
           break;
         case "Delete":
           if (currentID != 0) {
-            deleteDoiTuongHanhDong();
+            deleteARContent();
             let currentObject = scene.getObjectById(currentID);
             transformControls.detach();
             scene.remove(currentObject);
@@ -799,21 +687,127 @@ export default function Create() {
             domEvents.removeEventListener(
               currentObject,
               "dblclick",
-              function () {},
+              function () { },
               false
             );
-            for (let i = 0; i < arrayTextObject.length; i++) {
-              if (currentID == arrayTextObject[i].ID) {
-                arrayTextObject.splice(i, 1);
-                break;
-              }
-            }
             currentID = 0;
           }
       }
     });
   }
-  //styles
+  function deleteARContent() {
+    let contentID = scene.getObjectById(currentID).contentID;
+    productAPI
+      .deleteARContent(contentID)
+      .then((data) => {
+        loadObjectList();
+      });
+  }
+
+  function showFormEdit() {
+    showPosition();
+    showScale();
+    showRotation();
+  }
+  function showPosition() {
+    if (currentID != 0) {
+      let currentObject = scene.getObjectById(currentID);
+      document.getElementById("xPosition").value = currentObject.position.x;
+      document.getElementById("yPosition").value = currentObject.position.y;
+      document.getElementById("zPosition").value = currentObject.position.z;
+    }
+  }
+  function showScale() {
+    if (currentID != 0) {
+      let currentObject = scene.getObjectById(currentID);
+      document.getElementById("xScale").value = currentObject.scale.x;
+      document.getElementById("yScale").value = currentObject.scale.y;
+      if (currentObject.type == "2DImage" || currentObject.type == "2DText") {
+        document.getElementById("zScale").value = 1;
+        document.getElementById("zScale").disabled = true;
+      } else {
+        document.getElementById("zScale").value = currentObject.scale.z;
+      }
+    }
+  }
+  function showRotation() {
+    if (currentID != 0) {
+      let currentObject = scene.getObjectById(currentID);
+      document.getElementById("xRotation").value = radianToDegree(
+        currentObject.rotation.x
+      );
+      document.getElementById("yRotation").value = radianToDegree(
+        currentObject.rotation.y
+      );
+      document.getElementById("zRotation").value = radianToDegree(
+        currentObject.rotation.z
+      );
+    }
+  }
+  function setPosition() {
+    let currentObject = scene.getObjectById(currentID);
+    let xPosition = document.getElementById("xPosition").value.trim();
+    let yPosition = document.getElementById("yPosition").value.trim();
+    let zPosition = document.getElementById("zPosition").value.trim();
+
+    if (xPosition.length == 0) {
+      xPosition = 0;
+      document.getElementById("xPosition").value = 0;
+    }
+    if (yPosition.length == 0) {
+      yPosition = 0;
+      document.getElementById("yPosition").value = 0;
+    }
+    if (zPosition.length == 0) {
+      zPosition = 0;
+      document.getElementById("zPosition").value = 0;
+    }
+    currentObject.position.set(xPosition, yPosition, zPosition);
+  }
+  function setScale() {
+    let currentObject = scene.getObjectById(currentID);
+    let xScale = document.getElementById("xScale").value.trim();
+    let yScale = document.getElementById("yScale").value.trim();
+    let zScale = document.getElementById("zScale").value.trim();
+    if (xScale.length == 0) {
+      xScale = 1;
+      document.getElementById("xScale").value = 1;
+    }
+    if (yScale.length == 0) {
+      yScale = 1;
+      document.getElementById("yScale").value = 1;
+    }
+    if (zScale.length == 0) {
+      zScale = 1;
+      document.getElementById("zScale").value = 1;
+    }
+    currentObject.scale.set(xScale, yScale, zScale);
+  }
+  function setRotation() {
+    let currentObject = scene.getObjectById(currentID);
+    let xRotaion = document.getElementById("xRotaion").value.trim();
+    let yRotaion = document.getElementById("yRotaion").value.trim();
+    let zRotaion = document.getElementById("zRotaion").value.trim();
+    if (xRotaion.length == 0) {
+      xRotaion = 0;
+      document.getElementById("xRotaion").value = 0;
+    }
+    if (yRotaion.length == 0) {
+      yRotaion = 0;
+      document.getElementById("yRotaion").value = 0;
+    }
+    if (zRotaion.length == 0) {
+      zRotaion = 0;
+      document.getElementById("zRotaion").value = 0;
+    }
+    currentObject.rotation.set(xRotaion, yRotaion, zRotaion);
+  }
+  function degreeToRadian(degree) {
+    return (degree * Math.PI) / 180.0;
+  }
+  function radianToDegree(radian) {
+    return (radian * 180.0) / Math.PI;
+  }
 
   return (
     <div>
@@ -823,12 +817,12 @@ export default function Create() {
             <Typography className={classes.title} >1. Thêm hành động</Typography>
           </div>
           <div className={classes.line}>
-            <input type="text" id="hanhDong"></input>
+            <input type="text" id="actionName"></input>
             <Button
               style={{ marginTop: "13%", marginLeft: "10%" }}
               variant="outlined"
               color="primary"
-              onClick={() => themHanhDong()}
+              onClick={() => addAction()}
             >
               Thêm
             </Button>
@@ -837,7 +831,7 @@ export default function Create() {
             <Typography>Danh sách hành động:</Typography>
           </div>
           <div className={classes.line}>
-            <ul id="danhSachHanhDong"></ul>
+            <ul id="actionList"></ul>
           </div>
           <div className={classes.line}>
             <Typography className={classes.title}>2. Tải lên điểm đánh dấu</Typography>
@@ -864,11 +858,21 @@ export default function Create() {
               Hoàn tất
             </Button>
           </div>
+          <div className={classes.inline}>
+            <Typography>Tỉ lệ marker: </Typography>
+            <input
+              id="markerScale"
+              type="number"
+              min="0"
+              className={classes.input2}
+              onBlur={() => setMarkerScale()}
+            ></input>
+          </div>
           <div className={classes.line}>
             <Typography className={classes.title}>3. Tải file nội dung AR </Typography>
           </div>
           <div className={classes.line}>
-            <Typography color = 'secondary' variant = 'caption'>
+            <Typography color='secondary' variant='caption'>
               (Hỗ trợ: .glb, .gltf, .jpg, .png, .mp4, .mp3.)
             </Typography>
           </div>
@@ -889,7 +893,7 @@ export default function Create() {
             <Button
               variant="outlined"
               color="primary"
-              onClick={() => uploadArContent()}
+              onClick={() => uploadArContentTemp()}
             >
               Hoàn tất
             </Button>
@@ -898,13 +902,13 @@ export default function Create() {
             <Typography>Danh sách nội dung đã tải: </Typography>
           </div>
           <div className={classes.line}>
-            <ul id="arContentList"></ul>
+            <ul id="tempARContentList"></ul>
           </div>
           <div className={classes.line}>
             <Typography>Danh sách đối tượng: </Typography>
           </div>
           <div className={classes.line}>
-            <ul id="danhSachDoiTuong"></ul>
+            <ul id="objectList"></ul>
           </div>
         </div>
         <div className={classes.column2}>
@@ -918,19 +922,19 @@ export default function Create() {
               className={classes.input2}
               aria-label="empty textarea"
               placeholder="Nội dung"
-              id="noiDung"
+              id="text"
             ></TextareaAutosize>
           </div>
           <div className={classes.inline}>
             <Typography>Font chữ: </Typography>
-            <select className={classes.input2} id="fontChu">
+            <select className={classes.input2} id="font">
               <option value="timenewromans">Time new romans</option>
               <option value="arial">Arial</option>
             </select>
           </div>
           <div className={classes.inline}>
             <Typography>Cỡ chữ: </Typography>
-            <select className={classes.input2} id="coChu">
+            <select className={classes.input2} id="size">
               <option value="10">10</option>
               <option value="20">20</option>
               <option value="30">30</option>
@@ -940,35 +944,24 @@ export default function Create() {
           </div>
           <div className={classes.inline}>
             <Typography>Màu chữ: </Typography>
-            <input className={classes.input2} id="mauChu" type="text"></input>
+            <input className={classes.input2} id="color" type="text"></input>
           </div>
           <div className={classes.inline}>
             <Typography>Màu nền: </Typography>
-            <input className={classes.input2} id="mauNen" type="text"></input>
+            <input className={classes.input2} id="backgroundColor" type="text"></input>
           </div>
           <div className={classes.inline}>
             <Typography>Trong suốt: </Typography>
             <div style={{ marginTop: "-7%" }}>
-              <input type="checkbox" id="trongSuot"></input>
+              <input type="checkbox" id="isTransparent"></input>
               <Button
                 variant="outlined"
                 color="primary"
-                onClick={() => setText2D()}
+                onClick={() => show2DText()}
               >
                 Thêm
               </Button>
             </div>
-          </div>
-
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ marker: </Typography>
-            <input
-              id="tiLeMarker"
-              type="number"
-              min="0"
-              className={classes.input2}
-              onBlur={() => setTiLeMarker()}
-            ></input>
           </div>
           <div className={classes.inline}>
             <Typography className={classes.title}> 5. Vị trí</Typography>
@@ -976,31 +969,31 @@ export default function Create() {
           <div className={classes.inline}>
             <Typography>Tọa độ X:</Typography>
             <input
-              id="toaDoX"
+              id="xPosition"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setToaDo()}
+              onBlur={() => setPosition()}
             ></input>
           </div>
           <div className={classes.inline}>
             <Typography>Tọa độ Y:</Typography>
             <input
-              id="toaDoY"
+              id="yPosition"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setToaDo()}
+              onBlur={() => setPosition()}
             ></input>
           </div>
           <div className={classes.inline}>
             <Typography>Tọa độ Z:</Typography>
             <input
-              id="toaDoZ"
+              id="zPosition"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setToaDo()}
+              onBlur={() => setPosition()}
             ></input>
           </div>
           <div className={classes.inline}>
@@ -1009,31 +1002,31 @@ export default function Create() {
           <div className={classes.inline}>
             <Typography>Tỉ lệ X:</Typography>
             <input
-              id="tiLeX"
+              id="xScale"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setTiLe()}
+              onBlur={() => setScale()}
             ></input>
           </div>
           <div className={classes.inline}>
             <Typography>Tỉ lệ Y:</Typography>
             <input
-              id="tiLeY"
+              id="yScale"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setTiLe()}
+              onBlur={() => setScale()}
             ></input>
           </div>
           <div className={classes.inline}>
             <Typography>Tỉ lệ Z:</Typography>
             <input
-              id="tiLeZ"
+              id="zScale"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setTiLe()}
+              onBlur={() => setScale()}
             ></input>
           </div>
           <div className={classes.inline}>
@@ -1042,31 +1035,31 @@ export default function Create() {
           <div className={classes.inline}>
             <Typography>Xoay trục X:</Typography>
             <input
-              id="xoayTrucX"
+              id="xRotation"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setGocXoay()}
+              onBlur={() => setRotation()}
             ></input>
           </div>
           <div className={classes.inline}>
             <Typography>Xoay trục Y:</Typography>
             <input
-              id="xoayTrucY"
+              id="yRotation"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setGocXoay()}
+              onBlur={() => setRotation()}
             ></input>
           </div>
           <div className={classes.inline}>
             <Typography>Xoay trục Z:</Typography>
             <input
-              id="xoayTrucZ"
+              id="zRotation"
               type="number"
               step="any"
               className={classes.input2}
-              onBlur={() => setGocXoay()}
+              onBlur={() => setRotation()}
             ></input>
           </div>
           <div className={classes.inline}></div>
@@ -1077,7 +1070,7 @@ export default function Create() {
             <Button
               variant="outlined"
               color="secondary"
-              onClick={() => luuHanhDong()}
+              onClick={() => saveAction()}
             >
               Lưu
             </Button>

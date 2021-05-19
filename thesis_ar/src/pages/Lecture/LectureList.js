@@ -56,7 +56,7 @@ export default function LectureList() {
   const classes = useStyles();
   const history = useHistory();
   const [user] = useContext(UserContext);
-  const userid = user.MaGiaoVien;
+  const userid = user.teacherID;
   const [lectures, setLectures] = useState(null);
   const [open, setOpen] = useState(false);
   useEffect(async () => {

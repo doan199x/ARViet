@@ -76,7 +76,7 @@ export default function New(open, changeOpen) {
   const classes = useStyles();
   const history = useHistory();
   const [user] = useContext(UserContext);
-  const userid = user.MaGiaoVien;
+  const userid = user.teacherID;
 
   const {
     register,

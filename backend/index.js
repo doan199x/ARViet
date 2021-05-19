@@ -30,7 +30,7 @@ app.use("/lecture", require('./routers/lecture'));
 
 app.use("/arcontent", require('./routers/arcontent'));
 app.use("/marker", require('./routers/marker'));
-app.use("/hanhdong", require('./routers/hanhdong'));
+app.use("/action", require('./routers/action'));
 
 //Mobile
 app.use("/login", require('./routers/login'));
