@@ -9,6 +9,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import THREEx from "./threex.domevents/threex.domevents";
 import TextSprite from "@seregpie/three.text-sprite";
 import TextTexture from "@seregpie/three.text-texture";
+import TextPlane from '@seregpie/three.text-plane';
 import { productAPI } from "../../../config/productAPI";
 import e from "cors";
 import { API } from "../../../constant/API";
@@ -73,6 +74,7 @@ export default function Create() {
   let currentID = 0;
   let currentSceneMarkerID = 0;
   let currentActionID = 0;
+  let currentText = null;
   const px2m = 0.0002645833;
 
   let scene = new THREE.Scene();
@@ -356,7 +358,6 @@ export default function Create() {
       isTransparent: false,
       font: font,
     };
-    console.log(textObject.text);
     let configTextture = {
       alignment: "center",
       color: textObject.color,
@@ -390,7 +391,9 @@ export default function Create() {
     textObject.actionID = currentActionID;
     productAPI.saveText(textObject).then((data) => {
       textTexture.contentID = data.data.contentID;
-      textTexture.type = "2DText"
+      textTexture.type = "2DText";
+      textTexture.config = configTextture;
+      addObjectList(data.data.filename, data.data.contentID);
     });
     domEvents.addEventListener(
       textTexture,
@@ -402,6 +405,8 @@ export default function Create() {
         transformControls.setMode("translate");
         scene.add(transformControls);
         showFormEdit();
+        getFormTextContent();
+        currentText = texture;
       },
       false
     );
@@ -549,7 +554,6 @@ export default function Create() {
       let isTransparent = false;
       if (data.data.length > 0) {
         let textARContent = data.data[0];
-        console.log(textARContent);
         let configTextture = {
           alignment: "center",
           color: textARContent.color,
@@ -606,6 +610,7 @@ export default function Create() {
             transformControls.attach(textTexture);
             transformControls.setMode("translate");
             scene.add(transformControls);
+            currentText = texture;
             showFormEdit();
           },
           false
@@ -679,6 +684,10 @@ export default function Create() {
           break;
         case "Escape":
           if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            if (currentObject.config !== undefined) {
+              document.getElementById("fixButton").style.display = "none"
+            }
             transformControls.detach();
             scene.remove(transformControls);
           }
@@ -808,13 +817,32 @@ export default function Create() {
     }
     currentObject.rotation.set(xRotaion, yRotaion, zRotaion);
   }
+
+  function getFormTextContent() {
+    let currentTextture = scene.getObjectById(currentID);
+    document.getElementById("text").value = currentTextture.config.text;
+    document.getElementById("size").value = currentTextture.config.fontSize;
+    document.getElementById("color").value = currentTextture.config.color;
+    if (currentTextture.config.backgroundColor === undefined) {
+      document.getElementById("backgroundColor").value = "";
+    } else {
+      document.getElementById("backgroundColor").value = currentTextture.config.backgroundColor;
+    }
+    let font = currentTextture.config.fontFamily
+    if (font == '"Times New Roman", Times, serif') {
+      document.getElementById("font").value = "timenewromans";
+    } else if (font == "Arial, Helvetica, sans-serif") {
+      document.getElementById("font").value = "arial";
+    }
+    let fixButton = document.getElementById("fixButton");
+    fixButton.style.display = "block";
+  }
   function degreeToRadian(degree) {
     return (degree * Math.PI) / 180.0;
   }
   function radianToDegree(radian) {
     return (radian * 180.0) / Math.PI;
   }
-
   return (
     <div>
       <div className={classes.grid}>
@@ -966,6 +994,14 @@ export default function Create() {
                 onClick={() => show2DText()}
               >
                 Thêm
+              </Button>
+              <Button
+                id="fixButton" style={{ display: "none" }}
+                variant="outlined"
+                color="secondary"
+                // onClick={() => update2DText()}
+              >
+                Sửa
               </Button>
             </div>
           </div>

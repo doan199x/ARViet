@@ -177,7 +177,7 @@ router.post("/text", async (req, res, next) => {
     }
     let AddtextARContent = await ARContentModel.addTextARContent(TextARContent);
     // tra ra ma noi dung
-    res.json({ contentID: AddtextARContent.insertId })
+    res.json({ contentID: AddtextARContent.insertId, filename:"text" })
   } catch (err) {
     next(err);
   }
