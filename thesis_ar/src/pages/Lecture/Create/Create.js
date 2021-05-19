@@ -289,7 +289,7 @@ export default function Create() {
           .then((data) => {
             gltf.scene.contentID = data.data.contentID;
             gltf.scene.type = "3DModel";
-            loadObjectList();
+            addObjectList(data.data.filename, data.data.contentID);
           },
             false
           );
@@ -340,7 +340,7 @@ export default function Create() {
         .then((data) => {
           imageTexture.contentID = data.data.contentID;
           imageTexture.type = "2DImage"
-          loadObjectList();
+          addObjectList(data.data.filename, data.data.contentID);
         });
     };
   }
@@ -411,7 +411,7 @@ export default function Create() {
   function loadObjectList() {
     let objectList = document.getElementById("objectList");
     objectList.innerHTML = "";
-    productAPI.getTempARContentByActionID(currentActionID).then((data) => {
+    productAPI.getAllARContentChoosen(currentActionID).then((data) => {
       let ARContent = data.data;
       for (let i = 0; i < ARContent.length; i++) {
         let li = document.createElement("li");
@@ -419,6 +419,12 @@ export default function Create() {
         objectList.appendChild(li);
       }
     });
+  }
+  function addObjectList(filename, contentID) {
+    let objectList = document.getElementById("objectList");
+    let li = document.createElement("li");
+    li.appendChild(document.createTextNode(filename + ` - ` + contentID));
+    objectList.appendChild(li);
   }
   function clearAllContent() {
     let length = scene.children.length;
