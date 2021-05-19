@@ -52,8 +52,8 @@ export const productAPI = {
   loadArContentThat: (maDiemDanhDau) => {
     return AXIOS_INSTANCE.get(API.ARCONTENTTHAT, { params: { maDiemDanhDau: maDiemDanhDau } })
   },
-  saveText: (textObject) => {
-    return AXIOS_INSTANCE.post('arcontent/text', { textObject });
+  saveText: (textObject, textUpdatedContentID) => {
+    return AXIOS_INSTANCE.post('arcontent/text', { textObject, textUpdatedContentID });
   },
   getTextARContent: (contentID) => {
     return AXIOS_INSTANCE.get('arcontent/text', { params: { contentID: contentID } });

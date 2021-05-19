@@ -49,5 +49,12 @@ module.exports = {
     deleteTextARContent: async (contentID) => {
         const sql = `delete from textARContent where contentID = ${contentID}`;
         return await db.load(sql);
+    },
+    updateTextARContent: async (textARContent, contentID) => {
+        const sql = `update TextARContent set text="${textARContent.text}",size=${textARContent.size},color="${textARContent.color}",
+        backgroundColor = "${textARContent.backgroundColor}",isTransparent = ${textARContent.isTransparent}, font="${textARContent.font}"
+        where contentID = ${contentID}
+        `
+        return await db.load(sql);
     }
 };

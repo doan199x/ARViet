@@ -75,6 +75,7 @@ export default function Create() {
   let currentSceneMarkerID = 0;
   let currentActionID = 0;
   let currentText = null;
+  let previousTextObjectID = 0;
   const px2m = 0.0002645833;
 
   let scene = new THREE.Scene();
@@ -348,7 +349,7 @@ export default function Create() {
   }
 
   // show 2D Text
-  function show2DText() {
+  function show2DText(textUpdatedContentID) {
     let font = document.getElementById("font").value;
     let textObject = {
       text: document.getElementById("text").value,
@@ -389,7 +390,7 @@ export default function Create() {
     texture.redraw();
     scene.add(textTexture);
     textObject.actionID = currentActionID;
-    productAPI.saveText(textObject).then((data) => {
+    productAPI.saveText(textObject, textUpdatedContentID).then((data) => {
       textTexture.contentID = data.data.contentID;
       textTexture.type = "2DText";
       textTexture.config = configTextture;
@@ -410,6 +411,7 @@ export default function Create() {
       },
       false
     );
+    return textTexture.id;
   }
 
   // load objects list in the scene
@@ -584,7 +586,8 @@ export default function Create() {
         var textTexture = new THREE.Mesh(geometry, material);
         texture.redraw();
         textTexture.contentID = ARContent.contentID;
-        textTexture.type = "2DText"
+        textTexture.type = "2DText";
+        textTexture.config = configTextture;
         scene.add(textTexture);
         textTexture.position.set(
           ARContent.xPosition,
@@ -611,6 +614,7 @@ export default function Create() {
             transformControls.setMode("translate");
             scene.add(transformControls);
             currentText = texture;
+            getFormTextContent();
             showFormEdit();
           },
           false
@@ -837,6 +841,33 @@ export default function Create() {
     let fixButton = document.getElementById("fixButton");
     fixButton.style.display = "block";
   }
+
+  function update2DText() {
+    previousTextObjectID = currentID;
+    let previousTextObject = scene.getObjectById(previousTextObjectID);
+    let textObjectID = show2DText(previousTextObject.contentID);
+    let currentTextObject = scene.getObjectById(textObjectID);
+    // set position
+    currentTextObject.position.set(previousTextObject.position.x, previousTextObject.position.y, previousTextObject.position.z)
+    // set scale
+    currentTextObject.scale.set(previousTextObject.scale.x, previousTextObject.scale.y, previousTextObject.scale.z)
+    // set rotation
+    currentTextObject.rotation.set(previousTextObject.rotation.x, previousTextObject.rotation.y, previousTextObject.rotation.z)
+    // remove previous object from scene
+    domEvents.removeEventListener(
+      previousTextObject,
+      "dblclick",
+      function () { },
+      false
+    );
+    currentID = 0;
+    transformControls.detach();
+    scene.remove(transformControls);
+    scene.remove(previousTextObject);
+
+    document.getElementById("fixButton").style.display = "none";
+
+  }
   function degreeToRadian(degree) {
     return (degree * Math.PI) / 180.0;
   }
@@ -991,7 +1022,7 @@ export default function Create() {
               <Button
                 variant="outlined"
                 color="primary"
-                onClick={() => show2DText()}
+                onClick={() => show2DText(0)}
               >
                 Thêm
               </Button>
@@ -999,7 +1030,7 @@ export default function Create() {
                 id="fixButton" style={{ display: "none" }}
                 variant="outlined"
                 color="secondary"
-                // onClick={() => update2DText()}
+                onClick={() => update2DText()}
               >
                 Sửa
               </Button>

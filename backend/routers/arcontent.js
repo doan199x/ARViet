@@ -148,6 +148,7 @@ router.get("/all", async (req, res, next) => {
 router.post("/text", async (req, res, next) => {
   try {
     let textObject = req.body.textObject;
+    let textUpdatedContentID = req.body.textUpdatedContentID;
     // chen vao noidungAr
     const ARContent = {
       actionID: textObject.actionID,
@@ -165,19 +166,33 @@ router.post("/text", async (req, res, next) => {
       isFile: false,
       isTemp: false
     };
-    let addARContent = await ARContentModel.addARContentNotTemp(ARContent, ARContent.actionID);
-    const TextARContent = {
-      contentID: addARContent.insertId,
-      text: textObject.text,
-      font: textObject.font,
-      color: textObject.color,
-      backgroundColor: textObject.backgroundColor,
-      isTransparent: textObject.isTransparent,
-      size: textObject.size
+    if (textUpdatedContentID == 0) {
+      let addARContent = await ARContentModel.addARContentNotTemp(ARContent, ARContent.actionID);
+      let TextARContent = {
+        contentID: addARContent.insertId,
+        text: textObject.text,
+        font: textObject.font,
+        color: textObject.color,
+        backgroundColor: textObject.backgroundColor,
+        isTransparent: textObject.isTransparent,
+        size: textObject.size
+      }
+      let AddtextARContent = await ARContentModel.addTextARContent(TextARContent);
+      // tra ra ma noi dung
+      res.json({ contentID: AddtextARContent.insertId, filename: "text" })
+    } else {
+      // update textARContent
+      let TextARContent = {
+        text: textObject.text,
+        font: textObject.font,
+        color: textObject.color,
+        backgroundColor: textObject.backgroundColor,
+        isTransparent: textObject.isTransparent,
+        size: textObject.size
+      }
+      let updateTextARContent = await ARContentModel.updateTextARContent(TextARContent, textUpdatedContentID);
+      res.json({ contentID: textUpdatedContentID, filename:"text" });
     }
-    let AddtextARContent = await ARContentModel.addTextARContent(TextARContent);
-    // tra ra ma noi dung
-    res.json({ contentID: AddtextARContent.insertId, filename:"text" })
   } catch (err) {
     next(err);
   }
