@@ -3,34 +3,34 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const token = require('../middlewares/token.mdw')
 const bcrypt = require('bcrypt');
-const hocSinhModel = require('../model/hocsinh');
+const studentModel = require('../model/student');
 router.post("/", async (req, res) => {
 });
 
 router.post("/mobile", async (req, res, next) => {
     try {
-        const hocSinh = req.body;
-        const checkPassword = await hocSinhModel.checkPassword(hocSinh.TenDangNhap);
+        let student = req.body;
+        const checkPassword = await studentModel.checkPassword(student.username);
         if (checkPassword.length == 0) {
             res.json({
                 token: '',
-                status: 'ten dang nhap khong ton tai',
-                TenDangNhap:''
+                status: 'username is not existed',
+                username: ''
             })
         } else {
-            let check = await bcrypt.compare(hocSinh.MatKhau, checkPassword[0].MatKhau);
+            let check = await bcrypt.compare(student.password, checkPassword[0].password);
             if (check == false) {
                 res.json({
                     token: '',
-                    status: 'sai mat khau',
-                    TenDangNhap:''
+                    status: 'password is incorrect',
+                    username: ''
                 })
             } else {
-                jwt.sign({ hocSinh }, 'secretkey', (err, token) => {
+                jwt.sign({ student }, 'secretkey', (err, token) => {
                     res.json({
                         token: token,
-                        status: 'dang nhap thanh cong',
-                        TenDangNhap:hocSinh.TenDangNhap
+                        status: 'login sucessfully',
+                        username: student.username
                     })
                 });
             }
