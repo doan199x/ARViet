@@ -11,7 +11,7 @@ import Grid from "@material-ui/core/Grid";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
-import background from "../../img/home.jpg";
+import background from "../../img/form.jpg";
 import { productAPI } from "../../config/productAPI";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
@@ -48,7 +48,10 @@ const schema = yup.object().shape({
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    height: "100vh",
+    height: '130vh',
+    width: '100%',
+    justifyContent: 'center',
+    backgroundImage:  `url(${background})`,
   },
   image: {
     backgroundImage: `url(${background})`,
@@ -71,12 +74,25 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.secondary.main,
   },
   form: {
-    width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1),
+    width: '100%', // Fix IE 11 issue.
+    marginTop: theme.spacing(4),
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
+    display: 'flex',
+    justifyContent: 'center'
   },
+  textfield: {
+    marginTop: '5%'
+  },
+  link: {
+marginTop: '5%'
+  },
+  formpaper: {
+    marginTop: '5%',
+    marginBottom: '5%',
+    width: '40%'
+  }
 }));
 
 toast.configure();
@@ -139,8 +155,8 @@ export default function Signup() {
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
-      <Grid item xs={false} sm={4} md={7} className={classes.image} />
-      <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+      {/* <Grid item xs={false} sm={4} md={7} className={classes.image} /> */}
+      <Grid className = {classes.formpaper} component={Paper} elevation={6} square>
         <div className={classes.paper}>
           <Avatar className={classes.avatar}>
             <LockOutlinedIcon />
@@ -222,15 +238,17 @@ export default function Signup() {
               error={!!errors.passwordConfirm}
               helperText={errors?.passwordConfirm?.message}
             />
+            <div  className={classes.submit}>
             <Button
               type="submit"
-              fullWidth
               variant="contained"
               color="primary"
               className={classes.submit}
             >
               Sign Up
             </Button>
+            </div>
+         
             <Grid container>
               <Grid item>
                 <Link href="/signin" variant="body2">
