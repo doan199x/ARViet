@@ -28,12 +28,14 @@ const axios = require("axios");
 const useStyles = makeStyles((theme) => ({
   grid: {
     display: "grid",
-    gridTemplateColumns: "15% 70% 15%",
-    margin: "1%",
+    gridTemplateColumns: "70% 15% 15%",
+    margin: "0%",
   },
-  column1: {},
+  column1: {
+
+  },
   column2: {
-    margin: "5%",
+    marginTop: "5%",
   },
   column3: {},
   inline: {
@@ -43,12 +45,25 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "5%",
   },
   line: {
+    marginTop: "5%",
+    width: '80%',
     display: "grid",
     gridTemplateColumns: "80% 20%",
   },
+  xline: {
+    marginTop: "5%",
+    width: '80%',
+    display: "grid",
+    gridTemplateColumns: "20% 80%",
+  },
+  btnline: {
+    width: '80%',
+    display: "grid",
+    gridTemplateColumns: "80% 10%",
+  },
   input: {
     marginTop: "5%",
-    marginLeft: "5%",
+    marginLeft: "%",
   },
   input2: {
     marginTop: "1%",
@@ -106,7 +121,7 @@ export default function Create() {
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   //renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7);
+  renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
   renderer.setAnimationLoop(animation);
   function animation(time) {
     renderer.render(scene, camera);
@@ -201,6 +216,10 @@ export default function Create() {
         id.value = actionArr[i].actionID + actionArr[i].name;
         li.setAttributeNode(id);
         actionList.appendChild(li);
+        //styles
+        document.getElementById("actionList").style.fontSize = "15px";
+        document.getElementById("actionList").style.textDecoration = "none";
+        document.getElementById("actionList").style.fontWeight = " normal";
         document.getElementById(id.value).onclick = function () {
           loadARContentByActionID(actionArr[i].actionID);
         };
@@ -252,6 +271,10 @@ export default function Create() {
         id.value = ARContent[i].filename + ARContent[i].contentID;
         li.setAttributeNode(id);
         tempARContentList.appendChild(li);
+          //styles
+          document.getElementById("tempARContentList").style.fontSize = "15px";
+          document.getElementById("tempARContentList").style.textDecoration = "none";
+          document.getElementById("tempARContentList").style.fontWeight = " normal";
         if (ARContent[i].URL[ARContent[i].URL.length - 1] == "b") {
           document.getElementById(id.value).onclick = function () {
             show3dModel(ARContent[i].URL, ARContent[i].contentID);
@@ -425,6 +448,10 @@ export default function Create() {
         li.appendChild(document.createTextNode(ARContent[i].filename + ` - ` + ARContent[i].contentID));
         objectList.appendChild(li);
       }
+       //styles
+       document.getElementById("objectList").style.fontSize = "15px";
+       document.getElementById("objectList").style.textDecoration = "none";
+       document.getElementById("objectList").style.fontWeight = " normal";
     });
   }
   function addObjectList(filename, contentID) {
@@ -877,31 +904,51 @@ export default function Create() {
   return (
     <div>
       <div className={classes.grid}>
+      <div className={classes.column2}>
+          <div className={classes.scene} id="sceneRender"></div>
+          <div
+            style={{ display: "flex", justifyContent: "center" , marginTop: '5%'}}
+            id="form-edit-3d"
+          >
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => saveAction()}
+            >
+              Lưu điểm đánh dấu
+            </Button>
+          </div>
+        </div>
         <div className={classes.column1}>
-          <div className={classes.line}>
+          <div>
             <Typography className={classes.title} >1. Thêm hành động</Typography>
           </div>
-          <div className={classes.line}>
-            <input type="text" id="actionName"></input>
+          <div className={classes.btnline}>
+            <input className={classes.input} placeholder = "Tên hành động" type="text" id="actionName"></input>
             <Button
-              style={{ marginTop: "13%", marginLeft: "10%" }}
+              style={{ marginTop: "13%", marginLeft: "10%", width: '10px' }}
               variant="outlined"
               color="primary"
               onClick={() => addAction()}
             >
-              Thêm
+              +
             </Button>
           </div>
-          <div className={classes.line}>
-            <Typography>Danh sách hành động:</Typography>
-          </div>
-          <div className={classes.line}>
-            <ul id="actionList"></ul>
-          </div>
-          <div className={classes.line}>
-            <Typography className={classes.title}>2. Tải lên điểm đánh dấu</Typography>
+          <div>
+            <Typography>Hành động đã tạo:</Typography>
           </div>
           <div>
+            <ul id="actionList"></ul>
+          </div>
+          <div>
+            <Typography className={classes.title}>2. Điểm đánh dấu</Typography>
+          </div>
+          <div style = {{marginTop: '-10%'}} >
+            <Typography color='secondary' variant='caption'>
+              (Hỗ trợ: .jpg, .png)
+            </Typography>
+          </div>
+          <div className={classes.line}>
             <input
               className={classes.input}
               id="uploadFileMarker"
@@ -923,20 +970,20 @@ export default function Create() {
               Hoàn tất
             </Button>
           </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ marker: </Typography>
-            <input
+          <div className={classes.xline}>
+            <Typography>Tỉ lệ: </Typography>
+          <input
               id="markerScale"
               type="number"
               min="0"
               className={classes.input2}
               onBlur={() => setMarkerScale()}
             ></input>
+            </div>
+          <div>
+            <Typography className={classes.title}>3. Nội dung AR </Typography>
           </div>
-          <div className={classes.line}>
-            <Typography className={classes.title}>3. Tải file nội dung AR </Typography>
-          </div>
-          <div className={classes.line}>
+          <div style = {{marginTop: '-10%'}} >
             <Typography color='secondary' variant='caption'>
               (Hỗ trợ: .glb, .gltf, .jpg, .png, .mp4, .mp3.)
             </Typography>
@@ -964,20 +1011,17 @@ export default function Create() {
             </Button>
           </div>
           <div className={classes.line}>
-            <Typography>Danh sách nội dung đã tải: </Typography>
+            <Typography>Nội dung đã tải: </Typography>
           </div>
           <div className={classes.line}>
             <ul id="tempARContentList"></ul>
           </div>
           <div className={classes.line}>
-            <Typography>Danh sách đối tượng: </Typography>
+            <Typography>Đối tượng: </Typography>
           </div>
           <div className={classes.line}>
             <ul id="objectList"></ul>
           </div>
-        </div>
-        <div className={classes.column2}>
-          <div className={classes.scene} id="sceneRender"></div>
         </div>
         <div className={classes.column3}>
           <Typography className={classes.title}>4. Thêm văn bản</Typography>
@@ -986,7 +1030,7 @@ export default function Create() {
             <TextareaAutosize
               className={classes.input2}
               aria-label="empty textarea"
-              placeholder="Nội dung"
+              placeholder="Tối đa 200 kí tự"
               id="text"
             ></TextareaAutosize>
           </div>
@@ -1009,14 +1053,14 @@ export default function Create() {
           </div>
           <div className={classes.inline}>
             <Typography>Màu chữ: </Typography>
-            <input className={classes.input2} id="color" type="text"></input>
+            <input className={classes.input2}  placeholder="Định dạng #0000" id="color" type="text"></input>
           </div>
           <div className={classes.inline}>
             <Typography>Màu nền: </Typography>
-            <input className={classes.input2} id="backgroundColor" type="text"></input>
+            <input className={classes.input2} placeholder="Định dạng #0000" id="backgroundColor" type="text"></input>
           </div>
           <div className={classes.inline}>
-            <Typography>Trong suốt: </Typography>
+            <Typography>Độ trong: </Typography>
             <div style={{ marginTop: "-7%" }}>
               <input type="checkbox" id="isTransparent"></input>
               <Button
@@ -1047,6 +1091,7 @@ export default function Create() {
               step="any"
               className={classes.input2}
               onBlur={() => setPosition()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
           <div className={classes.inline}>
@@ -1057,6 +1102,7 @@ export default function Create() {
               step="any"
               className={classes.input2}
               onBlur={() => setPosition()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
           <div className={classes.inline}>
@@ -1067,6 +1113,7 @@ export default function Create() {
               step="any"
               className={classes.input2}
               onBlur={() => setPosition()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
           <div className={classes.inline}>
@@ -1080,6 +1127,7 @@ export default function Create() {
               step="any"
               className={classes.input2}
               onBlur={() => setScale()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
           <div className={classes.inline}>
@@ -1090,6 +1138,7 @@ export default function Create() {
               step="any"
               className={classes.input2}
               onBlur={() => setScale()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
           <div className={classes.inline}>
@@ -1100,54 +1149,46 @@ export default function Create() {
               step="any"
               className={classes.input2}
               onBlur={() => setScale()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
-          <div className={classes.inline}>
+          <div>
             <Typography className={classes.title}>7. Góc xoay</Typography>
           </div>
           <div className={classes.inline}>
-            <Typography>Xoay trục X:</Typography>
+            <Typography>Trục X:</Typography>
             <input
               id="xRotation"
               type="number"
               step="any"
               className={classes.input2}
               onBlur={() => setRotation()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
           <div className={classes.inline}>
-            <Typography>Xoay trục Y:</Typography>
+            <Typography>Trục Y:</Typography>
             <input
               id="yRotation"
               type="number"
               step="any"
               className={classes.input2}
               onBlur={() => setRotation()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
           <div className={classes.inline}>
-            <Typography>Xoay trục Z:</Typography>
+            <Typography>Trục Z:</Typography>
             <input
               id="zRotation"
               type="number"
               step="any"
               className={classes.input2}
               onBlur={() => setRotation()}
+              placeholder="Nhập một số thực."
             ></input>
           </div>
           <div className={classes.inline}></div>
-          <div
-            style={{ display: "flex", justifyContent: "center" }}
-            id="form-edit-3d"
-          >
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => saveAction()}
-            >
-              Lưu
-            </Button>
-          </div>
           <br></br>
         </div>
       </div>

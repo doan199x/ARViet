@@ -14,9 +14,10 @@ import { productAPI } from "../../config/productAPI";
 import { UserContext } from "../../context/UserContext";
 import Lecture from "./Lecture";
 import nodata from "../../img/nodata.jpg";
+import ar from "../../img/add.png";
 import "./style.scss";
-import QueueIcon from "@material-ui/icons/Queue";
 import New from "./New/New";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   data: {
@@ -46,10 +47,14 @@ const useStyles = makeStyles((theme) => ({
   line: {
     display: "flex",
     flexDirection: "row",
+    justifyContent: 'center'
+  },
+  title: {
+
   },
   btn: {
-    marginTop: "80%",
-    marginLeft: "10%",
+      width: '10%',
+      marginTop: '3%'
   },
 }));
 export default function LectureList() {
@@ -84,17 +89,18 @@ export default function LectureList() {
     <div>
       <div className={classes.lectures}>
         <div className={classes.line}>
-          <h3 style={{ textAlign: "center", color: "#195cc5" }}>
+         <div className = {classes.title}>
+         <h3 style={{ textAlign: "center", color: "#195cc5" }}>
             {" "}
             Danh sách bài giảng
           </h3>
-          <div>
+         </div>
+         <div  className={classes.btn}>
             <Button
               color="primary"
-              className={classes.btn}
               onClick={() => changeOpen()}
             >
-              <QueueIcon />
+              <img src = {ar}  style = {{width: '80%', height: '80%'}}/>
             </Button>
           </div>
         </div>
