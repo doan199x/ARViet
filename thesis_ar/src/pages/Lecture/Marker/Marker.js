@@ -80,7 +80,7 @@ export default function Marker(data) {
       </Link>
       <CardContent>
         <Typography variant="body2" color="textSecondary" component="p">
-        sadsada
+        Type: AR marker
         </Typography>
       </CardContent>
     </Card>

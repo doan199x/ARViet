@@ -10,7 +10,7 @@ import Grid from '@material-ui/core/Grid';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
-import background from '../../img/home.jpg'
+import background from '../../img/form.jpg'
 import { productAPI } from "../../config/productAPI";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
@@ -44,6 +44,9 @@ const schema = yup.object().shape({
 const useStyles = makeStyles((theme) => ({
   root: {
     height: '100vh',
+    width: '100%',
+    justifyContent: 'center',
+    backgroundImage:  `url(${background})`,
   },
   image: {
     backgroundImage:  `url(${background})`,
@@ -65,11 +68,23 @@ const useStyles = makeStyles((theme) => ({
   },
   form: {
     width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(1),
+    marginTop: theme.spacing(4),
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
+    display: 'flex',
+    justifyContent: 'center'
   },
+  textfield: {
+    marginTop: '5%'
+  },
+  link: {
+marginTop: '5%'
+  },
+  formpaper: {
+    marginTop: '5%',
+    marginBottom: '5%',
+  }
 }));
 
 export default function Signin() {
@@ -114,8 +129,8 @@ export default function Signin() {
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
-      <Grid item xs={false} sm={4} md={7} className={classes.image} />
-      <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+      {/* <Grid item xs={false} sm={4} md={7} className={classes.image} /> */}
+      <Grid className = {classes.formpaper} component={Paper} elevation={6} square>
         <div className={classes.paper}>
           <Avatar className={classes.avatar}>
             <LockOutlinedIcon />
@@ -138,6 +153,7 @@ export default function Signin() {
               {...emailFormHookRest}
               error={!!errors.email}
               helperText={errors?.email?.message}
+              className = {classes.textfield}
             />
             <TextField
               variant="outlined"
@@ -153,23 +169,21 @@ export default function Signin() {
               {...passwordFormHookRest}
               error={!!errors.password}
               helperText={errors?.password?.message}
+              className = {classes.textfield}
             />
+            <div  className={classes.submit}>
             <Button
               type="submit"
-              fullWidth
               variant="contained"
               color="primary"
-              className={classes.submit}
+             
             >
               Sign In
             </Button>
+            </div>
+            
             <Grid container>
-              <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
-              <Grid item>
+              <Grid className = {classes.link} item>
                 <Link href="/signup" variant="body2">
                   {"Don't have an account? Sign Up"}
                 </Link>
