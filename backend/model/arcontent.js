@@ -56,5 +56,9 @@ module.exports = {
         where contentID = ${contentID}
         `
         return await db.load(sql);
+    },
+    getByActionID: async(actionID)=>{
+        const sql = `select* from ARContent where actionID = ${actionID} and isChoosen = true`;
+        return await db.load(sql);
     }
 };

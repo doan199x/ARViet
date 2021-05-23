@@ -122,5 +122,8 @@ select* from StudentLesson;
 select* from Lesson;
 select* from Marker;
 select* from Action;
+select* from Action;
 select* from ARContent;
 select* from TextARContent;
+
+select* from Marker;

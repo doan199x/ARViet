@@ -20,5 +20,9 @@ module.exports = {
     getLessonByID: async (lessonID) => {
         const sql = `select a.name, a.description, b.name as teacherName from Lesson as a, Teacher as b where a.lessonID = "${lessonID}" and a.teacherID = b.teacherID`;
         return await db.load(sql);
+    },
+    getByMarkerID: async(markerID)=>{
+        const sql = `select* from Action where markerID = ${markerID}`;
+        return await db.load(sql);
     }
 };

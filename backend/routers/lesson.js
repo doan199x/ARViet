@@ -4,6 +4,7 @@ const token = require('../middlewares/token.mdw')
 const studentModel = require('../model/student');
 const lessonModel = require('../model/lesson');
 const markerModel = require('../model/marker');
+const ARContentModel = require('../model/arcontent');
 
 router.get("/", token.verify, async (req, res, next) => {
   try {
@@ -75,19 +76,41 @@ router.get("/marker", async (req, res, next) => {
     if (getMarkerList.length == 0) {
       res.json({
         status: "lesson is empty",
-        markerList: [{
-          markerID: 0,
-          URL: "",
-          scale: 1,
-          lessonID: 0,
-          filename: ""
-        }]
+        markerList: []
       })
     } else {
-      console.log(getMarkerList);
+      let markerList = [];
+      for (let i = 0; i < getMarkerList.length; i++) {
+        getMarkerList[i].isEmpty = true;
+        let getActionList = await lessonModel.getByMarkerID(getMarkerList[i].markerID);
+        for (let j = 0; j < getActionList.length; j++) {
+          let getARContent = await ARContentModel.getByActionID(getActionList[j].actionID);
+          for (let k = 0; k < getARContent.length; k++) {
+            getMarkerList[i].isEmpty = false;
+            let getTextARContent = await ARContentModel.getTextARContent(getARContent[k].contentID);
+            if (getTextARContent[0] === undefined) {
+              let textARContentObject = {
+                contentID: null,
+                text: null,
+                font: null,
+                size: null,
+                color: null,
+                backgroundColor: null,
+                isTransparent: null
+              }
+              getARContent[k].textARContent = textARContentObject;
+            } else {
+              getARContent[k].textARContent = getTextARContent[0];
+            }
+          }
+          getActionList[j].arContentList = getARContent;
+        }
+        getMarkerList[i].actionList = getActionList;
+        markerList.push(getMarkerList[i]);
+      }
       res.json({
         status: "success",
-        markerList: getMarkerList
+        markerList: markerList
       })
     }
   } catch (err) {
