@@ -22,6 +22,9 @@ export const productAPI = {
   getMarker: (markerID) => {
     return AXIOS_INSTANCE.get('/marker', { params: { markerID: markerID } })
   },
+  setMarkerScale: (markerScale,markerID)=>{
+    return AXIOS_INSTANCE.post('/marker/scale',{markerScale,markerID});
+  },
   getTempARContent: (markerID) => {
     return AXIOS_INSTANCE.get('/arcontent', { params: { markerID: markerID } });
   },

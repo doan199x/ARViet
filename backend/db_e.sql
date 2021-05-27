@@ -127,3 +127,6 @@ select* from ARContent;
 select* from TextARContent;
 
 select* from Marker;
+select* from ARContent;
+select* from Action;
+update ARContent set URL = 'https://testar11.herokuapp.com/images/wtf.mp4' where contentID = 37;

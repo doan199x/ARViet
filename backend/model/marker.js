@@ -31,5 +31,9 @@ module.exports = {
     getByLessonID: async(lessonID)=>{
         const sql = `select* from Marker where lessonID = ${lessonID}`;
         return await db.load(sql);
+    },
+    setMarkerScale: async(markerScale,markerID)=>{
+        const sql = `update Marker set scale = ${markerScale} where markerID = ${markerID}`;
+        return await db.load(sql);
     }
 };

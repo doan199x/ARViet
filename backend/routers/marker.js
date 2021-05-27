@@ -61,4 +61,18 @@ router.post("/add", async (req, res) => {
   }
 });
 
+router.post("/scale", async (req, res) => {
+  try {
+    markerScale = req.body.markerScale;
+    markerID = req.body.markerID;
+    console.log(markerID);
+    console.log(markerScale);
+    let setMarkerScale = await markerModel.setMarkerScale(markerScale,markerID);
+    res.json([]);
+  }
+  catch (error) {
+    res.send(error);
+  }
+});
+
 module.exports = router;
