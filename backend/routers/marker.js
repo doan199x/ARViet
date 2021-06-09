@@ -30,7 +30,6 @@ router.post("/", upload.single("file"), async (req, res, next) => {
     markerID = req.body.markerID;
     let file = req.file;
     let URL = config.baseURL + '/upload/marker/' + file.filename;
-    const lessonID = req.body.lessonID;
     const updateMarker = await markerModel.updateURL(markerID, URL);
     res.json(URL);
   } catch (err) {

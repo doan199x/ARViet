@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
 import { Component } from "react";
 import * as THREE from "three";
-import { Color, PixelFormat, Vector3 } from "three";
+import { AnimationMixer, Color, PixelFormat, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { DragControls } from "three/examples/jsm/controls/DragControls";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader"
 import THREEx from "./threex.domevents/threex.domevents";
 import TextSprite from "@seregpie/three.text-sprite";
 import TextTexture from "@seregpie/three.text-texture";
@@ -22,8 +23,6 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-
-const axios = require("axios");
 //styles
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -35,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
 
   },
   column2: {
-    marginTop: "5%",
+    marginTop: "0%",
   },
   column3: {},
   inline: {
@@ -92,7 +91,10 @@ export default function Create() {
   let currentText = null;
   let previousTextObjectID = 0;
   const px2m = 0.0002645833;
-
+  let activeAction;
+  let mixers = [];
+ let isPlayAnimation = false;
+ let animationArray =[];
   let scene = new THREE.Scene();
   // let maHanhDongHienTai = 0;
 
@@ -107,7 +109,7 @@ export default function Create() {
   scene.add(gridXZ);
 
   //add light
-  const light = new THREE.AmbientLight(0xffffff,1.2); // soft white light
+  const light = new THREE.AmbientLight(0xffffff, 1.2); // soft white light
   scene.add(light);
 
   // add camera
@@ -118,14 +120,10 @@ export default function Create() {
     200
   );
   camera.position.set(0.1, 0.1, 0.1);
-
+  const clock = new THREE.Clock();
   renderer = new THREE.WebGLRenderer({ antialias: true });
   //renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
-  renderer.setAnimationLoop(animation);
-  function animation(time) {
-    renderer.render(scene, camera);
-  }
   // add domEvents
   let domEvents = new THREEx.DomEvents(camera, renderer.domElement);
   //orbit control
@@ -141,14 +139,23 @@ export default function Create() {
   transformControls.addEventListener("objectChange", function (event) {
     showFormEdit();
   });
-
+  animate();
   // window resize
   window.addEventListener("resize", onWindowResize, false);
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7);
-    animation();
+    animate();
+  }
+  function animate() {
+    requestAnimationFrame(animate);
+    let time = clock.getDelta();
+    mixers.map(m=>m.update(time));
+    render();
+  }
+  function render() {
+    renderer.render(scene, camera);
   }
   useEffect(() => {
     // init scene
@@ -183,7 +190,7 @@ export default function Create() {
         var material = new THREE.MeshLambertMaterial({
           map: loader.load(data.data[0].URL)
         });
-        var geometry = new THREE.PlaneGeometry(img.width * px2m *imgScale, img.height * px2m* imgScale);
+        var geometry = new THREE.PlaneGeometry(img.width * px2m * imgScale, img.height * px2m * imgScale);
         // combine our image geometry and material into a mesh
         var marker = new THREE.Mesh(geometry, material);
         marker.rotation.set(degreeToRadian(-90), 0, 0);
@@ -205,10 +212,10 @@ export default function Create() {
       let markerScale = document.getElementById("markerScale").value;
       let currentMarkerScale = data.data[0].scale;
       let markerID = data.data[0].markerID;
-      let realScale = markerScale/currentMarkerScale;
+      let realScale = markerScale / currentMarkerScale;
       let marker = scene.getObjectById(currentSceneMarkerID);
-      marker.getObjectById(currentSceneMarkerID).scale.set(realScale,realScale,realScale);
-      productAPI.setMarkerScale(markerScale,markerID).then((data)=>{
+      marker.getObjectById(currentSceneMarkerID).scale.set(realScale, realScale, realScale);
+      productAPI.setMarkerScale(markerScale, markerID).then((data) => {
 
       })
     })
@@ -304,9 +311,21 @@ export default function Create() {
   // show 3D model
   function show3dModel(URL, contentID) {
     const loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderConfig({ type: 'js' });
+    draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+    loader.setDRACOLoader(draco);
     loader.load(
       URL,
       function (gltf) {
+        // if (gltf.animations.length > 0) {
+        //   let mixer = new THREE.AnimationMixer(gltf.scene);
+        //   mixers.push(mixer);
+        //   // gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
+        //   let animationHere = mixer.clipAction(gltf.animations[0]);
+        //   animationHere.play();
+        //   // animationArray.push(animationHere);
+        // }
         scene.add(gltf.scene);
         domEvents.addEventListener(
           gltf.scene,
@@ -546,7 +565,7 @@ export default function Create() {
           load2DImage(ARContent[i]);
         } else if (filename == "text") {
           load2DText(ARContent[i]);
-        } else if (filename[filename.length - 1] == "4"){
+        } else if (filename[filename.length - 1] == "4") {
           loadVideo(ARContent[i]);
         }
       }
@@ -1017,8 +1036,13 @@ export default function Create() {
   function radianToDegree(radian) {
     return (radian * 180.0) / Math.PI;
   }
+  function test(){
+    let audio = new Audio("https://testar11.herokuapp.com/audio/test.mp3");
+    audio.play();
+  }
   return (
     <div>
+      <Button onClick={() => test()}>Test</Button>
       <div className={classes.grid}>
         <div className={classes.column2}>
           <div className={classes.scene} id="sceneRender"></div>
