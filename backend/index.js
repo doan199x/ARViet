@@ -5,11 +5,11 @@ const bodyParser = require("body-parser")
 const morgan = require('morgan');
 
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 3001;
 
 //Middleware
 app.use(express.static('public'))
-app.use(cors());
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({limit: 524288000, extended: true })); 
 // For parsing application/json

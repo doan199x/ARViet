@@ -1,24 +1,28 @@
 const db = require('../utils/db');
 module.exports = {
-    LayDSBG: async (TenDangNhap) => {
-        const sql = `select b.MaBaiGiang, b.Ten, b.Mota,c.Ten as TenGiaoVien from HocSinhBaiGiang as a, BaiGiang as b, GiaoVien as c, HocSinh as d where d.TenDangNhap = '${TenDangNhap}' and a.MaHocSinh = d.MaHocSinh and a.MaBaiGiang = b.MaBaiGiang and b.MaGiaoVien = c.MaGiaoVien;`;
+    getLessonList: async (username) => {
+        const sql = `select b.lessonID, b.name, b.description,c.name as teacherName from StudentLesson as a, Lesson as b, Teacher as c, Student as d where d.username = '${username}' and a.studentID = d.studentID and a.lessonID = b.lessonID and b.teacherID = c.teacherID;`;
         const isExisted = await db.load(sql);
         return isExisted;
     },
-    checkBaiGiang: async(MaBaiGiang)=>{
-        const sql=`select* from BaiGiang where MaBaiGiang = ${MaBaiGiang}`;
+    checkLesson: async (lessonID) => {
+        const sql = `select* from Lesson where lessonID = ${lessonID}`;
         return await db.load(sql);
     },
-    checkExistsed: async(TenDangNhap,MaBaiGiang)=>{
-        const sql=`select a.TenDangNhap from HocSinh as a, HocSinhBaiGiang as b where a.MaHocSinh = b.MaHocSinh and a.TenDangNhap = "${TenDangNhap}" and b.MaBaiGiang = ${MaBaiGiang}`;
+    checkExistsed: async (username, lessonID) => {
+        const sql = `select a.username from Student as a, StudentLesson as b where a.studentID = b.studentID and a.username = "${username}" and b.lessonID = ${lessonID}`;
         return await db.load(sql);
     },
-    addHSBG: async(MaHocSinh,MaBaiGiang)=>{
-        const sql=`insert into HocSinhBaiGiang (MaHocSinh,MaBaiGiang) values(${MaHocSinh},${MaBaiGiang})`;
+    addStudentLesson: async (studentID, lessonID) => {
+        const sql = `insert into StudentLesson (studentID,lessonID) values(${studentID},${lessonID})`;
         return await db.load(sql);
     },
-    getBG: async(MaBaiGiang)=>{
-        const sql=`select a.Ten, a.MoTa, b.Ten as TenGiaoVien from BaiGiang as a, GiaoVien as b where a.MaBaiGiang = "${MaBaiGiang}" and a.MaGiaoVien = b.MaGiaoVien`;
+    getLessonByID: async (lessonID) => {
+        const sql = `select a.name, a.description, b.name as teacherName from Lesson as a, Teacher as b where a.lessonID = "${lessonID}" and a.teacherID = b.teacherID`;
+        return await db.load(sql);
+    },
+    getByMarkerID: async(markerID)=>{
+        const sql = `select* from Action where markerID = ${markerID}`;
         return await db.load(sql);
     }
 };

@@ -34,7 +34,7 @@ var upload = multer({
 })
 router.post("/temp", upload.single("file"), async (req, res, next) => {
   try {
-    console.log(req.body);
+    console.log(req.file);
     const ARContent = {
       actionID: req.body.actionID,
       xPosition: 0,

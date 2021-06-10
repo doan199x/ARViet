@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
 import { Component } from "react";
 import * as THREE from "three";
-import { Color, PixelFormat, Vector3 } from "three";
+import { AnimationMixer, Color, PixelFormat, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { DragControls } from "three/examples/jsm/controls/DragControls";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader"
 import THREEx from "./threex.domevents/threex.domevents";
 import TextSprite from "@seregpie/three.text-sprite";
 import TextTexture from "@seregpie/three.text-texture";
@@ -22,8 +23,6 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-
-const axios = require("axios");
 //styles
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -35,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
 
   },
   column2: {
-    marginTop: "5%",
+    marginTop: "0%",
   },
   column3: {},
   inline: {
@@ -92,7 +91,10 @@ export default function Create() {
   let currentText = null;
   let previousTextObjectID = 0;
   const px2m = 0.0002645833;
-
+  let activeAction;
+  let mixers = [];
+ let isPlayAnimation = false;
+ let animationArray =[];
   let scene = new THREE.Scene();
   // let maHanhDongHienTai = 0;
 
@@ -107,7 +109,7 @@ export default function Create() {
   scene.add(gridXZ);
 
   //add light
-  const light = new THREE.AmbientLight(0xffffff); // soft white light
+  const light = new THREE.AmbientLight(0xffffff, 1.2); // soft white light
   scene.add(light);
 
   // add camera
@@ -118,14 +120,10 @@ export default function Create() {
     200
   );
   camera.position.set(0.1, 0.1, 0.1);
-
+  const clock = new THREE.Clock();
   renderer = new THREE.WebGLRenderer({ antialias: true });
   //renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
-  renderer.setAnimationLoop(animation);
-  function animation(time) {
-    renderer.render(scene, camera);
-  }
   // add domEvents
   let domEvents = new THREEx.DomEvents(camera, renderer.domElement);
   //orbit control
@@ -141,14 +139,23 @@ export default function Create() {
   transformControls.addEventListener("objectChange", function (event) {
     showFormEdit();
   });
-
+  animate();
   // window resize
   window.addEventListener("resize", onWindowResize, false);
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7);
-    animation();
+    animate();
+  }
+  function animate() {
+    requestAnimationFrame(animate);
+    let time = clock.getDelta();
+    mixers.map(m=>m.update(time));
+    render();
+  }
+  function render() {
+    renderer.render(scene, camera);
   }
   useEffect(() => {
     // init scene
@@ -176,13 +183,14 @@ export default function Create() {
     productAPI.getMarker(markerID).then((data) => {
       var img = new Image();
       img.src = data.data[0].URL;
+      let imgScale = data.data[0].scale;
       img.onload = function () {
         var loader = new THREE.TextureLoader();
         // Load an image file into a custom material
         var material = new THREE.MeshLambertMaterial({
           map: loader.load(data.data[0].URL)
         });
-        var geometry = new THREE.PlaneGeometry(img.width * px2m, img.height * px2m);
+        var geometry = new THREE.PlaneGeometry(img.width * px2m * imgScale, img.height * px2m * imgScale);
         // combine our image geometry and material into a mesh
         var marker = new THREE.Mesh(geometry, material);
         marker.rotation.set(degreeToRadian(-90), 0, 0);
@@ -200,9 +208,17 @@ export default function Create() {
   }
   // Set Marker scale
   function setMarkerScale() {
-    let markerScale = document.getElementById("markerScale").value;
-    let marker = scene.getObjectById(currentSceneMarkerID);
-    marker.getObjectById(currentSceneMarkerID).scale.set(markerScale, markerScale, markerScale);
+    productAPI.getMarker(markerID).then((data) => {
+      let markerScale = document.getElementById("markerScale").value;
+      let currentMarkerScale = data.data[0].scale;
+      let markerID = data.data[0].markerID;
+      let realScale = markerScale / currentMarkerScale;
+      let marker = scene.getObjectById(currentSceneMarkerID);
+      marker.getObjectById(currentSceneMarkerID).scale.set(realScale, realScale, realScale);
+      productAPI.setMarkerScale(markerScale, markerID).then((data) => {
+
+      })
+    })
   }
   function loadActionList() {
     productAPI.loadMarker(markerID).then((data) => {
@@ -271,10 +287,10 @@ export default function Create() {
         id.value = ARContent[i].filename + ARContent[i].contentID;
         li.setAttributeNode(id);
         tempARContentList.appendChild(li);
-          //styles
-          document.getElementById("tempARContentList").style.fontSize = "15px";
-          document.getElementById("tempARContentList").style.textDecoration = "none";
-          document.getElementById("tempARContentList").style.fontWeight = " normal";
+        //styles
+        document.getElementById("tempARContentList").style.fontSize = "15px";
+        document.getElementById("tempARContentList").style.textDecoration = "none";
+        document.getElementById("tempARContentList").style.fontWeight = " normal";
         if (ARContent[i].URL[ARContent[i].URL.length - 1] == "b") {
           document.getElementById(id.value).onclick = function () {
             show3dModel(ARContent[i].URL, ARContent[i].contentID);
@@ -282,6 +298,10 @@ export default function Create() {
         } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "g") {
           document.getElementById(id.value).onclick = function () {
             show2DImage(ARContent[i].URL, ARContent[i].contentID);
+          };
+        } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "4") {
+          document.getElementById(id.value).onclick = function () {
+            showVideo(ARContent[i].URL, ARContent[i].contentID);
           };
         }
       }
@@ -291,9 +311,21 @@ export default function Create() {
   // show 3D model
   function show3dModel(URL, contentID) {
     const loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderConfig({ type: 'js' });
+    draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+    loader.setDRACOLoader(draco);
     loader.load(
       URL,
       function (gltf) {
+        // if (gltf.animations.length > 0) {
+        //   let mixer = new THREE.AnimationMixer(gltf.scene);
+        //   mixers.push(mixer);
+        //   // gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
+        //   let animationHere = mixer.clipAction(gltf.animations[0]);
+        //   animationHere.play();
+        //   // animationArray.push(animationHere);
+        // }
         scene.add(gltf.scene);
         domEvents.addEventListener(
           gltf.scene,
@@ -437,6 +469,48 @@ export default function Create() {
     return textTexture.id;
   }
 
+  function showVideo(URL, contentID) {
+    // Create video object
+    let video = document.createElement('video');
+    video.src = URL; // Set video address
+    video.setAttribute("crossorigin", "anonymous");
+    let videoTexture = new THREE.VideoTexture(video)
+    let videoGeometry = new THREE.PlaneGeometry(1920 * px2m, 1080 * px2m);
+    videoTexture.needsUpdate = true;
+    let videoMaterial = new THREE.MeshPhongMaterial({
+      side: THREE.DoubleSide,
+      map: videoTexture,
+    });
+    let videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+    videoMesh.video = video;
+    scene.add(videoMesh);
+    domEvents.addEventListener(
+      videoMesh,
+      "dblclick",
+      function (event) {
+        currentID = videoMesh.id;
+        transformControls.detach();
+        transformControls.attach(videoMesh);
+        transformControls.setMode("translate");
+        scene.add(transformControls);
+        showFormEdit();
+        showFormVideo();
+      },
+      false
+    );
+    // create new instance arcontent duoc chon
+    productAPI
+      .addNewInstanceARContent({
+        contentID: contentID,
+        actionID: currentActionID,
+      })
+      .then((data) => {
+        videoMesh.contentID = data.data.contentID;
+        videoMesh.type = "video"
+        addObjectList(data.data.filename, data.data.contentID);
+      });
+  }
+
   // load objects list in the scene
   function loadObjectList() {
     let objectList = document.getElementById("objectList");
@@ -448,10 +522,10 @@ export default function Create() {
         li.appendChild(document.createTextNode(ARContent[i].filename + ` - ` + ARContent[i].contentID));
         objectList.appendChild(li);
       }
-       //styles
-       document.getElementById("objectList").style.fontSize = "15px";
-       document.getElementById("objectList").style.textDecoration = "none";
-       document.getElementById("objectList").style.fontWeight = " normal";
+      //styles
+      document.getElementById("objectList").style.fontSize = "15px";
+      document.getElementById("objectList").style.textDecoration = "none";
+      document.getElementById("objectList").style.fontWeight = " normal";
     });
   }
   function addObjectList(filename, contentID) {
@@ -491,6 +565,8 @@ export default function Create() {
           load2DImage(ARContent[i]);
         } else if (filename == "text") {
           load2DText(ARContent[i]);
+        } else if (filename[filename.length - 1] == "4") {
+          loadVideo(ARContent[i]);
         }
       }
     });
@@ -562,7 +638,7 @@ export default function Create() {
         ARContent.yRotation,
         ARContent.zRotation
       );
-      imageTexture.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zS);
+      imageTexture.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
       domEvents.addEventListener(
         imageTexture,
         "dblclick",
@@ -649,6 +725,50 @@ export default function Create() {
       }
     });
   }
+  function loadVideo(ARContent) {
+    // Create video object
+    let video = document.createElement('video');
+    video.src = ARContent.URL; // Set video address
+    video.setAttribute("crossorigin", "anonymous");
+    let videoTexture = new THREE.VideoTexture(video)
+    let videoGeometry = new THREE.PlaneGeometry(1920 * px2m, 1080 * px2m);
+    videoTexture.needsUpdate = true;
+    let videoMaterial = new THREE.MeshPhongMaterial({
+      side: THREE.DoubleSide,
+      map: videoTexture,
+    });
+    let videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+    videoMesh.video = video;
+    scene.add(videoMesh);
+    videoMesh.contentID = ARContent.contentID;
+    videoMesh.type = "video"
+    scene.add(videoMesh);
+    videoMesh.position.set(
+      ARContent.xPosition,
+      ARContent.yPosition,
+      ARContent.zPosition
+    );
+    videoMesh.rotation.set(
+      ARContent.xRotation,
+      ARContent.yRotation,
+      ARContent.zRotation
+    );
+    videoMesh.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+    domEvents.addEventListener(
+      videoMesh,
+      "dblclick",
+      function (event) {
+        currentID = videoMesh.id;
+        transformControls.detach();
+        transformControls.attach(videoMesh);
+        transformControls.setMode("translate");
+        scene.add(transformControls);
+        showFormEdit();
+        showFormVideo();
+      },
+      false
+    );
+  }
 
   function saveAction() {
     // Lam chung chua lam text
@@ -719,6 +839,9 @@ export default function Create() {
             if (currentObject.config !== undefined) {
               document.getElementById("fixButton").style.display = "none"
             }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none"
+            }
             transformControls.detach();
             scene.remove(transformControls);
           }
@@ -768,11 +891,12 @@ export default function Create() {
       let currentObject = scene.getObjectById(currentID);
       document.getElementById("xScale").value = currentObject.scale.x;
       document.getElementById("yScale").value = currentObject.scale.y;
-      if (currentObject.type == "2DImage" || currentObject.type == "2DText") {
+      if (currentObject.type == "2DImage" || currentObject.type == "2DText" || currentObject.type == "video") {
         document.getElementById("zScale").value = 1;
         document.getElementById("zScale").disabled = true;
       } else {
         document.getElementById("zScale").value = currentObject.scale.z;
+        document.getElementById("zScale").disabled = false;
       }
     }
   }
@@ -831,22 +955,22 @@ export default function Create() {
   }
   function setRotation() {
     let currentObject = scene.getObjectById(currentID);
-    let xRotaion = document.getElementById("xRotaion").value.trim();
-    let yRotaion = document.getElementById("yRotaion").value.trim();
-    let zRotaion = document.getElementById("zRotaion").value.trim();
-    if (xRotaion.length == 0) {
-      xRotaion = 0;
-      document.getElementById("xRotaion").value = 0;
+    let xRotation = document.getElementById("xRotation").value.trim();
+    let yRotation = document.getElementById("yRotation").value.trim();
+    let zRotation = document.getElementById("zRotation").value.trim();
+    if (xRotation.length == 0) {
+      xRotation = 0;
+      document.getElementById("xRotation").value = 0;
     }
-    if (yRotaion.length == 0) {
-      yRotaion = 0;
-      document.getElementById("yRotaion").value = 0;
+    if (yRotation.length == 0) {
+      yRotation = 0;
+      document.getElementById("yRotation").value = 0;
     }
-    if (zRotaion.length == 0) {
-      zRotaion = 0;
-      document.getElementById("zRotaion").value = 0;
+    if (zRotation.length == 0) {
+      zRotation = 0;
+      document.getElementById("zRotation").value = 0;
     }
-    currentObject.rotation.set(xRotaion, yRotaion, zRotaion);
+    currentObject.rotation.set(degreeToRadian(xRotation), degreeToRadian(yRotation), degreeToRadian(zRotation));
   }
 
   function getFormTextContent() {
@@ -895,19 +1019,51 @@ export default function Create() {
     document.getElementById("fixButton").style.display = "none";
 
   }
+  function playVideo() {
+    let video = scene.getObjectById(currentID).video;
+    video.play();
+  }
+  function pauseVideo() {
+    let video = scene.getObjectById(currentID).video;
+    video.pause();
+  }
+  function showFormVideo() {
+    document.getElementById("formVideo").style.display = "block";
+  }
   function degreeToRadian(degree) {
     return (degree * Math.PI) / 180.0;
   }
   function radianToDegree(radian) {
     return (radian * 180.0) / Math.PI;
   }
+  function test(){
+    let audio = new Audio("https://testar11.herokuapp.com/audio/test.mp3");
+    audio.play();
+  }
   return (
     <div>
+      <Button onClick={() => test()}>Test</Button>
       <div className={classes.grid}>
-      <div className={classes.column2}>
+        <div className={classes.column2}>
           <div className={classes.scene} id="sceneRender"></div>
+          <div id="formVideo" style={{ display: "none" }}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => playVideo()}
+            >
+              Play
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => pauseVideo()}
+            >
+              Pause
+            </Button>
+          </div>
           <div
-            style={{ display: "flex", justifyContent: "center" , marginTop: '5%'}}
+            style={{ display: "flex", justifyContent: "center", marginTop: '5%' }}
             id="form-edit-3d"
           >
             <Button
@@ -924,7 +1080,7 @@ export default function Create() {
             <Typography className={classes.title} >1. Thêm hành động</Typography>
           </div>
           <div className={classes.btnline}>
-            <input className={classes.input} placeholder = "Tên hành động" type="text" id="actionName"></input>
+            <input className={classes.input} placeholder="Tên hành động" type="text" id="actionName"></input>
             <Button
               style={{ marginTop: "13%", marginLeft: "10%", width: '10px' }}
               variant="outlined"
@@ -943,7 +1099,7 @@ export default function Create() {
           <div>
             <Typography className={classes.title}>2. Điểm đánh dấu</Typography>
           </div>
-          <div style = {{marginTop: '-10%'}} >
+          <div style={{ marginTop: '-10%' }} >
             <Typography color='secondary' variant='caption'>
               (Hỗ trợ: .jpg, .png)
             </Typography>
@@ -972,18 +1128,18 @@ export default function Create() {
           </div>
           <div className={classes.xline}>
             <Typography>Tỉ lệ: </Typography>
-          <input
+            <input
               id="markerScale"
               type="number"
               min="0"
               className={classes.input2}
               onBlur={() => setMarkerScale()}
             ></input>
-            </div>
+          </div>
           <div>
             <Typography className={classes.title}>3. Nội dung AR </Typography>
           </div>
-          <div style = {{marginTop: '-10%'}} >
+          <div style={{ marginTop: '-10%' }} >
             <Typography color='secondary' variant='caption'>
               (Hỗ trợ: .glb, .gltf, .jpg, .png, .mp4, .mp3.)
             </Typography>
@@ -1053,7 +1209,7 @@ export default function Create() {
           </div>
           <div className={classes.inline}>
             <Typography>Màu chữ: </Typography>
-            <input className={classes.input2}  placeholder="Định dạng #0000" id="color" type="text"></input>
+            <input className={classes.input2} placeholder="Định dạng #0000" id="color" type="text"></input>
           </div>
           <div className={classes.inline}>
             <Typography>Màu nền: </Typography>

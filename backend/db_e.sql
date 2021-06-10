@@ -109,20 +109,24 @@ alter table Interaction add constraint FK_Interaction_Action UNIQUE (actionID);
 insert into Teacher(name,iNumber,email,password) values('Nguyễn Văn B','123456789','duy@gmail.com','123456');
 insert into Teacher(name,iNumber,email,password) values('Nguyễn Văn C','112345547','anansss1s23@gmail.com','123456');
 
-
-insert into Student (name,dateOfBirth,username,password) values('Nguyễn Văn B','1999-01-01','haha0234','123456');
-insert into Student (name,dateOfBirth,username,password) values('Nguyễn Văn C','1999-01-01','haha02342','123456');
-
 insert into Lesson(name,description,timeCreated,timeUpdated,teacherID) values ('Hệ điều hành','hahaha','2001-01-01','2002-01-01',1);
 insert into Lesson(name,description,timeCreated,timeUpdated,teacherID) values ('CSDL','hahaha','2001-01-01','2002-01-01',2);
 insert into Lesson(name,description,timeCreated,timeUpdated,teacherID) values ('Hóa học','hahaha','2001-01-01','2002-01-01',1);
 
+insert into Student(name,dateOfBirth,username,password) values('van quoc duy','1999-01-01','duyyugi','$2b$10$wNed5wEl5.LjbE2XZzwxHO7LLzn1r8XGyxrm4T3F3gl7VWzHb0.Ue');
+
 insert into StudentLesson(studentID,lessonID,timeCreated) values(1,1,now());
 insert into StudentLesson(studentID,lessonID,timeCreated) values(1,2,now());
 
-select* from Teacher;
+select* from StudentLesson;
 select* from Lesson;
 select* from Marker;
 select* from Action;
+select* from Action;
 select* from ARContent;
 select* from TextARContent;
+
+select* from Marker;
+select* from ARContent;
+select* from Action;
+update ARContent set URL = 'https://testar11.herokuapp.com/images/wtf.mp4' where contentID = 37;

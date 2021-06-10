@@ -30,7 +30,6 @@ router.post("/", upload.single("file"), async (req, res, next) => {
     markerID = req.body.markerID;
     let file = req.file;
     let URL = config.baseURL + '/upload/marker/' + file.filename;
-    const lessonID = req.body.lessonID;
     const updateMarker = await markerModel.updateURL(markerID, URL);
     res.json(URL);
   } catch (err) {
@@ -55,6 +54,20 @@ router.post("/add", async (req, res) => {
     // add new action
     const newAction = await actionModel.add(marker.insertId, 'Khởi tạo');
     res.send(marker);
+  }
+  catch (error) {
+    res.send(error);
+  }
+});
+
+router.post("/scale", async (req, res) => {
+  try {
+    markerScale = req.body.markerScale;
+    markerID = req.body.markerID;
+    console.log(markerID);
+    console.log(markerScale);
+    let setMarkerScale = await markerModel.setMarkerScale(markerScale,markerID);
+    res.json([]);
   }
   catch (error) {
     res.send(error);

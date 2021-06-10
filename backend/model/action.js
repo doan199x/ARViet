@@ -4,8 +4,8 @@ module.exports = {
         const sql = `INSERT INTO Action (markerID,name) values(${markerID},"${name}")`;
         return await db.load(sql);
     },
-    getInit: async () => {
-        const sql = `select* from Action where name = "Khởi tạo"`;
+    getInit: async (markerID) => {
+        const sql = `select* from Action where name = "Khởi tạo" and markerID = ${markerID}`;
         return await db.load(sql);
     },
     getByID: async (actionID) => {

@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const signupModel = require("../model/signup.js");
+const studentModel = require("../model/student");
+const bcrypt = require("bcrypt");
+
 router.post("/", async (req, res) => {
   try {
     const isExisted = await signupModel.checkEmail(req.body.email);
@@ -21,23 +24,22 @@ router.post("/", async (req, res) => {
 });
 
 router.post("/mobile", async (req, res) => {
-  const hocSinh = req.body;
+  const student = req.body;
   const salt = bcrypt.genSaltSync(10);
-  hocSinh.MatKhau = bcrypt.hashSync(hocSinh.MatKhau, salt);
-  const isExisted = await hocSinhModel.checkTenDangNhap(hocSinh.TenDangNhap);
-  console.log(isExisted.length);
-  if (isExisted.length!=0){
+  student.password = bcrypt.hashSync(student.password, salt);
+  const isExisted = await studentModel.checkUsername(student.username);
+  if (isExisted.length != 0) {
     res.json({
-      status:'Ten Dang Nhap da ton tai'
+      status: 'username is exsited'
     })
-  }else{
-    const result = await hocSinhModel.signup(hocSinh);
+  } else {
+    const result = await studentModel.signup(student);
     let status = "failed";
-    if (result.affectedRows==1){
+    if (result.affectedRows == 1) {
       status = 'success'
     }
     res.json({
-      status:status
+      status: status
     });
   }
 })
