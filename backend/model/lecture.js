@@ -1,7 +1,8 @@
 const db = require('../utils/db');
 module.exports = {
     findLecture: async (userid) => {
-        const sql = `select * from Lesson where (teacherID= "${userid}");` 
+        const sql = `select *,DATE_FORMAT(timeCreated,'%d/%m/%Y') as created ,DATE_FORMAT(timeCreated,'%d/%m/%Y') as updated from Lesson where (teacherID= "${userid}")
+        ORDER BY STR_TO_DATE(timeCreated, '%d/%m/%Y');` 
         const result = await db.load(sql);
         return result;
     },

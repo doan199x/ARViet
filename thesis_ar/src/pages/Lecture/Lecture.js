@@ -18,13 +18,16 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import logourl from "../../img/lecture.jpg";
 import { useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     width: '350px',
-    marginTop: '5%',
-    marginBottom: '5%',
+    minheight: '400px',
+    marginTop: '10%',
+    marginBottom: '10%',
     // /backgroundColor: '#e5eef5'
+    borderRadius: '30px'
   },
   media: {
     height: 0,
@@ -41,17 +44,19 @@ const useStyles = makeStyles((theme) => ({
     transform: 'rotate(180deg)',
   },
   avatar: {
-    backgroundColor: '#f23276',
+    backgroundColor: '#8464eb',
   },
   header: {
-    color: '#195cc5',
-
     fontSize: '10px'
   },
   link:{
-    textDecoration: 'none'
+    textDecoration: 'none',
+    color: 'black'
   }
 }));
+const deleteLec = () => {
+console.log('ok')
+}
 
 export default function Lecture(data) {
   const classes = useStyles();
@@ -64,34 +69,40 @@ export default function Lecture(data) {
 
   return (
     <Card className={classes.root}>
-       <Link  className={classes.link} onClick = { () => history.push(`/lecture/${lecture.lessonID}`)}>
+       <Link className={classes.link} onClick = { () => history.push(`/lecture/${lecture.lessonID}`)}>
        <CardHeader className = {classes.header}
         avatar={
-          <Avatar aria-label="recipe" className={classes.avatar}>
-           {lecture.lessonID}
+          <Avatar className={classes.avatar}>
+           AR
           </Avatar>
         }
         titleTypographyProps={{variant:'h5',fontWeight: 'bold'}}
         title={lecture.name}
       />
-    </Link>
-     
       <CardMedia
         className={classes.media}
         image={logourl}
         title="Paella dish"
       />
       <CardContent>
-        <Typography variant="body2" color="textSecondary" component="p">
-         Mô tả: {lecture.description}
-        </Typography>
+      <Typography paragraph>
+          Thời gian cập nhật: {lecture.updated}
+          </Typography>
+          <Typography paragraph>
+          Thời gian tạo: {lecture.created}
+          </Typography>
       </CardContent>
+      </Link>
       <CardActions disableSpacing>
         <IconButton aria-label="add to favorites">
-          <FavoriteIcon />
+          <DeleteOutlineIcon
+          style = {{color: '#ff542b'}}
+          onClick = {() => {deleteLec()}}/>
         </IconButton>
         <IconButton aria-label="share">
-          <ShareIcon />
+          <ShareIcon 
+            style = {{color: '#5ca7ff'}}
+            />
         </IconButton>
         <IconButton
           className={clsx(classes.expand, {
@@ -106,14 +117,12 @@ export default function Lecture(data) {
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
-          <Typography paragraph>
-          Thời gian tạo: {lecture.timeCreated}
-          </Typography>
-          <Typography paragraph>
-          Thời gian cập nhật: {lecture.timeUpdated}
-          </Typography>
+        <Typography paragraph>
+         Mô tả: {lecture.description}
+        </Typography>
         </CardContent>
       </Collapse>
+      
     </Card>
   );
 }
