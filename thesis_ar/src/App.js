@@ -55,7 +55,7 @@ function App() {
                 <Route exact path="/lecture/:id">
                   <MarkerList/>
                 </Route>
-                <Route exact path="/lecture/:lecid/:markerid">
+                <Route exact path="/lecture/:lecid">
                   <Create />
                 </Route>
                 <Route>
