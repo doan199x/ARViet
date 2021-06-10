@@ -52,9 +52,6 @@ function App() {
                 <Route exact path="/lecture">
                   <LectureList/>
                 </Route>
-                <Route exact path="/lecture/:id">
-                  <MarkerList/>
-                </Route>
                 <Route exact path="/lecture/:lecid">
                   <Create />
                 </Route>
