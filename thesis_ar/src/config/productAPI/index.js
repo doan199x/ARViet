@@ -73,4 +73,7 @@ export const productAPI = {
   addMarker: (lecid) => {
     return AXIOS_INSTANCE.post(API.ADDMARKER, { lecid });
   },
+  deleteLecture: (lecid) => {
+    return AXIOS_INSTANCE.post(API.DELETE, { lecid });
+  },
 }

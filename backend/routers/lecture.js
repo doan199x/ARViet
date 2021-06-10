@@ -30,5 +30,14 @@ router.post("/", async (req, res) => {
       res.send(error);
     }
   });
+  router.post("/delete", async (req, res) => {
+    try {
+      const result = await lectureModel.deleteLecture(req.body.lecid);
+        res.send(result);
+      }
+       catch (error) {
+      res.send(error);
+    }
+  });
 
   module.exports = router;

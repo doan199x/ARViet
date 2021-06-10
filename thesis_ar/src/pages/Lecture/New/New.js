@@ -123,10 +123,10 @@ export default function New() {
       await productAPI
         .new(userid, data.lecname, des)
         .then((data) => {
-          if (data.data.affectedRows === 1) {
-            console.log (data.data)
+          if (data) {
+            const lecid = data.data[0]?.id
               toast.info('Tạo thành công!');
-             history.push('/');
+             history.push(`/lecture/${lecid}`);
           } else {
               toast.error('Đã xảy ra lỗi!')
           }

@@ -19,6 +19,7 @@ import logourl from "../../img/lecture.jpg";
 import { useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import { productAPI } from '../../config/productAPI';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -54,8 +55,19 @@ const useStyles = makeStyles((theme) => ({
     color: 'black'
   }
 }));
-const deleteLec = () => {
-console.log('ok')
+const deleteLec = async (lecid) => {
+  await productAPI
+  .deleteLecture(lecid)
+  .then((data) => {
+    // if (data.data.length > 0) {
+    //  //
+    // } else {
+    //   //setLectures(data.data);
+    // }
+  })
+  .catch((error) => {
+    console.log("error", error);
+  });
 }
 
 export default function Lecture(data) {
@@ -97,7 +109,7 @@ export default function Lecture(data) {
         <IconButton aria-label="add to favorites">
           <DeleteOutlineIcon
           style = {{color: '#ff542b'}}
-          onClick = {() => {deleteLec()}}/>
+          onClick = {() => {deleteLec(lecture.lessonID)}}/>
         </IconButton>
         <IconButton aria-label="share">
           <ShareIcon 
