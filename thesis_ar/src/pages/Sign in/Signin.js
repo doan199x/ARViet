@@ -136,7 +136,7 @@ export default function Signin() {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Đăng nhập
           </Typography>
           <form className={classes.form} onSubmit={handleSubmit(onSubmit)}>
             <TextField
@@ -145,7 +145,7 @@ export default function Signin() {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="Địa chỉ email"
               name="email"
               autoComplete="email"
               autoFocus
@@ -161,7 +161,7 @@ export default function Signin() {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="Mật khẩu"
               type="password"
               id="password"
               autoComplete="current-password"
@@ -178,14 +178,14 @@ export default function Signin() {
               color="primary"
              
             >
-              Sign In
+              Đăng nhập
             </Button>
             </div>
             
             <Grid container>
               <Grid className = {classes.link} item>
                 <Link href="/signup" variant="body2">
-                  {"Don't have an account? Sign Up"}
+                  {"Chưa có tài khoản? Đăng ký ngay!"}
                 </Link>
               </Grid>
             </Grid>

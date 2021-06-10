@@ -245,14 +245,14 @@ export default function Signup() {
               color="primary"
               className={classes.submit}
             >
-              Sign Up
+              Đăng ký
             </Button>
             </div>
          
             <Grid container>
               <Grid item>
                 <Link href="/signin" variant="body2">
-                  {"Already had an account? Sign In"}
+                  {"Đã có tài khoản? Đăng nhập ngay!"}
                 </Link>
               </Grid>
             </Grid>

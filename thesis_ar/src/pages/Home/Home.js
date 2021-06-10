@@ -15,10 +15,10 @@ export default function Home() {
          <Button href= "/signin" 
          variant="contained" 
          color="secondary">
-        Sign in
+       Đăng nhập
       </Button>
       <Button href= "/signup" variant="contained" color="primary">
-          Sign up
+          Đăng  ký 
          </Button>
          </div>
          <div className= "main__div">
