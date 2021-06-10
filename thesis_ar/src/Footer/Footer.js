@@ -5,7 +5,7 @@ import { Link } from "@material-ui/core";
 const useStyles = makeStyles((theme) => ({
   footer: {
     padding: "1%",
-    marginTop: "5%",
+    marginTop: "1%",
     // textAlign: 'center',
     backgroundColor: "#273044",
     color: "white",

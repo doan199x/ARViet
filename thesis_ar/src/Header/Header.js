@@ -34,6 +34,17 @@ const useStyles = makeStyles((theme) => ({
     },
     fontWeight: "bold",
     color: "#273044",
+    fontFamily: 'Hammersmith One',
+  },
+  minititle: {
+    display: "none",
+    [theme.breakpoints.up("sm")]: {
+      display: "block",
+    },
+    color: "#273044",
+    fontFamily: 'Hammersmith One',
+    fontWeight: '100',
+    fontSize: '30px'
   },
   sectionDesktop: {
     display: "none",
@@ -49,8 +60,8 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   logo: {
-    height: "50px",
-    width: "50px",
+    height: "70px",
+    width: "70px",
   },
   linkgroup: {
     marginLeft: "30%",
@@ -78,6 +89,7 @@ const useStyles = makeStyles((theme) => ({
       display: "block",
     },
     fontWeight: "bold",
+    fontSize: '17px',
     color: "#273044",
     textDecoration: "none",
   },
@@ -147,8 +159,9 @@ export default function Header() {
           </Button>
 
           <Typography className={classes.title} variant="h4" noWrap>
-            ARViet
+            AR 
           </Typography>
+          <div className={classes.minititle}>Viet</div>
           <div className={classes.linkgroup}>
             <Button href="/lecture" className={classes.link} variant="h5" noWrap>
               BÀI GIẢNG
