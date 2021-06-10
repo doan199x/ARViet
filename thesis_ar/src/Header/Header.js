@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import "./style.scss"
 import { fade, makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -141,9 +142,9 @@ export default function Header() {
   
 
   return (
-    <div className={classes.grow}>
-      <AppBar color="default" position="static">
-        <Toolbar>
+    <div className= {classes.grow}>
+      <AppBar className = "grow" color="default" position="static">
+        <Toolbar >
           <Button 
             edge="start"
             className={classes.menuButton}
@@ -174,7 +175,7 @@ export default function Header() {
             </Button>
             {user ? (
               <Button href="/account" className={classes.link} variant="h4" noWrap>
-                TÀI KHOẢN
+                Chào  {user.name}!
               </Button>
             ) : (
               <></>

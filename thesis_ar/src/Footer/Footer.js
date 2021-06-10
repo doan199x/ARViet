@@ -70,7 +70,7 @@ export default function Footer() {
               1712347 - 1712395
           </div>
           <div>Đại học Khoa Học Tự Nhiên</div>
-          <div> </div>
+          <div> Đại học Quốc Gia TPHCM </div>
         </div>
       </div>
     </div>

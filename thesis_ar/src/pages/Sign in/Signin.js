@@ -84,7 +84,13 @@ marginTop: '5%'
   formpaper: {
     marginTop: '5%',
     marginBottom: '5%',
-  }
+  },
+  btn: {
+    borderRadius: "30px",
+    height: "50px",
+    width: "120px",
+    backgroundColor: "#1e467f",
+  },
 }));
 
 export default function Signin() {
@@ -176,7 +182,7 @@ export default function Signin() {
               type="submit"
               variant="contained"
               color="primary"
-             
+             className = {classes.btn}
             >
               Đăng nhập
             </Button>
