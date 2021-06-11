@@ -170,13 +170,13 @@ export default function Header() {
             <Button href="/guide"className={classes.link} variant="h4" noWrap>
               HƯỚNG DẪN
             </Button>
-            <Button href="/contact" className={classes.link} variant="h4" noWrap>
+            <Button href="mailto:1712347@student.hcmus.edu.vn,1712395@student.hcmus.edu.vn " className={classes.link} variant="h4" noWrap>
               LIÊN HỆ
             </Button>
             {user ? (
-              <Button href="/account" className={classes.link} variant="h4" noWrap>
-                Chào  {user.name}!
-              </Button>
+              <Typography style={{marginTop: '2%'}} variant="h7" noWrap>
+                Chào  {user.name}! ♡
+              </Typography>
             ) : (
               <></>
             )}

@@ -1,6 +1,6 @@
 import React from "react";
 import "./style.scss";
-import homeurl from "../../img/home.png";
+import homeurl from "../../img/interface.png";
 import { Button, makeStyles } from "@material-ui/core";
 import { useHistory } from "react-router";
 
@@ -106,7 +106,7 @@ export default function Home() {
       </div>
       {/* */}
       <div className={classes.animation}>
-       <img src = {homeurl}/>
+       <img className={classes.img} src = {homeurl}/>
     </div>
     </div>
   );

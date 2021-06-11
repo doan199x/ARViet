@@ -11,9 +11,8 @@ import Create from "./pages/Lecture/Create/Create.js";
 import { useContext } from "react";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core";
 import Error from "./pages/Error/Error.js";
-import New from "./pages/Lecture/New/New.js";
 import LectureList from "./pages/Lecture/LectureList.js";
-import MarkerList from "./pages/Lecture/Marker/MarkerList.js";
+import Guide from "./pages/Guide/Guide.js";
 
 function App() {
   const theme = createMuiTheme({
@@ -54,6 +53,9 @@ function App() {
                 </Route>
                 <Route exact path="/lecture/:lecid">
                   <Create />
+                </Route>
+                <Route exact path="/guide">
+                  <Guide/>
                 </Route>
                 <Route>
                   <Error />

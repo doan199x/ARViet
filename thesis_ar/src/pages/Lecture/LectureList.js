@@ -18,6 +18,7 @@ import ar from "../../img/add.png";
 import "./style.scss";
 import New from "./New/New";
 import { Link } from "react-router-dom";
+import background from '../../img/42.jpg'
 
 const useStyles = makeStyles((theme) => ({
   data: {
@@ -38,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#273044',
+    backgroundImage:  `url(${background})`,
     paddingBottom: '5%'
   },
   center: {
@@ -88,7 +89,7 @@ export default function LectureList() {
       <div className={classes.lectures}>
         <div className={classes.line}>
          <div className = {classes.title}>
-         <h3 style={{ textAlign: "center", color: "white" }}>
+         <h3 style={{ textAlign: "center", color: "#273044" }}>
             {" "}
             DANH SÁCH BÀI GIẢNG
           </h3>
