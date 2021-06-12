@@ -8,11 +8,16 @@ module.exports = {
     },
     new: async (userid,lecname,description) => {
         const sql = `insert into Lesson(name, description, teacherID,timeCreated,timeUpdated) values ("${lecname}", "${description}", "${userid}",now(),now());`
-        const sql2 = `select max(lessonID) as id from Lesson where ((name = "${lecname}" and description = "${description}") and (teacherID = "${userid}" and timeCreated - now() <= 0));` 
+        // const sql2 = `select max(lessonID) as id from Lesson where ((name = "${lecname}" and description = "${description}") and (teacherID = "${userid}" and timeCreated - now() <= 0));` 
         const result = await db.load(sql);
-        const result2 = await db.load(sql2);
-        if (result.affectedRows ==1 && result2)
-        return result2;
+        // const result2 = await db.load(sql2);
+        // if (result.affectedRows ==1 && result2)
+        // return result2;
+        return result;
+    },
+    getByID: async(lessonID)=>{
+        const sql = `select* from Lesson where lessonID = ${lessonID}`;
+        return await db.load(sql);
     },
     getAllMarker: async (lecid) => {
         const sql = `select * from Marker where lessonID = "${lecid}";` 

@@ -124,7 +124,8 @@ export default function New() {
         .new(userid, data.lecname, des)
         .then((data) => {
           if (data) {
-            const lecid = data.data[0]?.id
+            console.log(data);
+            const lecid = data.data[0]?.lessonID;
               toast.info('Tạo thành công!');
              history.push(`/lecture/${lecid}`);
           } else {

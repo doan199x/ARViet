@@ -22,8 +22,8 @@ export const productAPI = {
   getMarker: (markerID) => {
     return AXIOS_INSTANCE.get('/marker', { params: { markerID: markerID } })
   },
-  setMarkerScale: (markerScale,markerID)=>{
-    return AXIOS_INSTANCE.post('/marker/scale',{markerScale,markerID});
+  setMarkerScale: (markerScale, markerID) => {
+    return AXIOS_INSTANCE.post('/marker/scale', { markerScale, markerID });
   },
   getTempARContent: (markerID) => {
     return AXIOS_INSTANCE.get('/arcontent', { params: { markerID: markerID } });
@@ -72,6 +72,12 @@ export const productAPI = {
   },
   addMarker: (lecid) => {
     return AXIOS_INSTANCE.post(API.ADDMARKER, { lecid });
+  },
+  getMarkerByLessonID: (lecid) => {
+    return AXIOS_INSTANCE.get('/marker/getall', { params: { lecid: lecid } });
+  },
+  getTempByActionID: (actionID) => {
+    return AXIOS_INSTANCE.get('/arcontent/gettemp', { params: { actionID: actionID } });
   },
   deleteLecture: (lecid) => {
     return AXIOS_INSTANCE.post(API.DELETE, { lecid });

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Component } from "react";
 import * as THREE from "three";
 import { AnimationMixer, Color, PixelFormat, Vector3 } from "three";
@@ -15,6 +15,13 @@ import { productAPI } from "../../../config/productAPI";
 import e from "cors";
 import { API } from "../../../constant/API";
 import { useParams } from "react-router";
+import ActionList from "./ActionList/ActionList"
+import MarkerList from "./MarkerList/MarkerList"
+import TempARContentList from "./TempARContentList/TempARContentList"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
+import TextColorPicker from "./TextColorPicker/TextColorPicker"
+import TextBackgroundColorPicker from "./TextBackgroundColorPicker/TextBackgroundColorPicker"
 import {
   Button,
   Input,
@@ -43,6 +50,19 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "",
     marginTop: "5%",
   },
+  inline2: {
+    display: "grid",
+    gridTemplateColumns: "35% 65%",
+    justifyContent: "",
+    marginTop: "5%",
+  },
+  inline3: {
+    display: "grid",
+    gridTemplateColumns: "50% 50%",
+    justifyContent: "",
+    marginTop: "5%",
+    width: "50%"
+  },
   line: {
     marginTop: "5%",
     width: '80%',
@@ -53,12 +73,13 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "5%",
     width: '80%',
     display: "grid",
-    gridTemplateColumns: "20% 80%",
+    gridTemplateColumns: "70% 30%",
   },
   btnline: {
+    marginTop: "10px",
     width: '80%',
     display: "grid",
-    gridTemplateColumns: "80% 10%",
+    gridTemplateColumns: "70% 30%",
   },
   input: {
     marginTop: "5%",
@@ -79,25 +100,55 @@ export default function Create() {
   const classes = useStyles();
   //params
   const param = useParams();
-
   const lessonID = param.lecid;
-  const markerID = param.markerid;
   let camera, renderer;
   // let arrayTextObject = [];
-
   let currentID = 0;
   let currentSceneMarkerID = 0;
-  let currentActionID = 0;
   let currentText = null;
   let previousTextObjectID = 0;
   const px2m = 0.0002645833;
   let activeAction;
   let mixers = [];
- let isPlayAnimation = false;
- let animationArray =[];
+  let isPlayAnimation = false;
+  let animationArray = [];
   let scene = new THREE.Scene();
-  // let maHanhDongHienTai = 0;
+  //state
+  const [markerID, setMarkerID] = useState(null);
+  const [markerChanged, setMarkerChanged] = useState(null);
+  const [currentActionID, setCurrentActionID] = useState(null);
+  useEffect(async () => {
+    if (markerID == null) {
+      await productAPI.getMarkerByLessonID(lessonID).then(data => {
+        let sceneRender = document.getElementById("sceneRender");
+        sceneRender.appendChild(renderer.domElement);
+        setMarkerID(data.data[0].markerID);
+        setEventTransform();
+        showMarker();
+        getCurrentActionID(data.data[0].markerID);
+        loadARContentByActionID(currentActionID);
+        // loadTempARContentList();
+      })
+    } else {
+      let sceneRender = document.getElementById("sceneRender");
+      sceneRender.innerHTML = ""
+      sceneRender.appendChild(renderer.domElement);
+      setEventTransform();
+      showMarker();
+      getCurrentActionID(markerID);
+      loadARContentByActionID(currentActionID);
+      // getCurrentActionID();
+      // loadTempARContentList();
+    }
+  })
 
+  //callback
+  let cbsetCurrentID = (data) => {
+    setMarkerID(data);
+  }
+  let cbsetCurrentActionID = (data) => {
+    setCurrentActionID(data);
+  }
   //add axes
   var axesHelper = new THREE.AxesHelper(200);
   scene.background = new THREE.Color(0x838784);
@@ -122,7 +173,6 @@ export default function Create() {
   camera.position.set(0.1, 0.1, 0.1);
   const clock = new THREE.Clock();
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  //renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
   // add domEvents
   let domEvents = new THREEx.DomEvents(camera, renderer.domElement);
@@ -130,7 +180,6 @@ export default function Create() {
   const orbitControls = new OrbitControls(camera, renderer.domElement);
   orbitControls.screenSpacePanning = true;
   orbitControls.target.set(0, 0, 0);
-
   // transform control
   const transformControls = new TransformControls(camera, renderer.domElement);
   transformControls.addEventListener("dragging-changed", function (event) {
@@ -145,28 +194,20 @@ export default function Create() {
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7);
+    renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
     animate();
   }
   function animate() {
     requestAnimationFrame(animate);
     let time = clock.getDelta();
-    mixers.map(m=>m.update(time));
+    mixers.map(m => m.update(time));
     render();
   }
   function render() {
     renderer.render(scene, camera);
   }
-  useEffect(() => {
-    // init scene
-    let sceneRender = document.getElementById("sceneRender");
-    sceneRender.appendChild(renderer.domElement);
-    setEventTransform();
-    showMarker();
-    loadActionList();
-    getCurrentActionID();
-    loadTempARContentList();
-  })
+
+
 
   //Upload marker
   function uploadMarker() {
@@ -176,35 +217,40 @@ export default function Create() {
     formData.append("markerID", markerID);
     productAPI.uploadMarker(formData).then((data) => {
       showMarker();
+      if (markerChanged != false) {
+        setMarkerChanged(false);
+      } else {
+        setMarkerChanged(true);
+      }
     });
   }
   function showMarker() {
-    // get marker roi show ra.
-    productAPI.getMarker(markerID).then((data) => {
-      var img = new Image();
-      img.src = data.data[0].URL;
-      let imgScale = data.data[0].scale;
-      img.onload = function () {
-        var loader = new THREE.TextureLoader();
-        // Load an image file into a custom material
-        var material = new THREE.MeshLambertMaterial({
-          map: loader.load(data.data[0].URL)
-        });
-        var geometry = new THREE.PlaneGeometry(img.width * px2m * imgScale, img.height * px2m * imgScale);
-        // combine our image geometry and material into a mesh
-        var marker = new THREE.Mesh(geometry, material);
-        marker.rotation.set(degreeToRadian(-90), 0, 0);
-        if (currentSceneMarkerID != 0) {
-          scene.remove(scene.getObjectById(currentSceneMarkerID));
+    if (markerID != null) {
+      productAPI.getMarker(markerID).then((data) => {
+        var img = new Image();
+        img.src = data.data[0].URL;
+        let imgScale = data.data[0].scale;
+        img.onload = function () {
+          var loader = new THREE.TextureLoader();
+          // Load an image file into a custom material
+          var material = new THREE.MeshLambertMaterial({
+            map: loader.load(data.data[0].URL)
+          });
+          var geometry = new THREE.PlaneGeometry(img.width * px2m * imgScale, img.height * px2m * imgScale);
+          // combine our image geometry and material into a mesh
+          var marker = new THREE.Mesh(geometry, material);
+          marker.rotation.set(degreeToRadian(-90), 0, 0);
+          if (currentSceneMarkerID != 0) {
+            scene.remove(scene.getObjectById(currentSceneMarkerID));
+          }
+          currentSceneMarkerID = marker.id;
+          scene.add(marker);
+          // show ti le marker
+          let markerScale = document.getElementById('markerScale');
+          markerScale.value = data.data[0].scale;
         }
-        currentSceneMarkerID = marker.id;
-        scene.add(marker);
-
-        // show ti le marker
-        let markerScale = document.getElementById('markerScale');
-        markerScale.value = data.data[0].scale;
-      }
-    });
+      });
+    }
   }
   // Set Marker scale
   function setMarkerScale() {
@@ -220,96 +266,92 @@ export default function Create() {
       })
     })
   }
-  function loadActionList() {
-    productAPI.loadMarker(markerID).then((data) => {
-      let actionArr = data.data;
-      let actionList = document.getElementById("actionList");
-      actionList.innerHTML = "";
-      for (let i = 0; i < actionArr.length; i++) {
-        let li = document.createElement("li");
-        li.appendChild(document.createTextNode(actionArr[i].name));
-        let id = document.createAttribute("id");
-        id.value = actionArr[i].actionID + actionArr[i].name;
-        li.setAttributeNode(id);
-        actionList.appendChild(li);
-        //styles
-        document.getElementById("actionList").style.fontSize = "15px";
-        document.getElementById("actionList").style.textDecoration = "none";
-        document.getElementById("actionList").style.fontWeight = " normal";
-        document.getElementById(id.value).onclick = function () {
-          loadARContentByActionID(actionArr[i].actionID);
-        };
-      }
-    });
-  }
+  // function loadActionList() {
+  //   productAPI.loadMarker(markerID).then((data) => {
+  //     let actionArr = data.data;
+  //     let actionList = document.getElementById("actionList");
+  //     actionList.innerHTML = "";
+  //     for (let i = 0; i < actionArr.length; i++) {
+  //       let li = document.createElement("li");
+  //       li.appendChild(document.createTextNode(actionArr[i].name));
+  //       let id = document.createAttribute("id");
+  //       id.value = actionArr[i].actionID + actionArr[i].name;
+  //       li.setAttributeNode(id);
+  //       actionList.appendChild(li);
+  //       //styles
+  //       document.getElementById("actionList").style.fontSize = "15px";
+  //       document.getElementById("actionList").style.textDecoration = "none";
+  //       document.getElementById("actionList").style.fontWeight = " normal";
+  //       document.getElementById(id.value).onclick = function () {
+  //         loadARContentByActionID(actionArr[i].actionID);
+  //       };
+  //     }
+  //   });
+  // }
 
-  function getCurrentActionID() {
-    if (currentActionID == 0) {
-      // get id action khoi tao
-      productAPI.getMarkerID(markerID).then((data) => {
-        currentActionID = data.data[0].actionID;
-        loadObjectList();
-        loadARContentByActionID(currentActionID);
+  function getCurrentActionID(currentMarkerID) {
+    if (currentActionID == null) {
+      productAPI.getMarkerID(currentMarkerID).then((data) => {
+        setCurrentActionID(data.data[0].actionID);
+        // loadObjectList();
+        // loadARContentByActionID(currentActionID);
       })
     }
   }
 
   function addAction() {
-    let actionName = document.getElementById("actionName").value;
-    productAPI.addAction(actionName, markerID).then((data) => {
-      currentActionID = data.data.insertId;
-      loadActionList();
-    });
+    if (markerID != null) {
+      let actionName = document.getElementById("actionName").value;
+      if (actionName.length == 0) {
+        alert("Trường này không được để trống");
+      } else {
+        productAPI.addAction(actionName, markerID).then((data) => {
+          setCurrentActionID(data.data.insertId);
+        });
+      }
+    }
   }
 
-  //Upload arContent temp
-  function uploadArContentTemp() {
-    let arContentFile = document.getElementById("uploadFileArContent").files[0];
-    let formData = new FormData();
-    formData.append("file", arContentFile);
-    formData.append("actionID", currentActionID);
-    productAPI.uploadArContentTemp(formData).then((data) => {
-      loadTempARContentList();
-    });
-  }
 
   // Load danh sach noi dung da tai TempARContentList
-  function loadTempARContentList() {
-    let tempARContentList = document.getElementById("tempARContentList");
-    //get All
-    productAPI.getTempARContent(markerID).then((data) => {
-      let ARContent = data.data;
-      tempARContentList.innerHTML = "";
-      for (let i = 0; i < ARContent.length; i++) {
-        let li = document.createElement("li");
-        li.appendChild(document.createTextNode(ARContent[i].filename));
-        let id = document.createAttribute("id");
-        id.value = ARContent[i].filename + ARContent[i].contentID;
-        li.setAttributeNode(id);
-        tempARContentList.appendChild(li);
-        //styles
-        document.getElementById("tempARContentList").style.fontSize = "15px";
-        document.getElementById("tempARContentList").style.textDecoration = "none";
-        document.getElementById("tempARContentList").style.fontWeight = " normal";
-        if (ARContent[i].URL[ARContent[i].URL.length - 1] == "b") {
-          document.getElementById(id.value).onclick = function () {
-            show3dModel(ARContent[i].URL, ARContent[i].contentID);
-          };
-        } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "g") {
-          document.getElementById(id.value).onclick = function () {
-            show2DImage(ARContent[i].URL, ARContent[i].contentID);
-          };
-        } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "4") {
-          document.getElementById(id.value).onclick = function () {
-            showVideo(ARContent[i].URL, ARContent[i].contentID);
-          };
-        }
-      }
-    });
-  }
+  // function loadTempARContentList() {
+  //   let tempARContentList = document.getElementById("tempARContentList");
+  //   //get All
+  //   console.log(markerID);
+  //   productAPI.getTempARContent(markerID).then((data) => {
+  //     let ARContent = data.data;
+  //     console.log(ARContent);
+  //     tempARContentList.innerHTML = "";
+  //     for (let i = 0; i < ARContent.length; i++) {
+  //       let li = document.createElement("li");
+  //       li.appendChild(document.createTextNode(ARContent[i].filename));
+  //       let id = document.createAttribute("id");
+  //       id.value = ARContent[i].filename + ARContent[i].contentID;
+  //       li.setAttributeNode(id);
+  //       tempARContentList.appendChild(li);
+  //       //styles
+  //       document.getElementById("tempARContentList").style.fontSize = "15px";
+  //       document.getElementById("tempARContentList").style.textDecoration = "none";
+  //       document.getElementById("tempARContentList").style.fontWeight = " normal";
+  //       if (ARContent[i].URL[ARContent[i].URL.length - 1] == "b") {
+  //         document.getElementById(id.value).onclick = function () {
+  //           show3dModel(ARContent[i].URL, ARContent[i].contentID);
+  //         };
+  //       } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "g") {
+  //         document.getElementById(id.value).onclick = function () {
+  //           show2DImage(ARContent[i].URL, ARContent[i].contentID);
+  //         };
+  //       } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "4") {
+  //         document.getElementById(id.value).onclick = function () {
+  //           showVideo(ARContent[i].URL, ARContent[i].contentID);
+  //         };
+  //       }
+  //     }
+  //   });
+  // }
 
   // show 3D model
-  function show3dModel(URL, contentID) {
+  let show3DModel = (URL, contentID) => {
     const loader = new GLTFLoader();
     const draco = new DRACOLoader();
     draco.setDecoderConfig({ type: 'js' });
@@ -347,7 +389,6 @@ export default function Create() {
           .then((data) => {
             gltf.scene.contentID = data.data.contentID;
             gltf.scene.type = "3DModel";
-            addObjectList(data.data.filename, data.data.contentID);
           },
             false
           );
@@ -362,7 +403,7 @@ export default function Create() {
   }
 
   //Show 2D image
-  function show2DImage(URL, contentID) {
+  let show2DImage = (URL, contentID) => {
     var img = new Image();
     img.src = URL;
     img.onload = function () {
@@ -398,7 +439,6 @@ export default function Create() {
         .then((data) => {
           imageTexture.contentID = data.data.contentID;
           imageTexture.type = "2DImage"
-          addObjectList(data.data.filename, data.data.contentID);
         });
     };
   }
@@ -449,7 +489,6 @@ export default function Create() {
       textTexture.contentID = data.data.contentID;
       textTexture.type = "2DText";
       textTexture.config = configTextture;
-      addObjectList(data.data.filename, data.data.contentID);
     });
     domEvents.addEventListener(
       textTexture,
@@ -469,7 +508,7 @@ export default function Create() {
     return textTexture.id;
   }
 
-  function showVideo(URL, contentID) {
+  let showVideo = (URL, contentID) => {
     // Create video object
     let video = document.createElement('video');
     video.src = URL; // Set video address
@@ -507,7 +546,6 @@ export default function Create() {
       .then((data) => {
         videoMesh.contentID = data.data.contentID;
         videoMesh.type = "video"
-        addObjectList(data.data.filename, data.data.contentID);
       });
   }
 
@@ -551,25 +589,26 @@ export default function Create() {
       }
     }
   }
-  function loadARContentByActionID(actionID) {
-    currentActionID = actionID;
+  let loadARContentByActionID = (actionID) => {
     clearAllContent();
-    productAPI.getAllARContentChoosen(actionID).then((data) => {
-      loadObjectList();
-      let ARContent = data.data;
-      for (let i = 0; i < ARContent.length; i++) {
-        let filename = ARContent[i].filename;
-        if (filename[filename.length - 1] == "b") {
-          load3DModel(ARContent[i]);
-        } else if (filename[filename.length - 1] == "g") {
-          load2DImage(ARContent[i]);
-        } else if (filename == "text") {
-          load2DText(ARContent[i]);
-        } else if (filename[filename.length - 1] == "4") {
-          loadVideo(ARContent[i]);
+    if (actionID != null) {
+      productAPI.getAllARContentChoosen(actionID).then((data) => {
+        // loadObjectList();
+        let ARContent = data.data;
+        for (let i = 0; i < ARContent.length; i++) {
+          let filename = ARContent[i].filename;
+          if (filename[filename.length - 1] == "b") {
+            load3DModel(ARContent[i]);
+          } else if (filename[filename.length - 1] == "g") {
+            load2DImage(ARContent[i]);
+          } else if (filename == "text") {
+            load2DText(ARContent[i]);
+          } else if (filename[filename.length - 1] == "4") {
+            loadVideo(ARContent[i]);
+          }
         }
-      }
-    });
+      });
+    }
   }
   function load3DModel(ARContent) {
     const loader = new GLTFLoader();
@@ -774,6 +813,7 @@ export default function Create() {
     // Lam chung chua lam text
     let actionID = currentActionID;
     productAPI.getAllARContentByActionID(actionID).then((data) => {
+      console.log(data);
       let ARContentArr = data.data;
       let contenIDFileArr = [];
       // let maNoiDungTextArr = [];
@@ -869,7 +909,7 @@ export default function Create() {
     productAPI
       .deleteARContent(contentID)
       .then((data) => {
-        loadObjectList();
+        // loadObjectList();
       });
   }
 
@@ -881,9 +921,15 @@ export default function Create() {
   function showPosition() {
     if (currentID != 0) {
       let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xPosition").value = currentObject.position.x;
-      document.getElementById("yPosition").value = currentObject.position.y;
-      document.getElementById("zPosition").value = currentObject.position.z;
+      let cmPositionX = currentObject.position.x*100;
+      let roundCmPositionX = cmPositionX.toFixed(2);
+      let cmPositionY = currentObject.position.y*100;
+      let roundCmPositionY = cmPositionY.toFixed(2);
+      let cmPositionZ = currentObject.position.z*100;
+      let roundCmPositionZ = cmPositionZ.toFixed(2);
+      document.getElementById("xPosition").value = roundCmPositionX;
+      document.getElementById("yPosition").value = roundCmPositionY;
+      document.getElementById("zPosition").value = roundCmPositionZ;
     }
   }
   function showScale() {
@@ -932,7 +978,13 @@ export default function Create() {
       zPosition = 0;
       document.getElementById("zPosition").value = 0;
     }
-    currentObject.position.set(xPosition, yPosition, zPosition);
+    let xMPosition = xPosition/100;
+    xMPosition = xMPosition.toFixed(5)
+    let yMPosition = yPosition/100;
+    yMPosition = yMPosition.toFixed(5)
+    let zMPosition = zPosition/100;
+    zMPosition = zMPosition.toFixed(5)
+    currentObject.position.set(xMPosition, yMPosition, zMPosition);
   }
   function setScale() {
     let currentObject = scene.getObjectById(currentID);
@@ -1036,15 +1088,21 @@ export default function Create() {
   function radianToDegree(radian) {
     return (radian * 180.0) / Math.PI;
   }
-  function test(){
+  function test() {
     let audio = new Audio("https://testar11.herokuapp.com/audio/test.mp3");
     audio.play();
   }
+  function showColorTextPicker() {
+    document.getElementById("colorTextPicker").style.display = "block";
+  }
   return (
     <div>
-      <Button onClick={() => test()}>Test</Button>
+      {/* <Button onClick={() => test()}>Test</Button> */}
       <div className={classes.grid}>
         <div className={classes.column2}>
+          <div>
+            {markerID ? (<MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID} cbsetCurrentID={cbsetCurrentID} markerChanged={markerChanged}></MarkerList>) : (<div></div>)}
+          </div>
           <div className={classes.scene} id="sceneRender"></div>
           <div id="formVideo" style={{ display: "none" }}>
             <Button
@@ -1079,53 +1137,27 @@ export default function Create() {
           <div>
             <Typography className={classes.title} >1. Thêm hành động</Typography>
           </div>
-          <div className={classes.btnline}>
-            <input className={classes.input} placeholder="Tên hành động" type="text" id="actionName"></input>
-            <Button
-              style={{ marginTop: "13%", marginLeft: "10%", width: '10px' }}
-              variant="outlined"
-              color="primary"
-              onClick={() => addAction()}
-            >
-              +
-            </Button>
-          </div>
           <div>
-            <Typography>Hành động đã tạo:</Typography>
-          </div>
-          <div>
-            <ul id="actionList"></ul>
+            <ActionList loadARContentByActionID={loadARContentByActionID} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
           </div>
           <div>
             <Typography className={classes.title}>2. Điểm đánh dấu</Typography>
           </div>
-          <div style={{ marginTop: '-10%' }} >
-            <Typography color='secondary' variant='caption'>
-              (Hỗ trợ: .jpg, .png)
-            </Typography>
-          </div>
-          <div className={classes.line}>
+          <div style={{ marginTop: "-5%" }}>
             <input
               className={classes.input}
               id="uploadFileMarker"
               type="file"
             ></input>
           </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "5%",
-            }}
-          >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => uploadMarker()}
-            >
-              Hoàn tất
-            </Button>
+          <div>
+            <Typography color='secondary' variant='body2'>
+              (Hỗ trợ: .jpg, .png)
+            </Typography>
           </div>
+          <Button onClick={() => uploadMarker()}
+            style={{ minWidth: "25px" }}
+            color="primary" variant="outlined"><FontAwesomeIcon icon={faPlus} size="lg" color="#3F51B5" /></Button>
           <div className={classes.xline}>
             <Typography>Tỉ lệ: </Typography>
             <input
@@ -1136,47 +1168,12 @@ export default function Create() {
               onBlur={() => setMarkerScale()}
             ></input>
           </div>
+          <hr style={{ width: "80%", marginLeft: "0px" }} />
           <div>
             <Typography className={classes.title}>3. Nội dung AR </Typography>
           </div>
-          <div style={{ marginTop: '-10%' }} >
-            <Typography color='secondary' variant='caption'>
-              (Hỗ trợ: .glb, .gltf, .jpg, .png, .mp4, .mp3.)
-            </Typography>
-          </div>
-          <div className={classes.line}>
-            <input
-              className={classes.input}
-              id="uploadFileArContent"
-              type="file"
-            ></input>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "5%",
-            }}
-          >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => uploadArContentTemp()}
-            >
-              Hoàn tất
-            </Button>
-          </div>
-          <div className={classes.line}>
-            <Typography>Nội dung đã tải: </Typography>
-          </div>
-          <div className={classes.line}>
-            <ul id="tempARContentList"></ul>
-          </div>
-          <div className={classes.line}>
-            <Typography>Đối tượng: </Typography>
-          </div>
-          <div className={classes.line}>
-            <ul id="objectList"></ul>
+          <div>
+            <TempARContentList currentActionID={currentActionID} markerID={markerID} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo}></TempARContentList>
           </div>
         </div>
         <div className={classes.column3}>
@@ -1205,39 +1202,46 @@ export default function Create() {
               <option value="30">30</option>
               <option value="40">40</option>
               <option value="50">50</option>
+              <option value="70">70</option>
+              <option value="90">90</option>
+              <option value="100">100</option>
             </select>
           </div>
-          <div className={classes.inline}>
-            <Typography>Màu chữ: </Typography>
-            <input className={classes.input2} placeholder="Định dạng #0000" id="color" type="text"></input>
+          <div>
+            <TextColorPicker></TextColorPicker>
           </div>
-          <div className={classes.inline}>
-            <Typography>Màu nền: </Typography>
-            <input className={classes.input2} placeholder="Định dạng #0000" id="backgroundColor" type="text"></input>
+          <div>
+            <TextBackgroundColorPicker></TextBackgroundColorPicker>
           </div>
-          <div className={classes.inline}>
-            <Typography>Độ trong: </Typography>
-            <div style={{ marginTop: "-7%" }}>
+          <div className={classes.inline2}>
+            <Typography>Trong suốt: </Typography>
+            <div style={{ marginTop: "-9%", marginLeft: "3%" }}>
               <input type="checkbox" id="isTransparent"></input>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => show2DText(0)}
-              >
-                Thêm
-              </Button>
-              <Button
+            </div>
+          </div>
+          <div className={classes.inline3}>
+            <Button style={{ minWidth: "25px" }}
+              variant="outlined"
+              color="primary"
+              onClick={() => show2DText()}
+            >
+              <FontAwesomeIcon
+                icon={faPlus} size="lg" color="#3F51B5" />
+            </Button>
+            <div style={{marginLeft: "10%"}}>
+              <Button style={{ minWidth: "25px" }}
                 id="fixButton" style={{ display: "none" }}
                 variant="outlined"
                 color="secondary"
                 onClick={() => update2DText()}
               >
-                Sửa
+                <FontAwesomeIcon
+                  icon={faEdit} size="lg" color="#F50057" />
               </Button>
             </div>
           </div>
-          <div className={classes.inline}>
-            <Typography className={classes.title}> 5. Vị trí</Typography>
+          <div style={{marginTop: "5%"}}>
+            <Typography className={classes.title}> 5. Vị trí (cm)</Typography>
           </div>
           <div className={classes.inline}>
             <Typography>Tọa độ X:</Typography>

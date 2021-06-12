@@ -53,12 +53,25 @@ router.post("/add", async (req, res) => {
     const marker = await markerModel.addMarker(req.body.lecid, URL);
     // add new action
     const newAction = await actionModel.add(marker.insertId, 'Khởi tạo');
-    res.send(marker);
+
+    //get all
+    let allMarker = await markerModel.getByLessonID(req.body.lecid);
+    res.send(allMarker);
   }
   catch (error) {
     res.send(error);
   }
 });
+
+router.get("/getall",async(req,res)=>{
+  try {
+    let allMarker = await markerModel.getByLessonID(req.query.lecid);
+    res.send(allMarker);
+  }
+  catch (error) {
+    res.send(error);
+  }
+})
 
 router.post("/scale", async (req, res) => {
   try {

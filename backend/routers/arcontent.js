@@ -52,7 +52,9 @@ router.post("/temp", upload.single("file"), async (req, res, next) => {
       isTemp: true
     };
     let addTempARContent = await ARContentModel.addARContentTemp(ARContent);
-    res.json({ 'filenname': req.file.filename, 'contentID': addTempARContent.insertId });
+    // get all
+    let allTempARContent = await ARContentModel.getTempByActionID(ARContent.actionID);
+    res.json(allTempARContent);
   } catch (err) {
     next(err);
   }
@@ -78,7 +80,6 @@ router.get("/", async (req, res, next) => {
 router.post("/newinstance", async (req, res, next) => {
   try {
     let data = req.body.actionID;
-    console.log(data);
     const findByContentID = await ARContentModel.findByID(data.contentID);
     if (findByContentID.length > 0) {
       let addARContentNotTemp = await ARContentModel.addARContentNotTemp(findByContentID[0], data.actionID);
@@ -110,8 +111,9 @@ router.get("/actionid", async (req, res, next) => {
 
 router.get("/choosen", async (req, res, next) => {
   try {
-    let actionID = req.query.actionID;
-    const getAllARContent = await ARContentModel.getARContentChoosen(actionID);
+    console.log("vc");
+    console.log(req.query);
+    const getAllARContent = await ARContentModel.getARContentChoosen(req.query.actionID);
     res.json(getAllARContent);
   } catch (err) {
     next(err);
@@ -149,6 +151,7 @@ router.post("/text", async (req, res, next) => {
   try {
     let textObject = req.body.textObject;
     let textUpdatedContentID = req.body.textUpdatedContentID;
+    console.log(req.body);
     // chen vao noidungAr
     const ARContent = {
       actionID: textObject.actionID,
@@ -166,7 +169,7 @@ router.post("/text", async (req, res, next) => {
       isFile: false,
       isTemp: false
     };
-    if (textUpdatedContentID == 0) {
+    if (textUpdatedContentID === undefined) {
       let addARContent = await ARContentModel.addARContentNotTemp(ARContent, ARContent.actionID);
       let TextARContent = {
         contentID: addARContent.insertId,
@@ -191,7 +194,7 @@ router.post("/text", async (req, res, next) => {
         size: textObject.size
       }
       let updateTextARContent = await ARContentModel.updateTextARContent(TextARContent, textUpdatedContentID);
-      res.json({ contentID: textUpdatedContentID, filename:"text" });
+      res.json({ contentID: textUpdatedContentID, filename: "text" });
     }
   } catch (err) {
     next(err);
@@ -202,6 +205,16 @@ router.get("/text", async (req, res, next) => {
   try {
     const getTextARContent = await ARContentModel.getTextARContent(req.query.contentID);
     res.json(getTextARContent);
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.get("/gettemp", async (req, res, next) => {
+  try {
+    // get all
+    let allTempARContent = await ARContentModel.getTempByActionID(req.query.actionID);
+    res.json(allTempARContent);
   } catch (err) {
     next(err);
   }
