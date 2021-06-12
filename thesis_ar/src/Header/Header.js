@@ -65,11 +65,10 @@ const useStyles = makeStyles((theme) => ({
     width: "70px",
   },
   linkgroup: {
-    marginLeft: "30%",
-    marginRight: "5%",
-    width: "35%",
+    marginLeft: "10%",
     display: "flex",
     flexDirection: "row",
+    alignItems: 'center',
     justifyContent: "space-around",
     fontFamily: [
       "-apple-system",
@@ -174,7 +173,7 @@ export default function Header() {
               LIÊN HỆ
             </Button>
             {user ? (
-              <Typography style={{marginTop: '2%'}} variant="h7" noWrap>
+              <Typography style={{}} variant="h7" noWrap>
                 Chào  {user.name}! ♡
               </Typography>
             ) : (
