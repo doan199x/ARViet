@@ -19,9 +19,15 @@ import ActionList from "./ActionList/ActionList"
 import MarkerList from "./MarkerList/MarkerList"
 import TempARContentList from "./TempARContentList/TempARContentList"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
+import { faPause, faPlay, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
 import TextColorPicker from "./TextColorPicker/TextColorPicker"
 import TextBackgroundColorPicker from "./TextBackgroundColorPicker/TextBackgroundColorPicker"
+import SetCoordinate from "./SetCoordinate/SetCoordinate"
+import SetScale from "./SetScale/SetScale"
+import SetRotation from "./SetRotation/SetRotation"
+import FormVideo from "./FormVideo/FormVideo"
+import ButtonText from "./ButtonText/ButtonText"
+import Guide from "./Guide/Guide"
 import {
   Button,
   Input,
@@ -74,6 +80,12 @@ const useStyles = makeStyles((theme) => ({
     width: '80%',
     display: "grid",
     gridTemplateColumns: "70% 30%",
+  },
+  inputLine: {
+    marginTop: "2%",
+    width: '80%',
+    display: "grid",
+    gridTemplateColumns: "100%",
   },
   btnline: {
     marginTop: "10px",
@@ -266,35 +278,10 @@ export default function Create() {
       })
     })
   }
-  // function loadActionList() {
-  //   productAPI.loadMarker(markerID).then((data) => {
-  //     let actionArr = data.data;
-  //     let actionList = document.getElementById("actionList");
-  //     actionList.innerHTML = "";
-  //     for (let i = 0; i < actionArr.length; i++) {
-  //       let li = document.createElement("li");
-  //       li.appendChild(document.createTextNode(actionArr[i].name));
-  //       let id = document.createAttribute("id");
-  //       id.value = actionArr[i].actionID + actionArr[i].name;
-  //       li.setAttributeNode(id);
-  //       actionList.appendChild(li);
-  //       //styles
-  //       document.getElementById("actionList").style.fontSize = "15px";
-  //       document.getElementById("actionList").style.textDecoration = "none";
-  //       document.getElementById("actionList").style.fontWeight = " normal";
-  //       document.getElementById(id.value).onclick = function () {
-  //         loadARContentByActionID(actionArr[i].actionID);
-  //       };
-  //     }
-  //   });
-  // }
-
   function getCurrentActionID(currentMarkerID) {
     if (currentActionID == null) {
       productAPI.getMarkerID(currentMarkerID).then((data) => {
         setCurrentActionID(data.data[0].actionID);
-        // loadObjectList();
-        // loadARContentByActionID(currentActionID);
       })
     }
   }
@@ -311,45 +298,6 @@ export default function Create() {
       }
     }
   }
-
-
-  // Load danh sach noi dung da tai TempARContentList
-  // function loadTempARContentList() {
-  //   let tempARContentList = document.getElementById("tempARContentList");
-  //   //get All
-  //   console.log(markerID);
-  //   productAPI.getTempARContent(markerID).then((data) => {
-  //     let ARContent = data.data;
-  //     console.log(ARContent);
-  //     tempARContentList.innerHTML = "";
-  //     for (let i = 0; i < ARContent.length; i++) {
-  //       let li = document.createElement("li");
-  //       li.appendChild(document.createTextNode(ARContent[i].filename));
-  //       let id = document.createAttribute("id");
-  //       id.value = ARContent[i].filename + ARContent[i].contentID;
-  //       li.setAttributeNode(id);
-  //       tempARContentList.appendChild(li);
-  //       //styles
-  //       document.getElementById("tempARContentList").style.fontSize = "15px";
-  //       document.getElementById("tempARContentList").style.textDecoration = "none";
-  //       document.getElementById("tempARContentList").style.fontWeight = " normal";
-  //       if (ARContent[i].URL[ARContent[i].URL.length - 1] == "b") {
-  //         document.getElementById(id.value).onclick = function () {
-  //           show3dModel(ARContent[i].URL, ARContent[i].contentID);
-  //         };
-  //       } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "g") {
-  //         document.getElementById(id.value).onclick = function () {
-  //           show2DImage(ARContent[i].URL, ARContent[i].contentID);
-  //         };
-  //       } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "4") {
-  //         document.getElementById(id.value).onclick = function () {
-  //           showVideo(ARContent[i].URL, ARContent[i].contentID);
-  //         };
-  //       }
-  //     }
-  //   });
-  // }
-
   // show 3D model
   let show3DModel = (URL, contentID) => {
     const loader = new GLTFLoader();
@@ -360,14 +308,14 @@ export default function Create() {
     loader.load(
       URL,
       function (gltf) {
-        // if (gltf.animations.length > 0) {
-        //   let mixer = new THREE.AnimationMixer(gltf.scene);
-        //   mixers.push(mixer);
-        //   // gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
-        //   let animationHere = mixer.clipAction(gltf.animations[0]);
-        //   animationHere.play();
-        //   // animationArray.push(animationHere);
-        // }
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          // gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
+          let animationHere = mixer.clipAction(gltf.animations[0]);
+          animationHere.play();
+          // animationArray.push(animationHere);
+        }
         scene.add(gltf.scene);
         domEvents.addEventListener(
           gltf.scene,
@@ -379,6 +327,7 @@ export default function Create() {
             transformControls.setMode("translate");
             scene.add(transformControls);
             showFormEdit();
+            showGuide();
             // create new instance of this arcontent and set istemp = false;
           });
         productAPI
@@ -427,6 +376,7 @@ export default function Create() {
           transformControls.setMode("translate");
           scene.add(transformControls);
           showFormEdit();
+          showGuide();
         },
         false
       );
@@ -500,6 +450,7 @@ export default function Create() {
         transformControls.setMode("translate");
         scene.add(transformControls);
         showFormEdit();
+        showGuide();
         getFormTextContent();
         currentText = texture;
       },
@@ -533,6 +484,7 @@ export default function Create() {
         transformControls.setMode("translate");
         scene.add(transformControls);
         showFormEdit();
+        showGuide();
         showFormVideo();
       },
       false
@@ -639,6 +591,7 @@ export default function Create() {
             transformControls.setMode("translate");
             scene.add(transformControls);
             showFormEdit();
+            showGuide();
           },
           false
         );
@@ -688,6 +641,7 @@ export default function Create() {
           transformControls.setMode("translate");
           scene.add(transformControls);
           showFormEdit();
+          showGuide();
         },
         false
       );
@@ -758,6 +712,7 @@ export default function Create() {
             currentText = texture;
             getFormTextContent();
             showFormEdit();
+            showGuide();
           },
           false
         );
@@ -804,44 +759,49 @@ export default function Create() {
         scene.add(transformControls);
         showFormEdit();
         showFormVideo();
+        showGuide();
       },
       false
     );
   }
 
   function saveAction() {
-    // Lam chung chua lam text
-    let actionID = currentActionID;
-    productAPI.getAllARContentByActionID(actionID).then((data) => {
-      console.log(data);
-      let ARContentArr = data.data;
-      let contenIDFileArr = [];
-      // let maNoiDungTextArr = [];
-      for (let i = 0; i < ARContentArr.length; i++) {
-        contenIDFileArr.push(ARContentArr[i].contentID);
-      }
-      for (let i = 0; i < contenIDFileArr.length; i++) {
-        for (let j = 0; j < scene.children.length; j++) {
-          if (scene.children[j].contentID == contenIDFileArr[i]) {
-            let ARContent = {
-              contentID: scene.children[j].contentID,
-              xPosition: scene.children[j].position.x,
-              yPosition: scene.children[j].position.y,
-              zPosition: scene.children[j].position.z,
-              xRotation: scene.children[j].rotation.x,
-              yRotation: scene.children[j].rotation.y,
-              zRotation: scene.children[j].rotation.z,
-              xScale: scene.children[j].scale.x,
-              yScale: scene.children[j].scale.y,
-              zScale: scene.children[j].scale.z,
-            };
-            productAPI.updateARContent(ARContent).then((data) => {
-              // console.log(data);
-            });
+    if (currentActionID != null) {
+      let actionID = currentActionID;
+      // Lay tat ca noi dung ma ko phai tam
+      productAPI.getAllARContentByActionID(actionID).then((data) => {
+        let ARContentArr = data.data;
+        // Neu noi dung k phai tam, so sanh contentid voi contentid con trong scene neu trung thi update
+        for (let i = 0; i < ARContentArr.length; i++) {
+          ARContentArr[i].getUpdated = false;
+          for (let j = 0; j < scene.children.length; j++) {
+            if (scene.children[j].contentID == ARContentArr[i].contentID) {
+              let ARContent = {
+                contentID: scene.children[j].contentID,
+                xPosition: scene.children[j].position.x,
+                yPosition: scene.children[j].position.y,
+                zPosition: scene.children[j].position.z,
+                xRotation: scene.children[j].rotation.x,
+                yRotation: scene.children[j].rotation.y,
+                zRotation: scene.children[j].rotation.z,
+                xScale: scene.children[j].scale.x,
+                yScale: scene.children[j].scale.y,
+                zScale: scene.children[j].scale.z,
+              };
+              ARContentArr[i].getUpdated = true;
+              productAPI.updateARContent(ARContent).then((data) => {
+                // console.log(data);
+              });
+            }
           }
         }
-      }
-    });
+        for (let i = 0; i < ARContentArr.length; i++) {
+          if (ARContentArr[i].getUpdated == false) {
+            deleteARContent(ARContentArr[i].contentID);
+          }
+        }
+      });
+    }
   }
   function setEventTransform() {
     window.addEventListener("keydown", function (event) {
@@ -875,6 +835,16 @@ export default function Create() {
           break;
         case "Escape":
           if (currentID != 0) {
+            document.getElementById("xPosition").disabled = true;
+            document.getElementById("yPosition").disabled = true;
+            document.getElementById("zPosition").disabled = true;
+            document.getElementById("xScale").disabled = true;
+            document.getElementById("yScale").disabled = true;
+            document.getElementById("zScale").disabled = true;
+            document.getElementById("xRotation").disabled = true;
+            document.getElementById("yRotation").disabled = true;
+            document.getElementById("zRotation").disabled = true;
+            hideGuide();
             let currentObject = scene.getObjectById(currentID);
             if (currentObject.config !== undefined) {
               document.getElementById("fixButton").style.display = "none"
@@ -882,13 +852,13 @@ export default function Create() {
             if (currentObject.video !== undefined) {
               document.getElementById("formVideo").style.display = "none"
             }
+            //disable input
             transformControls.detach();
             scene.remove(transformControls);
           }
           break;
         case "Delete":
           if (currentID != 0) {
-            deleteARContent();
             let currentObject = scene.getObjectById(currentID);
             transformControls.detach();
             scene.remove(currentObject);
@@ -900,16 +870,16 @@ export default function Create() {
               false
             );
             currentID = 0;
+            hideGuide();
+            hideFixButton();
           }
       }
     });
   }
-  function deleteARContent() {
-    let contentID = scene.getObjectById(currentID).contentID;
+  function deleteARContent(contentID) {
     productAPI
       .deleteARContent(contentID)
       .then((data) => {
-        // loadObjectList();
       });
   }
 
@@ -920,12 +890,15 @@ export default function Create() {
   }
   function showPosition() {
     if (currentID != 0) {
+      document.getElementById("xPosition").disabled = false;
+      document.getElementById("yPosition").disabled = false;
+      document.getElementById("zPosition").disabled = false;
       let currentObject = scene.getObjectById(currentID);
-      let cmPositionX = currentObject.position.x*100;
+      let cmPositionX = currentObject.position.x * 100;
       let roundCmPositionX = cmPositionX.toFixed(2);
-      let cmPositionY = currentObject.position.y*100;
+      let cmPositionY = currentObject.position.y * 100;
       let roundCmPositionY = cmPositionY.toFixed(2);
-      let cmPositionZ = currentObject.position.z*100;
+      let cmPositionZ = currentObject.position.z * 100;
       let roundCmPositionZ = cmPositionZ.toFixed(2);
       document.getElementById("xPosition").value = roundCmPositionX;
       document.getElementById("yPosition").value = roundCmPositionY;
@@ -933,38 +906,41 @@ export default function Create() {
     }
   }
   function showScale() {
+    document.getElementById("xScale").disabled = false;
+    document.getElementById("yScale").disabled = false;
+    document.getElementById("zScale").disabled = false;
     if (currentID != 0) {
       let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xScale").value = currentObject.scale.x;
-      document.getElementById("yScale").value = currentObject.scale.y;
+      document.getElementById("xScale").value = parseFloat(currentObject.scale.x).toFixed(2);
+      document.getElementById("yScale").value = parseFloat(currentObject.scale.y).toFixed(2);
       if (currentObject.type == "2DImage" || currentObject.type == "2DText" || currentObject.type == "video") {
         document.getElementById("zScale").value = 1;
         document.getElementById("zScale").disabled = true;
       } else {
-        document.getElementById("zScale").value = currentObject.scale.z;
+        document.getElementById("zScale").value = parseFloat(currentObject.scale.z).toFixed(2);
         document.getElementById("zScale").disabled = false;
       }
     }
   }
   function showRotation() {
     if (currentID != 0) {
+      document.getElementById("xRotation").disabled = false;
+      document.getElementById("yRotation").disabled = false;
+      document.getElementById("zRotation").disabled = false;
       let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xRotation").value = radianToDegree(
-        currentObject.rotation.x
-      );
-      document.getElementById("yRotation").value = radianToDegree(
-        currentObject.rotation.y
-      );
-      document.getElementById("zRotation").value = radianToDegree(
-        currentObject.rotation.z
-      );
+      let rotationX = radianToDegree(currentObject.rotation.x);
+      let rotationY = radianToDegree(currentObject.rotation.y);
+      let rotationZ = radianToDegree(currentObject.rotation.z);
+      document.getElementById("xRotation").value = parseFloat(rotationX).toFixed(2);
+      document.getElementById("yRotation").value = parseFloat(rotationY).toFixed(2);
+      document.getElementById("zRotation").value = parseFloat(rotationZ).toFixed(2);
     }
   }
   function setPosition() {
     let currentObject = scene.getObjectById(currentID);
-    let xPosition = document.getElementById("xPosition").value.trim();
-    let yPosition = document.getElementById("yPosition").value.trim();
-    let zPosition = document.getElementById("zPosition").value.trim();
+    let xPosition = document.getElementById("xPosition").value;
+    let yPosition = document.getElementById("yPosition").value;
+    let zPosition = document.getElementById("zPosition").value;
 
     if (xPosition.length == 0) {
       xPosition = 0;
@@ -978,12 +954,9 @@ export default function Create() {
       zPosition = 0;
       document.getElementById("zPosition").value = 0;
     }
-    let xMPosition = xPosition/100;
-    xMPosition = xMPosition.toFixed(5)
-    let yMPosition = yPosition/100;
-    yMPosition = yMPosition.toFixed(5)
-    let zMPosition = zPosition/100;
-    zMPosition = zMPosition.toFixed(5)
+    let xMPosition = xPosition / 100;
+    let yMPosition = yPosition / 100;
+    let zMPosition = zPosition / 100;
     currentObject.position.set(xMPosition, yMPosition, zMPosition);
   }
   function setScale() {
@@ -1080,13 +1053,22 @@ export default function Create() {
     video.pause();
   }
   function showFormVideo() {
-    document.getElementById("formVideo").style.display = "block";
+    document.getElementById("formVideo").style.display = "flex";
   }
   function degreeToRadian(degree) {
     return (degree * Math.PI) / 180.0;
   }
   function radianToDegree(radian) {
     return (radian * 180.0) / Math.PI;
+  }
+  function showGuide() {
+    document.getElementById("guide").style.display = "flex"
+  }
+  function hideGuide() {
+    document.getElementById("guide").style.display = "none"
+  }
+  function hideFixButton() {
+    document.getElementById("fixButton").style.display = "none"
   }
   function test() {
     let audio = new Audio("https://testar11.herokuapp.com/audio/test.mp3");
@@ -1104,21 +1086,11 @@ export default function Create() {
             {markerID ? (<MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID} cbsetCurrentID={cbsetCurrentID} markerChanged={markerChanged}></MarkerList>) : (<div></div>)}
           </div>
           <div className={classes.scene} id="sceneRender"></div>
-          <div id="formVideo" style={{ display: "none" }}>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => playVideo()}
-            >
-              Play
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => pauseVideo()}
-            >
-              Pause
-            </Button>
+          <div>
+            <Guide currentActionID={currentActionID}></Guide>
+          </div>
+          <div>
+            <FormVideo playVideo={playVideo} pauseVideo={pauseVideo} currentActionID={currentActionID}></FormVideo>
           </div>
           <div
             style={{ display: "flex", justifyContent: "center", marginTop: '5%' }}
@@ -1143,7 +1115,7 @@ export default function Create() {
           <div>
             <Typography className={classes.title}>2. Điểm đánh dấu</Typography>
           </div>
-          <div style={{ marginTop: "-5%" }}>
+          <div className={classes.inputLine}>
             <input
               className={classes.input}
               id="uploadFileMarker"
@@ -1168,8 +1140,7 @@ export default function Create() {
               onBlur={() => setMarkerScale()}
             ></input>
           </div>
-          <hr style={{ width: "80%", marginLeft: "0px" }} />
-          <div>
+          <div style={{ marginTop: "5%" }}>
             <Typography className={classes.title}>3. Nội dung AR </Typography>
           </div>
           <div>
@@ -1219,134 +1190,24 @@ export default function Create() {
               <input type="checkbox" id="isTransparent"></input>
             </div>
           </div>
-          <div className={classes.inline3}>
-            <Button style={{ minWidth: "25px" }}
-              variant="outlined"
-              color="primary"
-              onClick={() => show2DText()}
-            >
-              <FontAwesomeIcon
-                icon={faPlus} size="lg" color="#3F51B5" />
-            </Button>
-            <div style={{marginLeft: "10%"}}>
-              <Button style={{ minWidth: "25px" }}
-                id="fixButton" style={{ display: "none" }}
-                variant="outlined"
-                color="secondary"
-                onClick={() => update2DText()}
-              >
-                <FontAwesomeIcon
-                  icon={faEdit} size="lg" color="#F50057" />
-              </Button>
-            </div>
-          </div>
-          <div style={{marginTop: "5%"}}>
+          <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
+          <div style={{ marginTop: "5%" }}>
             <Typography className={classes.title}> 5. Vị trí (cm)</Typography>
           </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ X:</Typography>
-            <input
-              id="xPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ Y:</Typography>
-            <input
-              id="yPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ Z:</Typography>
-            <input
-              id="zPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-              placeholder="Nhập một số thực."
-            ></input>
+          <div>
+            <SetCoordinate setPosition={setPosition} currentActionID={currentActionID}></SetCoordinate>
           </div>
           <div className={classes.inline}>
             <Typography className={classes.title}> 6. Tỉ lệ</Typography>
           </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ X:</Typography>
-            <input
-              id="xScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ Y:</Typography>
-            <input
-              id="yScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ Z:</Typography>
-            <input
-              id="zScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-              placeholder="Nhập một số thực."
-            ></input>
+          <div>
+            <SetScale setScale={setScale} currentActionID={currentActionID}></SetScale>
           </div>
           <div>
-            <Typography className={classes.title}>7. Góc xoay</Typography>
+            <Typography className={classes.title}>7. Góc xoay (&#8451;)</Typography>
           </div>
-          <div className={classes.inline}>
-            <Typography>Trục X:</Typography>
-            <input
-              id="xRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Trục Y:</Typography>
-            <input
-              id="yRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Trục Z:</Typography>
-            <input
-              id="zRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-              placeholder="Nhập một số thực."
-            ></input>
+          <div>
+            <SetRotation setRotation={setRotation} currentActionID={currentActionID}></SetRotation>
           </div>
           <div className={classes.inline}></div>
           <br></br>

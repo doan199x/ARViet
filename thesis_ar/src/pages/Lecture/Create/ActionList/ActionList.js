@@ -71,10 +71,10 @@ export default function ActionList(props) {
           style={{ minWidth: "28px", marginLeft: "10%" }}
           color="primary" variant="outlined"><FontAwesomeIcon icon={faPlus} size="lg" color="#3F51B5" /></Button>
       </div>
-      <div>
-        <Typography>Danh sách hành động:</Typography>
+      <div style={{marginTop:"3%"}}>
+        <Typography variant="body2">Danh sách hành động:</Typography>
       </div>
-      <div style={{ height: "120px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
+      <div style={{borderRadius:"5px", borderStyle: "dotted",borderWidth:"1px", height: "120px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
         {actionList ? (
           <div className={classes.data}>
             {actionList
@@ -87,7 +87,6 @@ export default function ActionList(props) {
           <p></p>
         )}
       </div>
-      <hr style={{ width: "80%", marginLeft: "0px" }} />
     </div>
   );
 }

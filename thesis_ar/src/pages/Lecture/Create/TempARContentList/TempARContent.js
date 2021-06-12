@@ -41,7 +41,7 @@ export default function TempARContent(props) {
         <div>
             <Typography onClick={() => showTempARContent()}
                 variant="subtitle1" gutterBottom style={{ cursor: "pointer" }} >
-                {tempARContent.fixedFiname}
+                &nbsp;+{tempARContent.fixedFiname}&nbsp;
             </Typography>
         </div>
     );
