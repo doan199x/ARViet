@@ -1,11 +1,5 @@
 const db = require('../utils/db');
 module.exports = {
-    add: async (diemDanhDau) => {
-        const sql = `INSERT INTO DiemDanhDau(URL,TiLe,MaBaiGiang,filename) VALUES ("${diemDanhDau.URL}",
-        ${diemDanhDau.tiLe},${diemDanhDau.maBaiGiang},"${diemDanhDau.filename}");`
-        const signup = await db.load(sql);
-        return signup;
-    },
     uncheckAll: async () => {
         const sql = `UPDATE DiemDanhDau set DuocChon = false`;
         return await db.load(sql);
@@ -34,6 +28,10 @@ module.exports = {
     },
     setMarkerScale: async(markerScale,markerID)=>{
         const sql = `update Marker set scale = ${markerScale} where markerID = ${markerID}`;
+        return await db.load(sql);
+    },
+    getAll: async()=>{
+        const sql = `select* from Marker`;
         return await db.load(sql);
     }
 };

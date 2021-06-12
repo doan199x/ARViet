@@ -19,7 +19,10 @@ router.post("/", async (req, res, next) => {
         let name = req.body.name;
         let markerID = req.body.markerID;
         let addAction = await actionModel.addAction(name, markerID);
-        res.json(addAction);
+        //get all
+        let allAction = await actionModel.getByMarkerID(markerID);
+        console.log(allAction);
+        res.json(allAction);
     } catch (err) {
         next(err);
     }
