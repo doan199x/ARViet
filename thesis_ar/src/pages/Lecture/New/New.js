@@ -15,6 +15,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserContext } from "../../../context/UserContext";
+import { TextareaAutosize } from "@material-ui/core";
 
 function Copyright() {
   return (
@@ -50,12 +51,21 @@ const useStyles = makeStyles((theme) => ({
     backgroundSize: "cover",
     backgroundPosition: "center",
   },
+  new: {
+    marginTop: '10%',
+    color: "#273044",
+    fontWeight: '300px',
+    fontSize: '30px'
+  },
   paper: {
-    margin: theme.spacing(8, 4),
+    marginTop: '10%',
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    width: '350px',
+    maxHeight: '450px',
+    borderRadius: '30px'
   },
   avatar: {
     margin: theme.spacing(1),
@@ -67,12 +77,16 @@ const useStyles = makeStyles((theme) => ({
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
+    borderRadius: "30px",
+    height: "50px",
+    width: "120px",
+    backgroundColor: "#1e467f",
   },
 }));
 
 toast.configure();
 
-export default function New(open, changeOpen) {
+export default function New() {
   const classes = useStyles();
   const history = useHistory();
   const [user] = useContext(UserContext);
@@ -109,11 +123,11 @@ export default function New(open, changeOpen) {
       await productAPI
         .new(userid, data.lecname, des)
         .then((data) => {
-          if (data.data.affectedRows === 1) {
+          if (data) {
+            console.log(data);
+            const lecid = data.data[0]?.lessonID;
               toast.info('Tạo thành công!');
-             // changeOpen();
-             //temp
-             history.push('/');
+             history.push(`/lecture/${lecid}`);
           } else {
               toast.error('Đã xảy ra lỗi!')
           }
@@ -126,6 +140,7 @@ export default function New(open, changeOpen) {
 
   return (
     <Paper className={classes.paper}>
+      <Typography className = {classes.new}> Tạo bài giảng mới </Typography>
       <form className={classes.form} onSubmit={handleSubmit(onSubmit)}>
         <TextField
           variant="outlined"
@@ -145,14 +160,16 @@ export default function New(open, changeOpen) {
           variant="outlined"
           margin="normal"
           fullWidth
+          aria-label="minimum height" rowsMin={5}
           id="description"
-          label="Mô tả sơ lược"
+          placeholder="Mô tả sơ lược"
           autoFocus
           name="description"
           inputRef={descriptionFormHookRef}
           {...descriptionFormHookRest}
           error={!!errors.description}
           helperText={errors?.description?.message}
+          className ={classes.des}
         />
         <Button
           type="submit"
@@ -163,9 +180,6 @@ export default function New(open, changeOpen) {
         >
           Tạo ngay
         </Button>
-        <Box mt={5}>
-          <Copyright />
-        </Box>
       </form>
     </Paper>
   );

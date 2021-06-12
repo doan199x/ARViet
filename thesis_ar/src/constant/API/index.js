@@ -15,5 +15,6 @@ export const API = {
   NOIDUNG: '/arcontent/noidung',
   NEW: '/lecture/new',
   MARKER: '/lecture/marker',
-  ADDMARKER: '/marker/add'
+  ADDMARKER: '/marker/add',
+  DELETE: '/lecture/delete'
 };

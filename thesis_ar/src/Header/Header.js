@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import "./style.scss"
 import { fade, makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -34,6 +35,17 @@ const useStyles = makeStyles((theme) => ({
     },
     fontWeight: "bold",
     color: "#273044",
+    fontFamily: 'Hammersmith One',
+  },
+  minititle: {
+    display: "none",
+    [theme.breakpoints.up("sm")]: {
+      display: "block",
+    },
+    color: "#273044",
+    fontFamily: 'Hammersmith One',
+    fontWeight: '100',
+    fontSize: '30px'
   },
   sectionDesktop: {
     display: "none",
@@ -49,8 +61,8 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   logo: {
-    height: "50px",
-    width: "50px",
+    height: "70px",
+    width: "70px",
   },
   linkgroup: {
     marginLeft: "30%",
@@ -78,6 +90,7 @@ const useStyles = makeStyles((theme) => ({
       display: "block",
     },
     fontWeight: "bold",
+    fontSize: '17px',
     color: "#273044",
     textDecoration: "none",
   },
@@ -129,9 +142,9 @@ export default function Header() {
   
 
   return (
-    <div className={classes.grow}>
-      <AppBar color="default" position="static">
-        <Toolbar>
+    <div className= {classes.grow}>
+      <AppBar className = "grow" color="default" position="static">
+        <Toolbar >
           <Button 
             edge="start"
             className={classes.menuButton}
@@ -147,8 +160,9 @@ export default function Header() {
           </Button>
 
           <Typography className={classes.title} variant="h4" noWrap>
-            ARViet
+            AR 
           </Typography>
+          <div className={classes.minititle}>Viet</div>
           <div className={classes.linkgroup}>
             <Button href="/lecture" className={classes.link} variant="h5" noWrap>
               BÀI GIẢNG
@@ -156,13 +170,13 @@ export default function Header() {
             <Button href="/guide"className={classes.link} variant="h4" noWrap>
               HƯỚNG DẪN
             </Button>
-            <Button href="/contact" className={classes.link} variant="h4" noWrap>
+            <Button href="mailto:1712347@student.hcmus.edu.vn,1712395@student.hcmus.edu.vn " className={classes.link} variant="h4" noWrap>
               LIÊN HỆ
             </Button>
             {user ? (
-              <Button href="/account" className={classes.link} variant="h4" noWrap>
-                TÀI KHOẢN
-              </Button>
+              <Typography style={{marginTop: '2%'}} variant="h7" noWrap>
+                Chào  {user.name}! ♡
+              </Typography>
             ) : (
               <></>
             )}

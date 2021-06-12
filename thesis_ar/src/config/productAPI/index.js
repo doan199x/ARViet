@@ -78,5 +78,8 @@ export const productAPI = {
   },
   getTempByActionID: (actionID) => {
     return AXIOS_INSTANCE.get('/arcontent/gettemp', { params: { actionID: actionID } });
-  }
+  },
+  deleteLecture: (lecid) => {
+    return AXIOS_INSTANCE.post(API.DELETE, { lecid });
+  },
 }

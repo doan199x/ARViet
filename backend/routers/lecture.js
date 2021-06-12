@@ -17,11 +17,12 @@ router.post("/", async (req, res) => {
 
 router.post("/new", async (req, res) => {
   try {
-    const result = await lectureModel.new(req.body.userid, req.body.lecname, req.body.description)
+    const result = await lectureModel.new(req.body.userid, req.body.lecname, req.body.description);
     let noImageURL = config.baseURL + "/upload/marker/no-image.png"
     const newMarker = await markerModel.addMarker(result.insertId, noImageURL);
     const newInitAction = await actionModel.add(newMarker.insertId,"Khởi tạo");
-    res.send(result);
+    const returnValue = await lectureModel.getByID(result.insertId);
+    res.send(returnValue);
   }
   catch (error) {
     res.send(error);
@@ -36,5 +37,14 @@ router.post("/marker", async (req, res) => {
     res.send(error);
   }
 });
+  router.post("/delete", async (req, res) => {
+    try {
+      const result = await lectureModel.deleteLecture(req.body.lecid);
+        res.send(result);
+      }
+       catch (error) {
+      res.send(error);
+    }
+  });
 
 module.exports = router;

@@ -18,13 +18,14 @@ import ar from "../../img/add.png";
 import "./style.scss";
 import New from "./New/New";
 import { Link } from "react-router-dom";
+import background from '../../img/42.jpg'
 
 const useStyles = makeStyles((theme) => ({
   data: {
     display: "grid",
     gridTemplateColumns: "auto auto auto",
     textAlign: "center",
-    columnGap: "5%",
+    columnGap: "7%",
     justifyContent: "center",
   },
   img: {
@@ -38,6 +39,8 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
+    backgroundImage:  `url(${background})`,
+    paddingBottom: '5%'
   },
   center: {
     display: "flex",
@@ -81,39 +84,25 @@ export default function LectureList() {
         });
     }
   }, [userid]);
-
-  function changeOpen (){
-    setOpen(!open);
-  };
   return (
     <div>
       <div className={classes.lectures}>
         <div className={classes.line}>
          <div className = {classes.title}>
-         <h3 style={{ textAlign: "center", color: "#195cc5" }}>
+         <h3 style={{ textAlign: "center", color: "#273044" }}>
             {" "}
-            Danh sách bài giảng
+            DANH SÁCH BÀI GIẢNG
           </h3>
          </div>
-         <div  className={classes.btn}>
-            <Button
-              color="primary"
-              onClick={() => changeOpen()}
-            >
-              <img src = {ar}  style = {{width: '80%', height: '80%'}}/>
-            </Button>
-          </div>
         </div>
-        {open ? (
-          <New open = {open} 
-          changeOpen = {changeOpen}/>
-        ) : (
+        {/* */}
           <div>
             {lectures ? (
               <div className={classes.center}>
                 {lectures ? (
                   <div className={classes.data}
                  >
+                   <New/>
                     {lectures.slice(0).reverse().map((ele, i) => (
                       <Lecture key={i} data={ele} />
                     ))}
@@ -123,12 +112,14 @@ export default function LectureList() {
                 )}
               </div>
             ) : (
-              <div>
-                <img src={nodata} className={classes.img} />
+              <div className={classes.center}>
+                  <div className={classes.data}>
+                  <New/>
+                  </div>
+                
               </div>
             )}
           </div>
-        )}
       </div>
     </div>
   );

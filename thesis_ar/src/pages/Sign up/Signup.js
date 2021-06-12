@@ -92,7 +92,13 @@ marginTop: '5%'
     marginTop: '5%',
     marginBottom: '5%',
     width: '40%'
-  }
+  },
+  btn: {
+    borderRadius: "30px",
+    height: "50px",
+    width: "120px",
+    backgroundColor: "#1e467f",
+  },
 }));
 
 toast.configure();
@@ -243,16 +249,16 @@ export default function Signup() {
               type="submit"
               variant="contained"
               color="primary"
-              className={classes.submit}
+              className={classes.btn}
             >
-              Sign Up
+              Đăng ký
             </Button>
             </div>
          
             <Grid container>
               <Grid item>
                 <Link href="/signin" variant="body2">
-                  {"Already had an account? Sign In"}
+                  {"Đã có tài khoản? Đăng nhập ngay!"}
                 </Link>
               </Grid>
             </Grid>
