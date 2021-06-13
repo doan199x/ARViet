@@ -51,6 +51,7 @@ const useStyles = makeStyles((theme) => ({
     line: {
         display: "flex",
         flexDirection: "row",
+        alignItems: 'center'
     },
     btn: {
         marginTop: "80%",
@@ -58,8 +59,10 @@ const useStyles = makeStyles((theme) => ({
     },
     inline: {
         display: "grid",
-        gridTemplateColumns: "15% 35% 10%",
-        justifyContent: "",
+        gridTemplateColumns: "auto auto auto",
+        // display: 'flex',
+        // flexDirection: 'row', 
+        // //justifyContent: 'space-between' 
     },
     root: {
         width: '350px',
@@ -211,9 +214,15 @@ export default function MarkerList(props) {
                         </Button>
                     </div>
                     <div>
+                        <Button onClick={() => deleteMarker()}
+                            style={{ minWidth: "25px" }}
+                            color="secondary" variant="outlined"><FontAwesomeIcon icon={faTrash} size="lg" color="#F50057" />&nbsp;Xóa
+                        </Button>
+                    </div>
+                    <div class ={classes.line} style = {{marginTop: '2%'}}>
                         <Button onClick={() => uploadMarker()}
                             style={{ minWidth: "25px" }}
-                            color="secondary" variant="outlined"><FontAwesomeIcon icon={faEdit} size="lg" color="#F50057" />&nbsp;Sửa
+                            color="primary" variant="outlined"><FontAwesomeIcon icon={faEdit} size="lg" color="#3F51B5" />&nbsp;Chọn tệp
                         </Button>
                         <input style={{ marginLeft: "1.5%" }}
                             className={classes.input}
@@ -221,12 +230,7 @@ export default function MarkerList(props) {
                             type="file"
                         ></input>
                     </div>
-                    <div>
-                        <Button onClick={() => deleteMarker()}
-                            style={{ minWidth: "25px" }}
-                            color="secondary" variant="outlined"><FontAwesomeIcon icon={faTrash} size="lg" color="#F50057" />&nbsp;Xóa
-                        </Button>
-                    </div>
+                  
                     <div>
                         {open ? (<div>
                             <Dialog

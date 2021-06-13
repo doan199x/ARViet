@@ -61,9 +61,11 @@ const useStyles = makeStyles((theme) => ({
   },
   inline2: {
     display: "grid",
-    gridTemplateColumns: "35% 65%",
-    justifyContent: "",
+    gridTemplateColumns: "40% 10% 50%",
+    justifyContent: "center",
+    alignItems: 'center',
     marginTop: "5%",
+
   },
   inline3: {
     display: "grid",
@@ -95,6 +97,17 @@ const useStyles = makeStyles((theme) => ({
     width: '80%',
     display: "grid",
     gridTemplateColumns: "70% 30%",
+  },
+  btn: {
+    borderRadius: "30px",
+    height: "50px",
+    width: "150px",
+    backgroundColor: "#f23276",
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#e4e6e8',
+      color: 'black',
+    }
   },
   input: {
     marginTop: "5%",
@@ -276,7 +289,7 @@ export default function Create() {
     if (markerID != null) {
       let actionName = document.getElementById("actionName").value;
       if (actionName.length == 0) {
-        alert("Trường này không được để trống");
+        toast.error('Vui lòng nhập tên hành động muốn thêm!')
       } else {
         productAPI.addAction(actionName, markerID).then((data) => {
           setCurrentActionID(data.data.insertId);
@@ -1219,7 +1232,12 @@ export default function Create() {
       <div className={classes.grid}>
         <div className={classes.column2}>
           <div>
-            {markerID ? (<MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID} cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker}></MarkerList>) : (<div></div>)}
+            {markerID ? ( <div style = {{marginLeft: '10%'}}>
+              <MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID} 
+              cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker}></MarkerList>
+
+            </div>
+            ) : (<div></div>)}
           </div>
           <div className={classes.scene} id="sceneRender"></div>
           <div>
@@ -1232,12 +1250,12 @@ export default function Create() {
             <FormAudio playAudio={playAudio} pauseAudio={pauseAudio} restartAudio={restartAudio} currentActionID={currentActionID}></FormAudio>
           </div>
           <div
-            style={{ display: "flex", justifyContent: "center", marginTop: '5%' }}
+            style={{ display: "flex", justifyContent: "center", marginTop: '5%'}}
             id="form-edit-3d"
           >
             <Button
-              variant="outlined"
               color="secondary"
+              className = {classes.btn}
               onClick={() => saveAction()}
             >
               Lưu hành động
@@ -1307,11 +1325,11 @@ export default function Create() {
           </div>
           <div className={classes.inline2}>
             <Typography>Trong suốt: </Typography>
-            <div style={{ marginTop: "-9%", marginLeft: "3%" }}>
+            <div style={{ marginTop: "-10px", marginLeft: "3%" }}>
               <input type="checkbox" id="isTransparent"></input>
             </div>
+            <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
           </div>
-          <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
           <div style={{ marginTop: "5%" }}>
             <Typography className={classes.title}> 4. Vị trí (cm)</Typography>
           </div>
