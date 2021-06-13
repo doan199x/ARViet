@@ -30,14 +30,14 @@ export default function Action(props) {
     if (action.actionID == props.currentActionID) {
       return (<div>
         <Typography onClick={() => changeAction(action.actionID)} variant="subtitle1" gutterBottom style={{ cursor: "pointer", fontWeight: "bold" }} >
-          +&nbsp;{action.name}
+          &nbsp;+&nbsp;{action.name}
         </Typography>
       </div>)
     } else {
       return (
         <div>
           <Typography onClick={() => changeAction(action.actionID)} variant="subtitle1" gutterBottom style={{ cursor: "pointer" }}>
-            +&nbsp;{action.name}
+            &nbsp;+&nbsp;{action.name}
           </Typography>
         </div>
       )

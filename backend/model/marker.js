@@ -22,16 +22,20 @@ module.exports = {
         const result = await db.load(sql);
         return result;
     },
-    getByLessonID: async(lessonID)=>{
+    getByLessonID: async (lessonID) => {
         const sql = `select* from Marker where lessonID = ${lessonID}`;
         return await db.load(sql);
     },
-    setMarkerScale: async(markerScale,markerID)=>{
+    setMarkerScale: async (markerScale, markerID) => {
         const sql = `update Marker set scale = ${markerScale} where markerID = ${markerID}`;
         return await db.load(sql);
     },
-    getAll: async()=>{
+    getAll: async () => {
         const sql = `select* from Marker`;
+        return await db.load(sql);
+    },
+    deleteMarker: async (markerID) => {
+        const sql = `delete from Marker where markerID=${markerID}`;
         return await db.load(sql);
     }
 };

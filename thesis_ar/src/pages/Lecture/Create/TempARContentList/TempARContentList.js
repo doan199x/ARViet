@@ -23,6 +23,12 @@ const useStyles = makeStyles((theme) => ({
         display: "grid",
         gridTemplateColumns: "70% 30%",
     },
+    inputLine: {
+        marginTop: "2%",
+        width: '80%',
+        display: "grid",
+        gridTemplateColumns: "100%",
+    },
 }));
 export default function TempARContentList(props) {
     const classes = useStyles();
@@ -48,6 +54,9 @@ export default function TempARContentList(props) {
     let showVideo = (URL, contentID) => {
         props.showVideo(URL, contentID);
     }
+    let showMp3 = (URL, contentID) => {
+        props.showMp3(URL, contentID);
+    }
 
     function uploadArContentTemp() {
         if (props.currentActionID != null) {
@@ -63,7 +72,7 @@ export default function TempARContentList(props) {
     }
     return (
         <div>
-            <div>
+            <div className={classes.inputLine}>
                 <input
                     className={classes.input}
                     id="uploadFileArContent"
@@ -71,28 +80,27 @@ export default function TempARContentList(props) {
                 ></input>
             </div>
             <Typography color='secondary' variant='body2'>
-                (Hỗ trợ: .glb, .jpg, .png, .mp4, .mp3)
+                (.glb, .jpg, .png, .mp4, .mp3)
             </Typography>
             <Button onClick={() => uploadArContentTemp()}
                 style={{ minWidth: "25px" }}
                 color="primary" variant="outlined"><FontAwesomeIcon icon={faPlus} size="lg" color="#3F51B5" /></Button>
-            <div style={{marginTop: "10px"}}>
-                <Typography>Nội dung đã tải lên:</Typography>
+            <div style={{ marginTop: "10px" }}>
+                <Typography variant='body2'>Nội dung đã tải lên:</Typography>
             </div>
-            <div style={{ height: "120px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
+            <div style={{ borderRadius: "5px", borderWidth: "1px", borderStyle: "dotted", height: "120px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
                 {tempARContentList ? (
                     <div className={classes.data}>
                         {tempARContentList
                             .slice(0)
                             .map((ele, i) => (
-                                <TempARContent key={i} data={ele} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo} />
+                                <TempARContent key={i} data={ele} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo} showMp3={showMp3} />
                             ))}
                     </div>
                 ) : (
                     <p></p>
                 )}
             </div>
-            <hr style={{ width: "80%", marginLeft: "0px" }} />
         </div>
     );
 }

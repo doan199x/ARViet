@@ -110,16 +110,9 @@ alter table Interaction add constraint FK_Interaction_Action foreign key (action
 insert into Teacher(name,iNumber,email,password) values('Nguyễn Văn B','123456789','duy@gmail.com','123456');
 insert into Teacher(name,iNumber,email,password) values('Nguyễn Văn C','112345547','anansss1s23@gmail.com','123456');
 
+select* from Student;
 
-insert into Student (name,dateOfBirth,username,password) values('Nguyễn Văn B','1999-01-01','haha0234','123456');
-insert into Student (name,dateOfBirth,username,password) values('Nguyễn Văn C','1999-01-01','haha02342','123456');
-
-insert into Lesson(name,description,timeCreated,timeUpdated,teacherID) values ('Hệ điều hành','hahaha','2001-01-01','2002-01-01',1);
-insert into Lesson(name,description,timeCreated,timeUpdated,teacherID) values ('CSDL','hahaha','2001-01-01','2002-01-01',2);
-insert into Lesson(name,description,timeCreated,timeUpdated,teacherID) values ('Hóa học','hahaha','2001-01-01','2002-01-01',1);
-
-insert into StudentLesson(studentID,lessonID,timeCreated) values(1,1,now());
-insert into StudentLesson(studentID,lessonID,timeCreated) values(1,2,now());
+insert into student(name,dateOfBirth,username,password) values('sadasd','2021-02-16','duyyugi', '$2b$10$kOqQx7JnFwXODrjOtXlv4.gDE30PFlF2JpC1nu9bsNBVBfStRdF0G');
 
 select* from Teacher;
 select* from Lesson;

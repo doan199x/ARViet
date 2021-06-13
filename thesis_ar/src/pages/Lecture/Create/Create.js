@@ -19,9 +19,18 @@ import ActionList from "./ActionList/ActionList"
 import MarkerList from "./MarkerList/MarkerList"
 import TempARContentList from "./TempARContentList/TempARContentList"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
+import { faPause, faPlay, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
 import TextColorPicker from "./TextColorPicker/TextColorPicker"
 import TextBackgroundColorPicker from "./TextBackgroundColorPicker/TextBackgroundColorPicker"
+import SetCoordinate from "./SetCoordinate/SetCoordinate"
+import SetScale from "./SetScale/SetScale"
+import SetRotation from "./SetRotation/SetRotation"
+import FormVideo from "./FormVideo/FormVideo"
+import ButtonText from "./ButtonText/ButtonText"
+import FormAudio from "./FormAudio/FormAudio"
+import Guide from "./Guide/Guide"
+import { ConfigURL } from "../../../config/config"
+import { toast } from "react-toastify";
 import {
   Button,
   Input,
@@ -75,6 +84,12 @@ const useStyles = makeStyles((theme) => ({
     display: "grid",
     gridTemplateColumns: "70% 30%",
   },
+  inputLine: {
+    marginTop: "2%",
+    width: '80%',
+    display: "grid",
+    gridTemplateColumns: "100%",
+  },
   btnline: {
     marginTop: "10px",
     width: '80%',
@@ -115,35 +130,38 @@ export default function Create() {
   let scene = new THREE.Scene();
   //state
   const [markerID, setMarkerID] = useState(null);
-  const [markerChanged, setMarkerChanged] = useState(null);
   const [currentActionID, setCurrentActionID] = useState(null);
   useEffect(async () => {
     if (markerID == null) {
+      console.log("load null");
       await productAPI.getMarkerByLessonID(lessonID).then(data => {
         let sceneRender = document.getElementById("sceneRender");
         sceneRender.appendChild(renderer.domElement);
         setMarkerID(data.data[0].markerID);
-        setEventTransform();
-        showMarker();
-        getCurrentActionID(data.data[0].markerID);
-        loadARContentByActionID(currentActionID);
-        // loadTempARContentList();
       })
     } else {
+      console.log(markerID);
       let sceneRender = document.getElementById("sceneRender");
       sceneRender.innerHTML = ""
       sceneRender.appendChild(renderer.domElement);
       setEventTransform();
       showMarker();
       getCurrentActionID(markerID);
-      loadARContentByActionID(currentActionID);
-      // getCurrentActionID();
-      // loadTempARContentList();
     }
-  })
+  }, [markerID])
+
+  useEffect(async () => {
+    let sceneRender = document.getElementById("sceneRender");
+    sceneRender.innerHTML = ""
+    sceneRender.appendChild(renderer.domElement);
+    setEventTransform();
+    showMarker();
+    loadARContentByActionID(currentActionID);
+  }, [currentActionID])
+
 
   //callback
-  let cbsetCurrentID = (data) => {
+  let cbsetCurrentMarkerID = (data) => {
     setMarkerID(data);
   }
   let cbsetCurrentActionID = (data) => {
@@ -170,7 +188,7 @@ export default function Create() {
     0.0001,
     200
   );
-  camera.position.set(0.1, 0.1, 0.1);
+  camera.position.set(0.2, 0.2, 0.2);
   const clock = new THREE.Clock();
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
@@ -205,24 +223,6 @@ export default function Create() {
   }
   function render() {
     renderer.render(scene, camera);
-  }
-
-
-
-  //Upload marker
-  function uploadMarker() {
-    let markerFile = document.getElementById("uploadFileMarker").files[0];
-    let formData = new FormData();
-    formData.append("file", markerFile);
-    formData.append("markerID", markerID);
-    productAPI.uploadMarker(formData).then((data) => {
-      showMarker();
-      if (markerChanged != false) {
-        setMarkerChanged(false);
-      } else {
-        setMarkerChanged(true);
-      }
-    });
   }
   function showMarker() {
     if (markerID != null) {
@@ -266,37 +266,10 @@ export default function Create() {
       })
     })
   }
-  // function loadActionList() {
-  //   productAPI.loadMarker(markerID).then((data) => {
-  //     let actionArr = data.data;
-  //     let actionList = document.getElementById("actionList");
-  //     actionList.innerHTML = "";
-  //     for (let i = 0; i < actionArr.length; i++) {
-  //       let li = document.createElement("li");
-  //       li.appendChild(document.createTextNode(actionArr[i].name));
-  //       let id = document.createAttribute("id");
-  //       id.value = actionArr[i].actionID + actionArr[i].name;
-  //       li.setAttributeNode(id);
-  //       actionList.appendChild(li);
-  //       //styles
-  //       document.getElementById("actionList").style.fontSize = "15px";
-  //       document.getElementById("actionList").style.textDecoration = "none";
-  //       document.getElementById("actionList").style.fontWeight = " normal";
-  //       document.getElementById(id.value).onclick = function () {
-  //         loadARContentByActionID(actionArr[i].actionID);
-  //       };
-  //     }
-  //   });
-  // }
-
   function getCurrentActionID(currentMarkerID) {
-    if (currentActionID == null) {
-      productAPI.getMarkerID(currentMarkerID).then((data) => {
-        setCurrentActionID(data.data[0].actionID);
-        // loadObjectList();
-        // loadARContentByActionID(currentActionID);
-      })
-    }
+    productAPI.getMarkerID(currentMarkerID).then((data) => {
+      setCurrentActionID(data.data[0].actionID);
+    })
   }
 
   function addAction() {
@@ -311,45 +284,6 @@ export default function Create() {
       }
     }
   }
-
-
-  // Load danh sach noi dung da tai TempARContentList
-  // function loadTempARContentList() {
-  //   let tempARContentList = document.getElementById("tempARContentList");
-  //   //get All
-  //   console.log(markerID);
-  //   productAPI.getTempARContent(markerID).then((data) => {
-  //     let ARContent = data.data;
-  //     console.log(ARContent);
-  //     tempARContentList.innerHTML = "";
-  //     for (let i = 0; i < ARContent.length; i++) {
-  //       let li = document.createElement("li");
-  //       li.appendChild(document.createTextNode(ARContent[i].filename));
-  //       let id = document.createAttribute("id");
-  //       id.value = ARContent[i].filename + ARContent[i].contentID;
-  //       li.setAttributeNode(id);
-  //       tempARContentList.appendChild(li);
-  //       //styles
-  //       document.getElementById("tempARContentList").style.fontSize = "15px";
-  //       document.getElementById("tempARContentList").style.textDecoration = "none";
-  //       document.getElementById("tempARContentList").style.fontWeight = " normal";
-  //       if (ARContent[i].URL[ARContent[i].URL.length - 1] == "b") {
-  //         document.getElementById(id.value).onclick = function () {
-  //           show3dModel(ARContent[i].URL, ARContent[i].contentID);
-  //         };
-  //       } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "g") {
-  //         document.getElementById(id.value).onclick = function () {
-  //           show2DImage(ARContent[i].URL, ARContent[i].contentID);
-  //         };
-  //       } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "4") {
-  //         document.getElementById(id.value).onclick = function () {
-  //           showVideo(ARContent[i].URL, ARContent[i].contentID);
-  //         };
-  //       }
-  //     }
-  //   });
-  // }
-
   // show 3D model
   let show3DModel = (URL, contentID) => {
     const loader = new GLTFLoader();
@@ -360,14 +294,14 @@ export default function Create() {
     loader.load(
       URL,
       function (gltf) {
-        // if (gltf.animations.length > 0) {
-        //   let mixer = new THREE.AnimationMixer(gltf.scene);
-        //   mixers.push(mixer);
-        //   // gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
-        //   let animationHere = mixer.clipAction(gltf.animations[0]);
-        //   animationHere.play();
-        //   // animationArray.push(animationHere);
-        // }
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[gltf.animations.length - 1]);
+          let animationHere = mixer.clipAction(gltf.animations[gltf.animations.length - 1]);
+          animationHere.play();
+          // animationArray.push(animationHere);
+        }
         scene.add(gltf.scene);
         domEvents.addEventListener(
           gltf.scene,
@@ -379,6 +313,7 @@ export default function Create() {
             transformControls.setMode("translate");
             scene.add(transformControls);
             showFormEdit();
+            showGuide();
             // create new instance of this arcontent and set istemp = false;
           });
         productAPI
@@ -416,6 +351,7 @@ export default function Create() {
       var geometry = new THREE.PlaneGeometry(img.width * px2m, img.height * px2m);
       // combine our image geometry and material into a mesh
       var imageTexture = new THREE.Mesh(geometry, material);
+      imageTexture.position.set(-0.12, 0.12, -0.12);
       scene.add(imageTexture);
       domEvents.addEventListener(
         imageTexture,
@@ -427,6 +363,7 @@ export default function Create() {
           transformControls.setMode("translate");
           scene.add(transformControls);
           showFormEdit();
+          showGuide();
         },
         false
       );
@@ -484,6 +421,7 @@ export default function Create() {
     var textTexture = new THREE.Mesh(geometry, material);
     texture.redraw();
     scene.add(textTexture);
+    textTexture.position.set(0.12, 0.12, -0.12);
     textObject.actionID = currentActionID;
     productAPI.saveText(textObject, textUpdatedContentID).then((data) => {
       textTexture.contentID = data.data.contentID;
@@ -500,6 +438,7 @@ export default function Create() {
         transformControls.setMode("translate");
         scene.add(transformControls);
         showFormEdit();
+        showGuide();
         getFormTextContent();
         currentText = texture;
       },
@@ -533,6 +472,7 @@ export default function Create() {
         transformControls.setMode("translate");
         scene.add(transformControls);
         showFormEdit();
+        showGuide();
         showFormVideo();
       },
       false
@@ -547,6 +487,61 @@ export default function Create() {
         videoMesh.contentID = data.data.contentID;
         videoMesh.type = "video"
       });
+  }
+
+  // Show mp3
+  function showMp3(URL, contentID) {
+    const loader = new GLTFLoader();
+    let speakerModelURL = ConfigURL.serverURL + '/speaker/speaker.glb'
+    loader.load(
+      speakerModelURL,
+      function (gltf) {
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
+          // let animationHere = mixer.clipAction(gltf.animations[0]);
+          // animationHere.play();
+        }
+        let audio = new Audio(URL);
+        gltf.scene.audio = audio;
+        scene.add(gltf.scene);
+        gltf.scene.position.set(0.1, 0.1, -0.1);
+        gltf.scene.scale.set(0.015, 0.015, 0.015);
+        gltf.scene.rotation.set(0, degreeToRadian(-30), 0);
+        domEvents.addEventListener(
+          gltf.scene,
+          "dblclick",
+          function (event) {
+            currentID = gltf.scene.id;
+            transformControls.detach();
+            transformControls.attach(gltf.scene);
+            transformControls.setMode("translate");
+            scene.add(transformControls);
+            showFormEdit();
+            showGuide();
+            showFormAudio();
+            // create new instance of this arcontent and set istemp = false;
+          });
+        productAPI
+          .addNewInstanceARContent({
+            contentID: contentID,
+            actionID: currentActionID,
+          })
+          .then((data) => {
+            gltf.scene.contentID = data.data.contentID;
+            gltf.scene.type = "speaker";
+          },
+            false
+          );
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 
   // load objects list in the scene
@@ -605,16 +600,31 @@ export default function Create() {
             load2DText(ARContent[i]);
           } else if (filename[filename.length - 1] == "4") {
             loadVideo(ARContent[i]);
+          } else if (filename[filename.length - 1] == "3") {
+            loadMp3(ARContent[i]);
           }
         }
       });
     }
   }
   function load3DModel(ARContent) {
+    console.log("load dog")
     const loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderConfig({ type: 'js' });
+    draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+    loader.setDRACOLoader(draco);
     loader.load(
       ARContent.URL,
       function (gltf) {
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[gltf.animations.length - 1]);
+          let animationHere = mixer.clipAction(gltf.animations[gltf.animations.length - 1]);
+          animationHere.play();
+          // animationArray.push(animationHere);
+        }
         gltf.scene.contentID = ARContent.contentID;
         gltf.scene.type = "3DModel"
         scene.add(gltf.scene);
@@ -639,12 +649,13 @@ export default function Create() {
             transformControls.setMode("translate");
             scene.add(transformControls);
             showFormEdit();
+            showGuide();
           },
           false
         );
       },
       (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+        // console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
       },
       (error) => {
         console.log(error);
@@ -688,6 +699,7 @@ export default function Create() {
           transformControls.setMode("translate");
           scene.add(transformControls);
           showFormEdit();
+          showGuide();
         },
         false
       );
@@ -758,6 +770,7 @@ export default function Create() {
             currentText = texture;
             getFormTextContent();
             showFormEdit();
+            showGuide();
           },
           false
         );
@@ -804,44 +817,103 @@ export default function Create() {
         scene.add(transformControls);
         showFormEdit();
         showFormVideo();
+        showGuide();
       },
       false
     );
   }
 
-  function saveAction() {
-    // Lam chung chua lam text
-    let actionID = currentActionID;
-    productAPI.getAllARContentByActionID(actionID).then((data) => {
-      console.log(data);
-      let ARContentArr = data.data;
-      let contenIDFileArr = [];
-      // let maNoiDungTextArr = [];
-      for (let i = 0; i < ARContentArr.length; i++) {
-        contenIDFileArr.push(ARContentArr[i].contentID);
+  function loadMp3(ARContent) {
+    const loader = new GLTFLoader();
+    let speakerModelURL = ConfigURL.serverURL + '/speaker/speaker.glb';
+    loader.load(
+      speakerModelURL,
+      function (gltf) {
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
+          // let animationHere = mixer.clipAction(gltf.animations[0]);
+        }
+        gltf.scene.contentID = ARContent.contentID;
+        gltf.scene.type = "speaker"
+        let audio = new Audio(ARContent.URL);
+        gltf.scene.audio = audio;
+        scene.add(gltf.scene);
+        gltf.scene.position.set(
+          ARContent.xPosition,
+          ARContent.yPosition,
+          ARContent.zPosition
+        );
+        gltf.scene.rotation.set(
+          ARContent.xRotation,
+          ARContent.yRotation,
+          ARContent.zRotation
+        );
+        gltf.scene.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+        domEvents.addEventListener(
+          gltf.scene,
+          "dblclick",
+          function (event) {
+            currentID = gltf.scene.id;
+            transformControls.detach();
+            transformControls.attach(gltf.scene);
+            transformControls.setMode("translate");
+            scene.add(transformControls);
+            showFormEdit();
+            showGuide();
+            showFormAudio();
+          },
+          false
+        );
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.log(error);
       }
-      for (let i = 0; i < contenIDFileArr.length; i++) {
-        for (let j = 0; j < scene.children.length; j++) {
-          if (scene.children[j].contentID == contenIDFileArr[i]) {
-            let ARContent = {
-              contentID: scene.children[j].contentID,
-              xPosition: scene.children[j].position.x,
-              yPosition: scene.children[j].position.y,
-              zPosition: scene.children[j].position.z,
-              xRotation: scene.children[j].rotation.x,
-              yRotation: scene.children[j].rotation.y,
-              zRotation: scene.children[j].rotation.z,
-              xScale: scene.children[j].scale.x,
-              yScale: scene.children[j].scale.y,
-              zScale: scene.children[j].scale.z,
-            };
-            productAPI.updateARContent(ARContent).then((data) => {
-              // console.log(data);
-            });
+    );
+  }
+
+  function saveAction() {
+    if (currentActionID != null) {
+      let actionID = currentActionID;
+      // Lay tat ca noi dung ma ko phai tam
+      productAPI.getAllARContentByActionID(actionID).then((data) => {
+        let ARContentArr = data.data;
+        // Neu noi dung k phai tam, so sanh contentid voi contentid con trong scene neu trung thi update
+        for (let i = 0; i < ARContentArr.length; i++) {
+          ARContentArr[i].getUpdated = false;
+          for (let j = 0; j < scene.children.length; j++) {
+            if (scene.children[j].contentID == ARContentArr[i].contentID) {
+              let ARContent = {
+                contentID: scene.children[j].contentID,
+                xPosition: scene.children[j].position.x,
+                yPosition: scene.children[j].position.y,
+                zPosition: scene.children[j].position.z,
+                xRotation: scene.children[j].rotation.x,
+                yRotation: scene.children[j].rotation.y,
+                zRotation: scene.children[j].rotation.z,
+                xScale: scene.children[j].scale.x,
+                yScale: scene.children[j].scale.y,
+                zScale: scene.children[j].scale.z,
+              };
+              ARContentArr[i].getUpdated = true;
+              productAPI.updateARContent(ARContent).then((data) => {
+                // console.log(data);
+              });
+            }
           }
         }
-      }
-    });
+        ARContentArr.map((element, i) => {
+          if (element.getUpdated == false) {
+            console.log(element.contentID);
+            deleteARContent(element.contentID);
+          }
+        })
+      });
+    }
   }
   function setEventTransform() {
     window.addEventListener("keydown", function (event) {
@@ -875,6 +947,16 @@ export default function Create() {
           break;
         case "Escape":
           if (currentID != 0) {
+            document.getElementById("xPosition").disabled = true;
+            document.getElementById("yPosition").disabled = true;
+            document.getElementById("zPosition").disabled = true;
+            document.getElementById("xScale").disabled = true;
+            document.getElementById("yScale").disabled = true;
+            document.getElementById("zScale").disabled = true;
+            document.getElementById("xRotation").disabled = true;
+            document.getElementById("yRotation").disabled = true;
+            document.getElementById("zRotation").disabled = true;
+            hideGuide();
             let currentObject = scene.getObjectById(currentID);
             if (currentObject.config !== undefined) {
               document.getElementById("fixButton").style.display = "none"
@@ -882,13 +964,16 @@ export default function Create() {
             if (currentObject.video !== undefined) {
               document.getElementById("formVideo").style.display = "none"
             }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none"
+            }
+            //disable input
             transformControls.detach();
             scene.remove(transformControls);
           }
           break;
         case "Delete":
           if (currentID != 0) {
-            deleteARContent();
             let currentObject = scene.getObjectById(currentID);
             transformControls.detach();
             scene.remove(currentObject);
@@ -900,16 +985,16 @@ export default function Create() {
               false
             );
             currentID = 0;
+            hideGuide();
+            hideFixButton();
           }
       }
     });
   }
-  function deleteARContent() {
-    let contentID = scene.getObjectById(currentID).contentID;
+  function deleteARContent(contentID) {
     productAPI
       .deleteARContent(contentID)
       .then((data) => {
-        // loadObjectList();
       });
   }
 
@@ -920,12 +1005,15 @@ export default function Create() {
   }
   function showPosition() {
     if (currentID != 0) {
+      document.getElementById("xPosition").disabled = false;
+      document.getElementById("yPosition").disabled = false;
+      document.getElementById("zPosition").disabled = false;
       let currentObject = scene.getObjectById(currentID);
-      let cmPositionX = currentObject.position.x*100;
+      let cmPositionX = currentObject.position.x * 100;
       let roundCmPositionX = cmPositionX.toFixed(2);
-      let cmPositionY = currentObject.position.y*100;
+      let cmPositionY = currentObject.position.y * 100;
       let roundCmPositionY = cmPositionY.toFixed(2);
-      let cmPositionZ = currentObject.position.z*100;
+      let cmPositionZ = currentObject.position.z * 100;
       let roundCmPositionZ = cmPositionZ.toFixed(2);
       document.getElementById("xPosition").value = roundCmPositionX;
       document.getElementById("yPosition").value = roundCmPositionY;
@@ -933,38 +1021,41 @@ export default function Create() {
     }
   }
   function showScale() {
+    document.getElementById("xScale").disabled = false;
+    document.getElementById("yScale").disabled = false;
+    document.getElementById("zScale").disabled = false;
     if (currentID != 0) {
       let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xScale").value = currentObject.scale.x;
-      document.getElementById("yScale").value = currentObject.scale.y;
+      document.getElementById("xScale").value = parseFloat(currentObject.scale.x).toFixed(2);
+      document.getElementById("yScale").value = parseFloat(currentObject.scale.y).toFixed(2);
       if (currentObject.type == "2DImage" || currentObject.type == "2DText" || currentObject.type == "video") {
         document.getElementById("zScale").value = 1;
         document.getElementById("zScale").disabled = true;
       } else {
-        document.getElementById("zScale").value = currentObject.scale.z;
+        document.getElementById("zScale").value = parseFloat(currentObject.scale.z).toFixed(2);
         document.getElementById("zScale").disabled = false;
       }
     }
   }
   function showRotation() {
     if (currentID != 0) {
+      document.getElementById("xRotation").disabled = false;
+      document.getElementById("yRotation").disabled = false;
+      document.getElementById("zRotation").disabled = false;
       let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xRotation").value = radianToDegree(
-        currentObject.rotation.x
-      );
-      document.getElementById("yRotation").value = radianToDegree(
-        currentObject.rotation.y
-      );
-      document.getElementById("zRotation").value = radianToDegree(
-        currentObject.rotation.z
-      );
+      let rotationX = radianToDegree(currentObject.rotation.x);
+      let rotationY = radianToDegree(currentObject.rotation.y);
+      let rotationZ = radianToDegree(currentObject.rotation.z);
+      document.getElementById("xRotation").value = parseFloat(rotationX).toFixed(2);
+      document.getElementById("yRotation").value = parseFloat(rotationY).toFixed(2);
+      document.getElementById("zRotation").value = parseFloat(rotationZ).toFixed(2);
     }
   }
   function setPosition() {
     let currentObject = scene.getObjectById(currentID);
-    let xPosition = document.getElementById("xPosition").value.trim();
-    let yPosition = document.getElementById("yPosition").value.trim();
-    let zPosition = document.getElementById("zPosition").value.trim();
+    let xPosition = document.getElementById("xPosition").value;
+    let yPosition = document.getElementById("yPosition").value;
+    let zPosition = document.getElementById("zPosition").value;
 
     if (xPosition.length == 0) {
       xPosition = 0;
@@ -978,12 +1069,9 @@ export default function Create() {
       zPosition = 0;
       document.getElementById("zPosition").value = 0;
     }
-    let xMPosition = xPosition/100;
-    xMPosition = xMPosition.toFixed(5)
-    let yMPosition = yPosition/100;
-    yMPosition = yMPosition.toFixed(5)
-    let zMPosition = zPosition/100;
-    zMPosition = zMPosition.toFixed(5)
+    let xMPosition = xPosition / 100;
+    let yMPosition = yPosition / 100;
+    let zMPosition = zPosition / 100;
     currentObject.position.set(xMPosition, yMPosition, zMPosition);
   }
   function setScale() {
@@ -1079,14 +1167,44 @@ export default function Create() {
     let video = scene.getObjectById(currentID).video;
     video.pause();
   }
+  function playAudio() {
+    let audio = scene.getObjectById(currentID).audio;
+    audio.loop = true;
+    audio.play();
+    let animation = scene.getObjectById(currentID).activeAnimation;
+    animation.play();
+    animation.paused = false;
+  }
+  function pauseAudio() {
+    let audio = scene.getObjectById(currentID).audio;
+    audio.pause();
+    let animation = scene.getObjectById(currentID).activeAnimation;
+    animation.paused = true;
+  }
+  function restartAudio() {
+    let audio = scene.getObjectById(currentID).audio;
+    audio.currentTime = 0;
+  }
   function showFormVideo() {
-    document.getElementById("formVideo").style.display = "block";
+    document.getElementById("formVideo").style.display = "flex";
+  }
+  function showFormAudio() {
+    document.getElementById("formAudio").style.display = "flex";
   }
   function degreeToRadian(degree) {
     return (degree * Math.PI) / 180.0;
   }
   function radianToDegree(radian) {
     return (radian * 180.0) / Math.PI;
+  }
+  function showGuide() {
+    document.getElementById("guide").style.display = "flex"
+  }
+  function hideGuide() {
+    document.getElementById("guide").style.display = "none"
+  }
+  function hideFixButton() {
+    document.getElementById("fixButton").style.display = "none"
   }
   function test() {
     let audio = new Audio("https://testar11.herokuapp.com/audio/test.mp3");
@@ -1101,24 +1219,17 @@ export default function Create() {
       <div className={classes.grid}>
         <div className={classes.column2}>
           <div>
-            {markerID ? (<MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID} cbsetCurrentID={cbsetCurrentID} markerChanged={markerChanged}></MarkerList>) : (<div></div>)}
+            {markerID ? (<MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID} cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker}></MarkerList>) : (<div></div>)}
           </div>
           <div className={classes.scene} id="sceneRender"></div>
-          <div id="formVideo" style={{ display: "none" }}>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => playVideo()}
-            >
-              Play
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => pauseVideo()}
-            >
-              Pause
-            </Button>
+          <div>
+            <Guide currentActionID={currentActionID}></Guide>
+          </div>
+          <div>
+            <FormVideo playVideo={playVideo} pauseVideo={pauseVideo} currentActionID={currentActionID}></FormVideo>
+          </div>
+          <div>
+            <FormAudio playAudio={playAudio} pauseAudio={pauseAudio} restartAudio={restartAudio} currentActionID={currentActionID}></FormAudio>
           </div>
           <div
             style={{ display: "flex", justifyContent: "center", marginTop: '5%' }}
@@ -1129,7 +1240,7 @@ export default function Create() {
               color="secondary"
               onClick={() => saveAction()}
             >
-              Lưu điểm đánh dấu
+              Lưu hành động
             </Button>
           </div>
         </div>
@@ -1140,24 +1251,6 @@ export default function Create() {
           <div>
             <ActionList loadARContentByActionID={loadARContentByActionID} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
           </div>
-          <div>
-            <Typography className={classes.title}>2. Điểm đánh dấu</Typography>
-          </div>
-          <div style={{ marginTop: "-5%" }}>
-            <input
-              className={classes.input}
-              id="uploadFileMarker"
-              type="file"
-            ></input>
-          </div>
-          <div>
-            <Typography color='secondary' variant='body2'>
-              (Hỗ trợ: .jpg, .png)
-            </Typography>
-          </div>
-          <Button onClick={() => uploadMarker()}
-            style={{ minWidth: "25px" }}
-            color="primary" variant="outlined"><FontAwesomeIcon icon={faPlus} size="lg" color="#3F51B5" /></Button>
           <div className={classes.xline}>
             <Typography>Tỉ lệ: </Typography>
             <input
@@ -1168,16 +1261,15 @@ export default function Create() {
               onBlur={() => setMarkerScale()}
             ></input>
           </div>
-          <hr style={{ width: "80%", marginLeft: "0px" }} />
-          <div>
-            <Typography className={classes.title}>3. Nội dung AR </Typography>
+          <div style={{ marginTop: "5%" }}>
+            <Typography className={classes.title}>2. Nội dung AR </Typography>
           </div>
           <div>
-            <TempARContentList currentActionID={currentActionID} markerID={markerID} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo}></TempARContentList>
+            <TempARContentList currentActionID={currentActionID} markerID={markerID} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo} showMp3={showMp3}></TempARContentList>
           </div>
         </div>
         <div className={classes.column3}>
-          <Typography className={classes.title}>4. Thêm văn bản</Typography>
+          <Typography className={classes.title}>3. Thêm văn bản</Typography>
           <div className={classes.inline}>
             <Typography>Nội dung: </Typography>
             <TextareaAutosize
@@ -1219,134 +1311,24 @@ export default function Create() {
               <input type="checkbox" id="isTransparent"></input>
             </div>
           </div>
-          <div className={classes.inline3}>
-            <Button style={{ minWidth: "25px" }}
-              variant="outlined"
-              color="primary"
-              onClick={() => show2DText()}
-            >
-              <FontAwesomeIcon
-                icon={faPlus} size="lg" color="#3F51B5" />
-            </Button>
-            <div style={{marginLeft: "10%"}}>
-              <Button style={{ minWidth: "25px" }}
-                id="fixButton" style={{ display: "none" }}
-                variant="outlined"
-                color="secondary"
-                onClick={() => update2DText()}
-              >
-                <FontAwesomeIcon
-                  icon={faEdit} size="lg" color="#F50057" />
-              </Button>
-            </div>
-          </div>
-          <div style={{marginTop: "5%"}}>
-            <Typography className={classes.title}> 5. Vị trí (cm)</Typography>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ X:</Typography>
-            <input
-              id="xPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ Y:</Typography>
-            <input
-              id="yPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ Z:</Typography>
-            <input
-              id="zPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography className={classes.title}> 6. Tỉ lệ</Typography>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ X:</Typography>
-            <input
-              id="xScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ Y:</Typography>
-            <input
-              id="yScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-              placeholder="Nhập một số thực."
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ Z:</Typography>
-            <input
-              id="zScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-              placeholder="Nhập một số thực."
-            ></input>
+          <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
+          <div style={{ marginTop: "5%" }}>
+            <Typography className={classes.title}> 4. Vị trí (cm)</Typography>
           </div>
           <div>
-            <Typography className={classes.title}>7. Góc xoay</Typography>
+            <SetCoordinate setPosition={setPosition} currentActionID={currentActionID}></SetCoordinate>
           </div>
           <div className={classes.inline}>
-            <Typography>Trục X:</Typography>
-            <input
-              id="xRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-              placeholder="Nhập một số thực."
-            ></input>
+            <Typography className={classes.title}> 5. Tỉ lệ</Typography>
           </div>
-          <div className={classes.inline}>
-            <Typography>Trục Y:</Typography>
-            <input
-              id="yRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-              placeholder="Nhập một số thực."
-            ></input>
+          <div>
+            <SetScale setScale={setScale} currentActionID={currentActionID}></SetScale>
           </div>
-          <div className={classes.inline}>
-            <Typography>Trục Z:</Typography>
-            <input
-              id="zRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-              placeholder="Nhập một số thực."
-            ></input>
+          <div>
+            <Typography className={classes.title}>6. Góc xoay (&#8451;)</Typography>
+          </div>
+          <div>
+            <SetRotation setRotation={setRotation} currentActionID={currentActionID}></SetRotation>
           </div>
           <div className={classes.inline}></div>
           <br></br>

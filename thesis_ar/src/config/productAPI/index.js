@@ -52,6 +52,12 @@ export const productAPI = {
   deleteARContent: (contentID) => {
     return AXIOS_INSTANCE.delete('/arcontent', { params: { contentID: contentID } });
   },
+  deleteMarker: (markerID, lessonID) => {
+    return AXIOS_INSTANCE.delete('/marker', { params: { markerID: markerID, lessonID: lessonID } });
+  },
+  deleteAction: (actionID, markerID) => {
+    return AXIOS_INSTANCE.delete('/action', { params: { actionID: actionID, markerID: markerID } });
+  },
   loadArContentThat: (maDiemDanhDau) => {
     return AXIOS_INSTANCE.get(API.ARCONTENTTHAT, { params: { maDiemDanhDau: maDiemDanhDau } })
   },
@@ -63,6 +69,9 @@ export const productAPI = {
   },
   updateARContent: (ARContent) => {
     return AXIOS_INSTANCE.patch('/arcontent', { ARContent });
+  },
+  changeAction: (actionID, actionNameChange, markerID) => {
+    return AXIOS_INSTANCE.patch('/action', { actionID, actionNameChange, markerID });
   },
   new: (userid, lecname, description) => {
     return AXIOS_INSTANCE.post(API.NEW, { userid, lecname, description });
