@@ -234,13 +234,6 @@ router.patch("/", async (req, res, next) => {
 router.delete("/", async (req, res, next) => {
   try {
     contentID = req.query.contentID;
-    let getARcontentByID = await ARContentModel.findByID(contentID);
-    //if content is text, delete textarcontent
-    if (getARcontentByID.length > 0) {
-      if (getARcontentByID[0].filename = "text") {
-        await ARContentModel.deleteTextARContent(contentID);
-      }
-    }
     await ARContentModel.delete(contentID);
     res.json([]);
   } catch (err) {

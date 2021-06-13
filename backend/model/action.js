@@ -5,7 +5,7 @@ module.exports = {
         return await db.load(sql);
     },
     getInit: async (markerID) => {
-        const sql = `select* from Action where name = "Khởi tạo" and markerID = ${markerID}`;
+        const sql = `select* from Action where markerID = ${markerID}`;
         return await db.load(sql);
     },
     getByID: async (actionID) => {
@@ -22,6 +22,14 @@ module.exports = {
     },
     getByMarkerID: async (markerID) => {
         const sql = `select* from Action where markerID = ${markerID}`;
+        return await db.load(sql);
+    },
+    deleteAction: async(actionID)=>{
+        const sql= `delete from Action where actionID = ${actionID}`;
+        return await db.load(sql);
+    },
+    changeName: async(actionID,name)=>{
+        const sql=`update Action set name="${name}" where actionID=${actionID}`;
         return await db.load(sql);
     }
 };

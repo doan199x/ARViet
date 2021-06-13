@@ -8,7 +8,7 @@ import {
     Button, Typography
 } from "@material-ui/core";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPause, faPlay, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
+import { faRedo ,faPause, faPlay, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
 
 const useStyles = makeStyles((theme) => ({
     inline: {
@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function FormVideo(props) {
+export default function FormAudio(props) {
     const classes = useStyles();
     const [changed, setChanged] = React.useState(false);
     // const [currentMarkerID, setCurrentMarkerID] = useState(null);
@@ -31,32 +31,44 @@ export default function FormVideo(props) {
 
     }, []);
     if (props.currentActionID != null) {
-        document.getElementById("formVideo").style.display = "none"
+        document.getElementById("formAudio").style.display = "none"
     }
-    let playVideo = () => {
-        props.playVideo();
+    let playAudio = () => {
+        props.playAudio();
     }
-    let pauseVideo = () => {
-        props.pauseVideo();
+    let pauseAudio = () => {
+        props.pauseAudio();
+    }
+    let restartAudio = () => {
+        props.restartAudio();
     }
     return (
-        <div id="formVideo" style={{ display: "none", alignItems: "center", justifyContent: "center" }}>
+        <div id="formAudio" style={{ display: "none", alignItems: "center", justifyContent: "center" }}>
             <div style={{ marginRight: "2px" }}>
                 <Button
                     variant="outlined"
                     color="primary"
-                    onClick={() => playVideo()}
+                    onClick={() => playAudio()}
                 >
                     <FontAwesomeIcon icon={faPlay} size="lg" color="#3F51B5" />
+                </Button>
+            </div>
+            <div style={{ marginRight: "2px" }}>
+                <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => pauseAudio()}
+                >
+                    <FontAwesomeIcon icon={faPause} size="lg" color="#F50057" />
                 </Button>
             </div>
             <div>
                 <Button
                     variant="outlined"
-                    color="secondary"
-                    onClick={() => pauseVideo()}
+                    color="primary"
+                    onClick={() => restartAudio()}
                 >
-                    <FontAwesomeIcon icon={faPause} size="lg" color="#F50057" />
+                    <FontAwesomeIcon icon={faRedo} size="lg" color="#3F51B5" />
                 </Button>
             </div>
         </div>

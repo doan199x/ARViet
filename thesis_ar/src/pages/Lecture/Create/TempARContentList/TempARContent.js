@@ -36,6 +36,9 @@ export default function TempARContent(props) {
         else if (tempARContent.URL[tempARContent.URL.length - 1] == "4") {
             props.showVideo(tempARContent.URL, tempARContent.contentID);
         }
+        else if (tempARContent.URL[tempARContent.URL.length - 1] == "3") {
+            props.showMp3(tempARContent.URL, tempARContent.contentID);
+        }
     }
     return (
         <div>

@@ -31,7 +31,8 @@ router.post("/", upload.single("file"), async (req, res, next) => {
     let file = req.file;
     let URL = config.baseURL + '/upload/marker/' + file.filename;
     const updateMarker = await markerModel.updateURL(markerID, URL);
-    res.json(URL);
+    const getAll = await markerModel.getByLessonID(req.body.lessonID);
+    res.json(getAll);
   } catch (err) {
     next(err);
   }
@@ -63,7 +64,7 @@ router.post("/add", async (req, res) => {
   }
 });
 
-router.get("/getall",async(req,res)=>{
+router.get("/getall", async (req, res) => {
   try {
     let allMarker = await markerModel.getByLessonID(req.query.lecid);
     res.send(allMarker);
@@ -79,12 +80,28 @@ router.post("/scale", async (req, res) => {
     markerID = req.body.markerID;
     console.log(markerID);
     console.log(markerScale);
-    let setMarkerScale = await markerModel.setMarkerScale(markerScale,markerID);
+    let setMarkerScale = await markerModel.setMarkerScale(markerScale, markerID);
     res.json([]);
   }
   catch (error) {
     res.send(error);
   }
 });
+
+router.delete("/", async (req, res, next) => {
+  try {
+    // check xem lieu co con 1 diem hay ko
+    let getMarkers = await markerModel.getByLessonID(req.query.lessonID);
+    if (getMarkers.length == 1) {
+      res.json([])
+    } else {
+      let result = await markerModel.deleteMarker(req.query.markerID);
+      let getAll = await markerModel.getByLessonID(req.query.lessonID)
+      res.json(getAll);
+    }
+  } catch (err) {
+    next(err);
+  }
+})
 
 module.exports = router;

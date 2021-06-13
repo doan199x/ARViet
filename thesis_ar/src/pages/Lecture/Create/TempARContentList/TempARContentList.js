@@ -54,6 +54,9 @@ export default function TempARContentList(props) {
     let showVideo = (URL, contentID) => {
         props.showVideo(URL, contentID);
     }
+    let showMp3 = (URL, contentID) => {
+        props.showMp3(URL, contentID);
+    }
 
     function uploadArContentTemp() {
         if (props.currentActionID != null) {
@@ -77,7 +80,7 @@ export default function TempARContentList(props) {
                 ></input>
             </div>
             <Typography color='secondary' variant='body2'>
-                (Hỗ trợ: .glb, .jpg, .png, .mp4, .mp3)
+                (.glb, .jpg, .png, .mp4, .mp3)
             </Typography>
             <Button onClick={() => uploadArContentTemp()}
                 style={{ minWidth: "25px" }}
@@ -91,7 +94,7 @@ export default function TempARContentList(props) {
                         {tempARContentList
                             .slice(0)
                             .map((ele, i) => (
-                                <TempARContent key={i} data={ele} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo} />
+                                <TempARContent key={i} data={ele} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo} showMp3={showMp3} />
                             ))}
                     </div>
                 ) : (

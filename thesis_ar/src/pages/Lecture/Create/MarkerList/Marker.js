@@ -20,7 +20,7 @@ export default function Action(props) {
     useEffect(async () => {
     }, []);
     function changeMarker(markerID) {
-        props.cbsetCurrentID(markerID);
+        props.cbsetCurrentMarkerID(markerID);
         // get action init, name api false
         productAPI.getMarkerID(markerID).then(data => {
             props.cbsetCurrentActionID(data.data[0].actionID);
