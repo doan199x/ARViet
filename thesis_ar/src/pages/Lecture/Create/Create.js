@@ -178,7 +178,7 @@ export default function Create() {
   scene.add(gridXZ);
 
   //add light
-  const light = new THREE.AmbientLight(0xffffff, 1.2); // soft white light
+  const light = new THREE.AmbientLight(0xffffff, 1); // soft white light
   scene.add(light);
 
   // add camera
