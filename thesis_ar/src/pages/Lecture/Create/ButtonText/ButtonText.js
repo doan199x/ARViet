@@ -4,6 +4,7 @@ import { productAPI } from "../../../../config/productAPI";
 import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import clone from "clone";
+import EditIcon from '@material-ui/icons/Edit';
 import {
     Button, Typography
 } from "@material-ui/core";
@@ -17,6 +18,11 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "center",
         alignItems: 'center',
         marginTop: "5%",
+    },
+    btn: {
+        alignItems: 'center',
+        height: '30px',
+        maxWidth: '120px'
     },
 }));
 
@@ -42,6 +48,7 @@ export default function ButtonText(props) {
                 variant="outlined"
                 color="primary"
                 onClick={() => show2DText()}
+                className = {classes.btn}
             >
                 <FontAwesomeIcon
                     icon={faPlus} size="lg" color="#3F51B5" />
@@ -49,11 +56,15 @@ export default function ButtonText(props) {
             <Button
                 id="fixButton" style={{ display: "none" }}
                 variant="outlined"
-                color="secondary"
+                color="primary"
+                className = {classes.btn}
                 onClick={() => update2DText()}
             >
-                <FontAwesomeIcon
-                    icon={faEdit} size="lg" color="#3F51B5" />
+                {/* <FontAwesomeIcon
+                    icon={faEdit} size="lg" color="#3F51B5"
+                    style = {{marginTop: '-5%'}} />
+                     */}
+                     <EditIcon />
             </Button>
         </div>
     );

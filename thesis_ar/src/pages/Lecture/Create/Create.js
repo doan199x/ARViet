@@ -62,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
   },
   inline2: {
     display: "grid",
-    gridTemplateColumns: "40% 10% 50%",
+    gridTemplateColumns: "36% 8% 57%",
     justifyContent: "center",
     alignItems: 'center',
     marginTop: "5%",
@@ -1517,7 +1517,7 @@ export default function Create() {
           </div>
           <div className={classes.inline2}>
             <Typography>Trong suốt: </Typography>
-            <div style={{ marginTop: "-10px", marginLeft: "3%" }}>
+            <div style={{ marginTop: "-10px", marginLeft: "1%" }}>
               <input type="checkbox" id="isTransparent"></input>
             </div>
             <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
