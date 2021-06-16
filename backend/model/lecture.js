@@ -28,5 +28,5 @@ module.exports = {
         const sql = `delete from Lesson where lessonID = "${lecid}";` 
         const result = await db.load(sql);
         return result;
-    },
+    }
 };

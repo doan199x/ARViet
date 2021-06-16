@@ -20,7 +20,7 @@ router.post("/new", async (req, res) => {
     const result = await lectureModel.new(req.body.userid, req.body.lecname, req.body.description);
     let noImageURL = config.baseURL + "/upload/marker/no-image.png"
     const newMarker = await markerModel.addMarker(result.insertId, noImageURL);
-    const newInitAction = await actionModel.add(newMarker.insertId,"Khởi tạo");
+    const newInitAction = await actionModel.add(newMarker.insertId, "Khởi tạo");
     const returnValue = await lectureModel.getByID(result.insertId);
     res.send(returnValue);
   }
@@ -37,14 +37,23 @@ router.post("/marker", async (req, res) => {
     res.send(error);
   }
 });
-  router.post("/delete", async (req, res) => {
-    try {
-      const result = await lectureModel.deleteLecture(req.body.lecid);
-        res.send(result);
-      }
-       catch (error) {
-      res.send(error);
-    }
-  });
+router.post("/delete", async (req, res) => {
+  try {
+    const result = await lectureModel.deleteLecture(req.body.lecid);
+    res.send(result);
+  }
+  catch (error) {
+    res.send(error);
+  }
+});
+router.post("/name", async (req, res) => {
+  try {
+    const result = await lectureModel.getByID(req.body.lessonID);
+    res.send(result);
+  }
+  catch (error) {
+    res.send(error);
+  }
+});
 
 module.exports = router;

@@ -28,6 +28,7 @@ import SetRotation from "./SetRotation/SetRotation"
 import FormVideo from "./FormVideo/FormVideo"
 import ButtonText from "./ButtonText/ButtonText"
 import FormAudio from "./FormAudio/FormAudio"
+import LessonName from "./LessonName/LessonName"
 import Guide from "./Guide/Guide"
 import { ConfigURL } from "../../../config/config"
 import { toast } from "react-toastify";
@@ -141,10 +142,14 @@ export default function Create() {
   let isPlayAnimation = false;
   let animationArray = [];
   let scene = new THREE.Scene();
+  let lessonName = null;
   //state
   const [markerID, setMarkerID] = useState(null);
   const [currentActionID, setCurrentActionID] = useState(null);
   useEffect(async () => {
+    await productAPI.getLessonName(lessonID).then(data => {
+      lessonName = data.data[0].name;
+    })
     if (markerID == null) {
       console.log("load null");
       await productAPI.getMarkerByLessonID(lessonID).then(data => {
@@ -153,7 +158,6 @@ export default function Create() {
         setMarkerID(data.data[0].markerID);
       })
     } else {
-      console.log(markerID);
       let sceneRender = document.getElementById("sceneRender");
       sceneRender.innerHTML = ""
       sceneRender.appendChild(renderer.domElement);
@@ -258,9 +262,6 @@ export default function Create() {
           }
           currentSceneMarkerID = marker.id;
           scene.add(marker);
-          // show ti le marker
-          let markerScale = document.getElementById('markerScale');
-          markerScale.value = data.data[0].scale;
         }
       });
     }
@@ -320,6 +321,24 @@ export default function Create() {
           gltf.scene,
           "dblclick",
           function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
             currentID = gltf.scene.id;
             transformControls.detach();
             transformControls.attach(gltf.scene);
@@ -370,6 +389,24 @@ export default function Create() {
         imageTexture,
         "dblclick",
         function (event) {
+          if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            if (currentObject.config !== undefined) {
+              document.getElementById("fixButton").style.display = "none"
+            }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none";
+              let video = scene.getObjectById(currentID).video;
+              video.pause();
+            }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none";
+              let audio = scene.getObjectById(currentID).audio;
+              audio.pause();
+              let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+              activeAnimation.paused = true;
+            }
+          }
           currentID = imageTexture.id;
           transformControls.detach();
           transformControls.attach(imageTexture);
@@ -445,6 +482,24 @@ export default function Create() {
       textTexture,
       "dblclick",
       function (event) {
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          if (currentObject.config !== undefined) {
+            document.getElementById("fixButton").style.display = "none"
+          }
+          if (currentObject.video !== undefined) {
+            document.getElementById("formVideo").style.display = "none";
+            let video = scene.getObjectById(currentID).video;
+            video.pause();
+          }
+          if (currentObject.audio !== undefined) {
+            document.getElementById("formAudio").style.display = "none";
+            let audio = scene.getObjectById(currentID).audio;
+            audio.pause();
+            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+            activeAnimation.paused = true;
+          }
+        }
         currentID = textTexture.id;
         transformControls.detach();
         transformControls.attach(textTexture);
@@ -479,6 +534,24 @@ export default function Create() {
       videoMesh,
       "dblclick",
       function (event) {
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          if (currentObject.config !== undefined) {
+            document.getElementById("fixButton").style.display = "none"
+          }
+          if (currentObject.video !== undefined) {
+            document.getElementById("formVideo").style.display = "none";
+            let video = scene.getObjectById(currentID).video;
+            video.pause();
+          }
+          if (currentObject.audio !== undefined) {
+            document.getElementById("formAudio").style.display = "none";
+            let audio = scene.getObjectById(currentID).audio;
+            audio.pause();
+            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+            activeAnimation.paused = true;
+          }
+        }
         currentID = videoMesh.id;
         transformControls.detach();
         transformControls.attach(videoMesh);
@@ -526,6 +599,24 @@ export default function Create() {
           gltf.scene,
           "dblclick",
           function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
             currentID = gltf.scene.id;
             transformControls.detach();
             transformControls.attach(gltf.scene);
@@ -656,6 +747,24 @@ export default function Create() {
           gltf.scene,
           "dblclick",
           function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
             currentID = gltf.scene.id;
             transformControls.detach();
             transformControls.attach(gltf.scene);
@@ -706,6 +815,24 @@ export default function Create() {
         imageTexture,
         "dblclick",
         function (event) {
+          if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            if (currentObject.config !== undefined) {
+              document.getElementById("fixButton").style.display = "none"
+            }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none";
+              let video = scene.getObjectById(currentID).video;
+              video.pause();
+            }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none";
+              let audio = scene.getObjectById(currentID).audio;
+              audio.pause();
+              let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+              activeAnimation.paused = true;
+            }
+          }
           currentID = imageTexture.id;
           transformControls.detach();
           transformControls.attach(imageTexture);
@@ -775,6 +902,24 @@ export default function Create() {
           textTexture,
           "dblclick",
           function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
             currentID = textTexture.id;
             transformControls.detach();
             transformControls.attach(textTexture);
@@ -823,6 +968,24 @@ export default function Create() {
       videoMesh,
       "dblclick",
       function (event) {
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          if (currentObject.config !== undefined) {
+            document.getElementById("fixButton").style.display = "none"
+          }
+          if (currentObject.video !== undefined) {
+            document.getElementById("formVideo").style.display = "none";
+            let video = scene.getObjectById(currentID).video;
+            video.pause();
+          }
+          if (currentObject.audio !== undefined) {
+            document.getElementById("formAudio").style.display = "none";
+            let audio = scene.getObjectById(currentID).audio;
+            audio.pause();
+            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+            activeAnimation.paused = true;
+          }
+        }
         currentID = videoMesh.id;
         transformControls.detach();
         transformControls.attach(videoMesh);
@@ -868,6 +1031,24 @@ export default function Create() {
           gltf.scene,
           "dblclick",
           function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
             currentID = gltf.scene.id;
             transformControls.detach();
             transformControls.attach(gltf.scene);
@@ -1009,7 +1190,6 @@ export default function Create() {
               document.getElementById("formAudio").style.display = "none";
               let audio = scene.getObjectById(currentID).audio;
               audio.pause();
-
             }
             transformControls.detach();
             scene.remove(currentObject);
@@ -1242,22 +1422,20 @@ export default function Create() {
   function hideFixButton() {
     document.getElementById("fixButton").style.display = "none"
   }
-  function test() {
-    let audio = new Audio("https://testar11.herokuapp.com/audio/test.mp3");
-    audio.play();
-  }
   function showColorTextPicker() {
     document.getElementById("colorTextPicker").style.display = "block";
   }
   return (
     <div>
-      {/* <Button onClick={() => test()}>Test</Button> */}
+      <div>
+        <LessonName lessonID={lessonID}></LessonName>
+      </div>
       <div className={classes.grid}>
         <div className={classes.column2}>
           <div>
-            {markerID ? ( <div style = {{marginLeft: '10%'}}>
-              <MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID} 
-              cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker}></MarkerList>
+            {markerID ? (<div style={{ marginLeft: '10%' }}>
+              <MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID}
+                cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker}></MarkerList>
 
             </div>
             ) : (<div></div>)}
@@ -1273,12 +1451,12 @@ export default function Create() {
             <FormAudio playAudio={playAudio} pauseAudio={pauseAudio} restartAudio={restartAudio} currentActionID={currentActionID}></FormAudio>
           </div>
           <div
-            style={{ display: "flex", justifyContent: "center", marginTop: '5%'}}
+            style={{ display: "flex", justifyContent: "center", marginTop: '5%' }}
             id="form-edit-3d"
           >
             <Button
               color="secondary"
-              className = {classes.btn}
+              className={classes.btn}
               onClick={() => saveAction()}
             >
               Lưu hành động
@@ -1291,16 +1469,6 @@ export default function Create() {
           </div>
           <div>
             <ActionList loadARContentByActionID={loadARContentByActionID} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
-          </div>
-          <div className={classes.xline}>
-            <Typography>Tỉ lệ: </Typography>
-            <input
-              id="markerScale"
-              type="number"
-              min="0"
-              className={classes.input2}
-              onBlur={() => setMarkerScale()}
-            ></input>
           </div>
           <div style={{ marginTop: "5%" }}>
             <Typography className={classes.title}>2. Nội dung AR </Typography>
@@ -1324,7 +1492,7 @@ export default function Create() {
           <div className={classes.inline}>
             <Typography>Font chữ: </Typography>
             <select className={classes.input2} id="font">
-            <option value="arial">Arial</option>
+              <option value="arial">Arial</option>
               {/* <option value="timenewromans">Time new romans</option> */}
             </select>
           </div>

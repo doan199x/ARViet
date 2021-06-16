@@ -139,7 +139,6 @@ export default function Lecture(data) {
         history.push("/");
         toast.info('Đã xoá thành công!');
         setOpen(false);
-        
       })
       .catch((error) => {
         toast.error('Đã gặp lỗi. Vui lòng thử lại!')
