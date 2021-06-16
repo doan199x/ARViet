@@ -191,7 +191,7 @@ export default function Create() {
   scene.add(gridXZ);
 
   //add light
-  const light = new THREE.AmbientLight(0xffffff, 1); // soft white light
+  const light = new THREE.AmbientLight(0xffffff, 1.15); // soft white light
   scene.add(light);
 
   // add camera
@@ -364,7 +364,7 @@ export default function Create() {
       var geometry = new THREE.PlaneGeometry(img.width * px2m, img.height * px2m);
       // combine our image geometry and material into a mesh
       var imageTexture = new THREE.Mesh(geometry, material);
-      imageTexture.position.set(-0.12, 0.12, -0.12);
+      imageTexture.position.set(-0.06, 0.06, -0.06);
       scene.add(imageTexture);
       domEvents.addEventListener(
         imageTexture,
@@ -434,7 +434,7 @@ export default function Create() {
     var textTexture = new THREE.Mesh(geometry, material);
     texture.redraw();
     scene.add(textTexture);
-    textTexture.position.set(0.12, 0.12, -0.12);
+    textTexture.position.set(0.06, 0.06, -0.06);
     textObject.actionID = currentActionID;
     productAPI.saveText(textObject, textUpdatedContentID).then((data) => {
       textTexture.contentID = data.data.contentID;
@@ -987,7 +987,30 @@ export default function Create() {
           break;
         case "Delete":
           if (currentID != 0) {
+            document.getElementById("xPosition").disabled = true;
+            document.getElementById("yPosition").disabled = true;
+            document.getElementById("zPosition").disabled = true;
+            document.getElementById("xScale").disabled = true;
+            document.getElementById("yScale").disabled = true;
+            document.getElementById("zScale").disabled = true;
+            document.getElementById("xRotation").disabled = true;
+            document.getElementById("yRotation").disabled = true;
+            document.getElementById("zRotation").disabled = true;
             let currentObject = scene.getObjectById(currentID);
+            if (currentObject.config !== undefined) {
+              document.getElementById("fixButton").style.display = "none"
+            }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none";
+              let video = scene.getObjectById(currentID).video;
+              video.pause();
+            }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none";
+              let audio = scene.getObjectById(currentID).audio;
+              audio.pause();
+
+            }
             transformControls.detach();
             scene.remove(currentObject);
             scene.remove(transformControls);
@@ -1292,16 +1315,17 @@ export default function Create() {
             <Typography>Nội dung: </Typography>
             <TextareaAutosize
               className={classes.input2}
+              rowsMin={5}
               aria-label="empty textarea"
-              placeholder="Tối đa 200 kí tự"
+              placeholder="Mỗi dòng tối đa 70 kí tự"
               id="text"
             ></TextareaAutosize>
           </div>
           <div className={classes.inline}>
             <Typography>Font chữ: </Typography>
             <select className={classes.input2} id="font">
-              <option value="timenewromans">Time new romans</option>
-              <option value="arial">Arial</option>
+            <option value="arial">Arial</option>
+              {/* <option value="timenewromans">Time new romans</option> */}
             </select>
           </div>
           <div className={classes.inline}>

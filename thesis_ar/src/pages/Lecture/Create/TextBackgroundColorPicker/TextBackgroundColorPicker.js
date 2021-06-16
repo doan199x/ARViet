@@ -42,7 +42,7 @@ export default function TextBackgroundColorPicker(props) {
     }
     return (
         <div onMouseLeave={() => hideColorBackgroundPicker()} className={classes.inline}>
-            <Typography>Màu chữ: </Typography>
+            <Typography>Màu nền: </Typography>
             <input value={backgroundColor.hex || '#000000'} autoComplete="off" onClick={() => showColorBackgroundPicker()} className={classes.input2} id="backgroundColor" type="text"></input>
             <div id="colorBackgroundPicker" style={{ display: "none" }}>
                 <ChromePicker color={backgroundColor}

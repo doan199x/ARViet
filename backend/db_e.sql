@@ -120,3 +120,6 @@ select* from Marker;
 select* from Action;
 select* from ARContent;
 select* from TextARContent;
+
+
+select* from Action;
