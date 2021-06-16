@@ -27,7 +27,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 const useStyles = makeStyles((theme) => ({
   btnline: {
     marginTop: "10px",
-    width: '80%',
+    width: '90%',
     display: "grid",
     gridTemplateColumns: "70% 30%",
   },
@@ -139,7 +139,7 @@ export default function ActionList(props) {
   function addAction() {
     let actionName = document.getElementById("actionName").value;
     if (actionName.length == 0) {
-      alert("Trường này không được để trống");
+      toast.error("Vui lòng nhập tên hành động!");
     } else {
       productAPI.addAction(actionName, props.markerID).then((data) => {
         let allAction = data.data;
@@ -199,15 +199,8 @@ export default function ActionList(props) {
           style={{ minWidth: "28px", marginLeft: "10%" }}
           color="primary" variant="outlined"><FontAwesomeIcon icon={faPlus} size="lg" color="#3F51B5" /></Button>
       </div>
-      <div style={{ marginTop: "3%" }}>
-        <Typography variant="body2">Danh sách hành động:</Typography>
-        <Button onClick={() => deleteAction()}
-          style={{ minWidth: "28px" }}
-          color="primary" variant="outlined"><FontAwesomeIcon icon={faTrash} size="lg" color="#3F51B5" /></Button>
-        <Button onClick={() => changeAction()}
-          style={{ minWidth: "28px" }}
-          color="primary" variant="outlined"><FontAwesomeIcon icon={faEdit} size="lg" color="#3F51B5" /></Button>
-      </div>
+     <div>
+     <Typography variant="body2" style = {{marginTop: '5%'}}>Danh sách hành động của marker:</Typography>
       <div style={{ borderRadius: "5px", borderStyle: "dotted", borderWidth: "1px", height: "120px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
         {actionList ? (
           <div className={classes.data}>
@@ -220,6 +213,16 @@ export default function ActionList(props) {
         ) : (
           <p></p>
         )}
+      </div>
+     </div>
+      <div style={{ marginTop: "3%", display: 'flex', justifyContent: 'center' }}>
+  
+        <Button onClick={() => deleteAction()}
+          style={{ marginLeft: '-7%', minWidth: "28px" }}
+          color="secondary" variant="outlined"> Xoá &nbsp; <FontAwesomeIcon icon={faTrash} size="lg" color="#f23276" /></Button>
+        <Button onClick={() => changeAction()}
+          style={{ minWidth: "28px", marginLeft: '5%' }}
+          color="primary" variant="outlined"> Sửa &nbsp; <FontAwesomeIcon icon={faEdit} size="lg" color="#3F51B5" /></Button>
       </div>
       <div>
         {open ? (<div>
@@ -258,7 +261,7 @@ export default function ActionList(props) {
             aria-labelledby="alert-dialog-slide-title"
             aria-describedby="alert-dialog-slide-description"
           >
-            <DialogTitle id="alert-dialog-slide-title">{`Nhập tên hành động`}</DialogTitle>
+            <DialogTitle id="alert-dialog-slide-title">{`Nhập tên hành động muốn sửa`}</DialogTitle>
             <DialogContent>
               <TextField
                 autoFocus

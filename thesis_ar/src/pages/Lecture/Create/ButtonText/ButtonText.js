@@ -15,6 +15,7 @@ const useStyles = makeStyles((theme) => ({
         display: "grid",
         gridTemplateColumns: "50% 50%",
         justifyContent: "center",
+        alignItems: 'center',
         marginTop: "5%",
     },
 }));
@@ -52,7 +53,7 @@ export default function ButtonText(props) {
                 onClick={() => update2DText()}
             >
                 <FontAwesomeIcon
-                    icon={faEdit} size="lg" color="#F50057" />
+                    icon={faEdit} size="lg" color="#3F51B5" />
             </Button>
         </div>
     );
