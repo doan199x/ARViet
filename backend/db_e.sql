@@ -2,7 +2,7 @@ drop database if exists BaiGiangAR;
 create database BaiGiangAR;
 use BaiGiangAR;
 SET SQL_SAFE_UPDATES = 0;
-/* ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123@'; */
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456yugi';
 create table Student(
 	studentID int not null auto_increment,
     name varchar(50),
@@ -104,8 +104,6 @@ alter table TextARContent add constraint FK_TextARContent_ARContent foreign key 
 
 alter table Interaction add constraint FK_Interaction_Action foreign key (actionID) references Action(actionID) ON DELETE CASCADE;
 */
-/*root*/
-/* ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123@'; */
 
 insert into Teacher(name,iNumber,email,password) values('Nguyễn Văn B','123456789','duy@gmail.com','123456');
 insert into Teacher(name,iNumber,email,password) values('Nguyễn Văn C','112345547','anansss1s23@gmail.com','123456');
