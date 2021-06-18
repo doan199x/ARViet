@@ -62,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
   },
   inline2: {
     display: "grid",
-    gridTemplateColumns: "36% 8% 57%",
+    gridTemplateColumns: "40% 10% 50%",
     justifyContent: "center",
     alignItems: 'center',
     marginTop: "5%",
@@ -147,9 +147,6 @@ export default function Create() {
   const [markerID, setMarkerID] = useState(null);
   const [currentActionID, setCurrentActionID] = useState(null);
   useEffect(async () => {
-    await productAPI.getLessonName(lessonID).then(data => {
-      lessonName = data.data[0].name;
-    })
     if (markerID == null) {
       console.log("load null");
       await productAPI.getMarkerByLessonID(lessonID).then(data => {
@@ -191,7 +188,7 @@ export default function Create() {
 
   //grid helper:
   var gridXZ = new THREE.GridHelper(1, 100, 0x000000, 0x000000);
-  gridXZ.position.y = 0;
+  gridXZ.position.y = 0.0002;
   scene.add(gridXZ);
 
   //add light
@@ -1517,7 +1514,7 @@ export default function Create() {
           </div>
           <div className={classes.inline2}>
             <Typography>Trong suốt: </Typography>
-            <div style={{ marginTop: "-10px", marginLeft: "1%" }}>
+            <div style={{ marginTop: "-10px", marginLeft: "3%" }}>
               <input type="checkbox" id="isTransparent"></input>
             </div>
             <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
