@@ -13,8 +13,6 @@ import { useHistory } from "react-router";
 import { productAPI } from "../../config/productAPI";
 import { UserContext } from "../../context/UserContext";
 import Lecture from "./Lecture";
-import nodata from "../../img/nodata.jpg";
-import ar from "../../img/add.png";
 import "./style.scss";
 import New from "./New/New";
 import { Link } from "react-router-dom";
@@ -39,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    backgroundImage:  `url(${background})`,
+   backgroundImage:  `url(${background})`,
     paddingBottom: '5%'
   },
   center: {
@@ -89,7 +87,7 @@ export default function LectureList() {
       <div className={classes.lectures}>
         <div className={classes.line}>
          <div className = {classes.title}>
-         <h3 style={{ textAlign: "center", color: "#273044" }}>
+         <h3 style={{ textAlign: "center", color: "#2d4786" }}>
             {" "}
             DANH SÁCH BÀI GIẢNG
           </h3>

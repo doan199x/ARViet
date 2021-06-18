@@ -15,6 +15,7 @@ import { useHistory, useParams } from "react-router";
 import { productAPI } from "../../../../config/productAPI/";
 import Action from "./Action";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import Add from '@material-ui/icons/Add';
 import { faTrash, faPause, faPlay, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
 import Slide from '@material-ui/core/Slide';
 import { toast } from "react-toastify";
@@ -23,6 +24,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
 const useStyles = makeStyles((theme) => ({
   btnline: {
@@ -197,7 +199,7 @@ export default function ActionList(props) {
         <input placeholder="Tên hành động" type="text" id="actionName"></input>
         <Button onClick={() => addAction()}
           style={{ minWidth: "28px", marginLeft: "10%" }}
-          color="primary" variant="outlined"><FontAwesomeIcon icon={faPlus} size="lg" color="#3F51B5" /></Button>
+          color="primary" variant="outlined"><Add/></Button>
       </div>
      <div>
      <Typography variant="body2" style = {{marginTop: '5%'}}>Danh sách hành động của marker:</Typography>
@@ -219,10 +221,10 @@ export default function ActionList(props) {
   
         <Button onClick={() => deleteAction()}
           style={{ marginLeft: '-7%', minWidth: "28px" }}
-          color="secondary" variant="outlined"> Xoá &nbsp; <FontAwesomeIcon icon={faTrash} size="lg" color="#f23276" /></Button>
+          color="secondary" variant="outlined"><DeleteForeverIcon color="#f23276" /> Xoá</Button>
         <Button onClick={() => changeAction()}
           style={{ minWidth: "28px", marginLeft: '5%' }}
-          color="primary" variant="outlined"> Sửa &nbsp; <FontAwesomeIcon icon={faEdit} size="lg" color="#3F51B5" /></Button>
+          color="primary" variant="outlined"><FontAwesomeIcon icon={faEdit} size="lg" color="#3F51B5" /> &nbsp; Sửa</Button>
       </div>
       <div>
         {open ? (<div>

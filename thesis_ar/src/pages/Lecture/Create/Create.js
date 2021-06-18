@@ -40,8 +40,12 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
+import background from '../../../img/43.jpg'
 //styles
 const useStyles = makeStyles((theme) => ({
+  // root: {
+  //   backgroundImage:  `url(${background})`,
+  // },
   grid: {
     display: "grid",
     gridTemplateColumns: "70% 15% 15%",
@@ -62,9 +66,9 @@ const useStyles = makeStyles((theme) => ({
   },
   inline2: {
     display: "grid",
-    gridTemplateColumns: "40% 10% 50%",
-    justifyContent: "center",
-    alignItems: 'center',
+    gridTemplateColumns: "50% 10% 40%",
+    //justifyContent: "center",
+    // alignItems: 'center',
     marginTop: "5%",
 
   },
@@ -116,7 +120,6 @@ const useStyles = makeStyles((theme) => ({
   },
   input2: {
     marginTop: "1%",
-    marginLeft: "5%",
   },
   title: {
     color: '#2763c5',
@@ -1423,14 +1426,14 @@ export default function Create() {
     document.getElementById("colorTextPicker").style.display = "block";
   }
   return (
-    <div>
+    <div className = {classes.root}>
       <div>
         <LessonName lessonID={lessonID}></LessonName>
       </div>
       <div className={classes.grid}>
         <div className={classes.column2}>
           <div>
-            {markerID ? (<div style={{ marginLeft: '10%' }}>
+            {markerID ? (<div>
               <MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID}
                 cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker}></MarkerList>
 
@@ -1452,7 +1455,7 @@ export default function Create() {
             id="form-edit-3d"
           >
             <Button
-              color="secondary"
+              color="primary"
               className={classes.btn}
               onClick={() => saveAction()}
             >
@@ -1476,11 +1479,13 @@ export default function Create() {
         </div>
         <div className={classes.column3}>
           <Typography className={classes.title}>3. Thêm văn bản</Typography>
-          <div className={classes.inline}>
-            <Typography>Nội dung: </Typography>
+          <div>
+                      {/* <div className={classes.inline}> */}
+            <Typography>Nội dung phải ít hơn 70 ký tự: </Typography>
             <TextareaAutosize
               className={classes.input2}
-              rowsMin={5}
+              rowsMin={4}
+              style={{width: '220px'}}
               aria-label="empty textarea"
               placeholder="Mỗi dòng tối đa 70 kí tự"
               id="text"
@@ -1512,10 +1517,12 @@ export default function Create() {
           <div>
             <TextBackgroundColorPicker></TextBackgroundColorPicker>
           </div>
-          <div className={classes.inline2}>
-            <Typography>Trong suốt: </Typography>
-            <div style={{ marginTop: "-10px", marginLeft: "3%" }}>
+          <div>
+            <div  className={classes.inline2}>
+            <Typography> Không nền: </Typography>
+            <div style={{ marginTop: "-15px", marginLeft: "3%" }}>
               <input type="checkbox" id="isTransparent"></input>
+            </div>
             </div>
             <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
           </div>

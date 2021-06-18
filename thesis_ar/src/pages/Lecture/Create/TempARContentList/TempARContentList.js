@@ -77,15 +77,16 @@ export default function TempARContentList(props) {
                     className={classes.input}
                     id="uploadFileArContent"
                     type="file"
+                    onChange={() => uploadArContentTemp()}
                 ></input>
             </div>
             <Typography color='secondary' variant='body2'>
                 (.glb, .jpg, .png, .mp4, .mp3)
             </Typography>
             <div style = {{display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: '5%'}}>
-            <Button onClick={() => uploadArContentTemp()}
+            {/* <Button onClick={() => uploadArContentTemp()}
                 style={{ minWidth: "25px" }}
-                color="primary" variant="outlined"> Thêm &nbsp; <FontAwesomeIcon icon={faPlus} size="lg" color="#3F51B5" /></Button>
+                color="primary" variant="outlined"> Thêm &nbsp; <FontAwesomeIcon icon={faPlus} size="lg" color="#3F51B5" /></Button> */}
             </div>
            
             <div style={{ marginTop: "10px" }}>

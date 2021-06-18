@@ -10,19 +10,19 @@ import {
 } from "@material-ui/core";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPause, faPlay, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
+import AddIcon from '@material-ui/icons/Add';
 
 const useStyles = makeStyles((theme) => ({
     inline3: {
-        display: "grid",
-        gridTemplateColumns: "50% 50%",
-        justifyContent: "center",
-        alignItems: 'center',
-        marginTop: "5%",
+        display: "flex",
+        flexDirection: "row",
+        marginTop: '5%',
+        alignItems: "center",
+        justifyContent: 'center'
     },
     btn: {
         alignItems: 'center',
-        height: '30px',
-        maxWidth: '120px'
+        marginLeft: '5%'
     },
 }));
 
@@ -47,11 +47,12 @@ export default function ButtonText(props) {
             <Button
                 variant="outlined"
                 color="primary"
-                onClick={() => show2DText()}
                 className = {classes.btn}
+                onClick={() => show2DText()}
             >
-                <FontAwesomeIcon
-                    icon={faPlus} size="lg" color="#3F51B5" />
+                    <AddIcon/>
+               Thêm
+           
             </Button>
             <Button
                 id="fixButton" style={{ display: "none" }}
@@ -64,7 +65,9 @@ export default function ButtonText(props) {
                     icon={faEdit} size="lg" color="#3F51B5"
                     style = {{marginTop: '-5%'}} />
                      */}
-                     <EditIcon />
+                          <FontAwesomeIcon icon={faEdit} size="lg" color="#3F51B5" />
+                  Sửa &nbsp;
+             
             </Button>
         </div>
     );

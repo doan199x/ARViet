@@ -12,12 +12,12 @@ import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import ShareIcon from '@material-ui/icons/Share';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import logourl from "../../img/lecture.jpg";
+import logourl from "../../img/ar.jpg";
 import { useHistory } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -182,7 +182,7 @@ export default function Lecture(data) {
           </Avatar>
         }
         titleTypographyProps={{variant:'h5',fontWeight: 'bold'}}
-        title={lecture.name}
+        title= {lecture.name}
       />
       <CardMedia
         className={classes.media}
@@ -200,7 +200,7 @@ export default function Lecture(data) {
       </Link>
       <CardActions disableSpacing>
         <IconButton aria-label="add to favorites">
-          <DeleteOutlineIcon
+          <DeleteForeverIcon
           style = {{color: '#ff542b'}}
           onClick={handleClickOpen}/>
         </IconButton>

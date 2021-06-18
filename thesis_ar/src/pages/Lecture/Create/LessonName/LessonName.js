@@ -6,9 +6,7 @@ import { Button, Typography } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   title: {
-    color: "#2763c5",
-    fontWeight: "bold",
-    display: 'flex',
+   // display: 'flex',
     justifyContent: 'center',
   },
 }));
@@ -26,9 +24,9 @@ export default function ButtonText(props) {
     <div>
       {lessonName ? (
         <div className={classes.title}>
-          <Typography variant="h4" >
-            BÀI GIẢNG {lessonName}{" "}
-          </Typography>
+           <h4 style={{ textAlign: "center", color: "#2d4786" }}>
+            BÀI GIẢNG {lessonName}
+          </h4>
         </div>
       ) : (
         <div></div>
