@@ -1,11 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Component } from "react";
 import * as THREE from "three";
-import { Color, PixelFormat, Vector3 } from "three";
+import { AnimationMixer, Color, PixelFormat, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { DragControls } from "three/examples/jsm/controls/DragControls";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader"
 import THREEx from "./threex.domevents/threex.domevents";
 import TextSprite from "@seregpie/three.text-sprite";
 import TextTexture from "@seregpie/three.text-texture";
@@ -14,6 +15,23 @@ import { productAPI } from "../../../config/productAPI";
 import e from "cors";
 import { API } from "../../../constant/API";
 import { useParams } from "react-router";
+import ActionList from "./ActionList/ActionList"
+import MarkerList from "./MarkerList/MarkerList"
+import TempARContentList from "./TempARContentList/TempARContentList"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPause, faPlay, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
+import TextColorPicker from "./TextColorPicker/TextColorPicker"
+import TextBackgroundColorPicker from "./TextBackgroundColorPicker/TextBackgroundColorPicker"
+import SetCoordinate from "./SetCoordinate/SetCoordinate"
+import SetScale from "./SetScale/SetScale"
+import SetRotation from "./SetRotation/SetRotation"
+import FormVideo from "./FormVideo/FormVideo"
+import ButtonText from "./ButtonText/ButtonText"
+import FormAudio from "./FormAudio/FormAudio"
+import LessonName from "./LessonName/LessonName"
+import Guide from "./Guide/Guide"
+import { ConfigURL } from "../../../config/config"
+import { toast } from "react-toastify";
 import {
   Button,
   Input,
@@ -22,8 +40,6 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-
-const axios = require("axios");
 //styles
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -35,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
 
   },
   column2: {
-    marginTop: "5%",
+    marginTop: "0%",
   },
   column3: {},
   inline: {
@@ -43,6 +59,21 @@ const useStyles = makeStyles((theme) => ({
     gridTemplateColumns: "35% 65%",
     justifyContent: "",
     marginTop: "5%",
+  },
+  inline2: {
+    display: "grid",
+    gridTemplateColumns: "36% 8% 57%",
+    justifyContent: "center",
+    alignItems: 'center',
+    marginTop: "5%",
+
+  },
+  inline3: {
+    display: "grid",
+    gridTemplateColumns: "50% 50%",
+    justifyContent: "",
+    marginTop: "5%",
+    width: "50%"
   },
   line: {
     marginTop: "5%",
@@ -54,12 +85,30 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "5%",
     width: '80%',
     display: "grid",
-    gridTemplateColumns: "20% 80%",
+    gridTemplateColumns: "70% 30%",
   },
-  btnline: {
+  inputLine: {
+    marginTop: "2%",
     width: '80%',
     display: "grid",
-    gridTemplateColumns: "80% 10%",
+    gridTemplateColumns: "100%",
+  },
+  btnline: {
+    marginTop: "10px",
+    width: '80%',
+    display: "grid",
+    gridTemplateColumns: "70% 30%",
+  },
+  btn: {
+    borderRadius: "30px",
+    height: "50px",
+    width: "150px",
+    backgroundColor: "#f23276",
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#e4e6e8',
+      color: 'black',
+    }
   },
   input: {
     marginTop: "5%",
@@ -80,22 +129,61 @@ export default function Create() {
   const classes = useStyles();
   //params
   const param = useParams();
-
   const lessonID = param.lecid;
-  const markerID = param.markerid;
   let camera, renderer;
   // let arrayTextObject = [];
-
   let currentID = 0;
   let currentSceneMarkerID = 0;
-  let currentActionID = 0;
   let currentText = null;
   let previousTextObjectID = 0;
   const px2m = 0.0002645833;
-
+  let activeAction;
+  let mixers = [];
+  let isPlayAnimation = false;
+  let animationArray = [];
   let scene = new THREE.Scene();
-  // let maHanhDongHienTai = 0;
+  let lessonName = null;
+  //state
+  const [markerID, setMarkerID] = useState(null);
+  const [currentActionID, setCurrentActionID] = useState(null);
+  useEffect(async () => {
+    await productAPI.getLessonName(lessonID).then(data => {
+      lessonName = data.data[0].name;
+    })
+    if (markerID == null) {
+      console.log("load null");
+      await productAPI.getMarkerByLessonID(lessonID).then(data => {
+        let sceneRender = document.getElementById("sceneRender");
+        sceneRender.appendChild(renderer.domElement);
+        setMarkerID(data.data[0].markerID);
+      })
+    } else {
+      let sceneRender = document.getElementById("sceneRender");
+      sceneRender.innerHTML = ""
+      sceneRender.appendChild(renderer.domElement);
+      setEventTransform();
+      showMarker();
+      getCurrentActionID(markerID);
+    }
+  }, [markerID])
 
+  useEffect(async () => {
+    let sceneRender = document.getElementById("sceneRender");
+    sceneRender.innerHTML = ""
+    sceneRender.appendChild(renderer.domElement);
+    setEventTransform();
+    showMarker();
+    loadARContentByActionID(currentActionID);
+  }, [currentActionID])
+
+
+  //callback
+  let cbsetCurrentMarkerID = (data) => {
+    setMarkerID(data);
+  }
+  let cbsetCurrentActionID = (data) => {
+    setCurrentActionID(data);
+  }
   //add axes
   var axesHelper = new THREE.AxesHelper(200);
   scene.background = new THREE.Color(0x838784);
@@ -107,7 +195,7 @@ export default function Create() {
   scene.add(gridXZ);
 
   //add light
-  const light = new THREE.AmbientLight(0xffffff); // soft white light
+  const light = new THREE.AmbientLight(0xffffff, 1.15); // soft white light
   scene.add(light);
 
   // add camera
@@ -117,22 +205,16 @@ export default function Create() {
     0.0001,
     200
   );
-  camera.position.set(0.1, 0.1, 0.1);
-
+  camera.position.set(0.2, 0.2, 0.2);
+  const clock = new THREE.Clock();
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  //renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
-  renderer.setAnimationLoop(animation);
-  function animation(time) {
-    renderer.render(scene, camera);
-  }
   // add domEvents
   let domEvents = new THREEx.DomEvents(camera, renderer.domElement);
   //orbit control
   const orbitControls = new OrbitControls(camera, renderer.domElement);
   orbitControls.screenSpacePanning = true;
   orbitControls.target.set(0, 0, 0);
-
   // transform control
   const transformControls = new TransformControls(camera, renderer.domElement);
   transformControls.addEventListener("dragging-changed", function (event) {
@@ -141,162 +223,129 @@ export default function Create() {
   transformControls.addEventListener("objectChange", function (event) {
     showFormEdit();
   });
-
+  animate();
   // window resize
   window.addEventListener("resize", onWindowResize, false);
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7);
-    animation();
+    renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
+    animate();
   }
-  useEffect(() => {
-    // init scene
-    let sceneRender = document.getElementById("sceneRender");
-    sceneRender.appendChild(renderer.domElement);
-    setEventTransform();
-    showMarker();
-    loadActionList();
-    getCurrentActionID();
-    loadTempARContentList();
-  })
-
-  //Upload marker
-  function uploadMarker() {
-    let markerFile = document.getElementById("uploadFileMarker").files[0];
-    let formData = new FormData();
-    formData.append("file", markerFile);
-    formData.append("markerID", markerID);
-    productAPI.uploadMarker(formData).then((data) => {
-      showMarker();
-    });
+  function animate() {
+    requestAnimationFrame(animate);
+    let time = clock.getDelta();
+    mixers.map(m => m.update(time));
+    render();
+  }
+  function render() {
+    renderer.render(scene, camera);
   }
   function showMarker() {
-    // get marker roi show ra.
-    productAPI.getMarker(markerID).then((data) => {
-      var img = new Image();
-      img.src = data.data[0].URL;
-      img.onload = function () {
-        var loader = new THREE.TextureLoader();
-        // Load an image file into a custom material
-        var material = new THREE.MeshLambertMaterial({
-          map: loader.load(data.data[0].URL)
-        });
-        var geometry = new THREE.PlaneGeometry(img.width * px2m, img.height * px2m);
-        // combine our image geometry and material into a mesh
-        var marker = new THREE.Mesh(geometry, material);
-        marker.rotation.set(degreeToRadian(-90), 0, 0);
-        if (currentSceneMarkerID != 0) {
-          scene.remove(scene.getObjectById(currentSceneMarkerID));
+    if (markerID != null) {
+      productAPI.getMarker(markerID).then((data) => {
+        var img = new Image();
+        img.src = data.data[0].URL;
+        let imgScale = data.data[0].scale;
+        img.onload = function () {
+          var loader = new THREE.TextureLoader();
+          // Load an image file into a custom material
+          var material = new THREE.MeshLambertMaterial({
+            map: loader.load(data.data[0].URL)
+          });
+          var geometry = new THREE.PlaneGeometry(img.width * px2m * imgScale, img.height * px2m * imgScale);
+          // combine our image geometry and material into a mesh
+          var marker = new THREE.Mesh(geometry, material);
+          marker.rotation.set(degreeToRadian(-90), 0, 0);
+          if (currentSceneMarkerID != 0) {
+            scene.remove(scene.getObjectById(currentSceneMarkerID));
+          }
+          currentSceneMarkerID = marker.id;
+          scene.add(marker);
         }
-        currentSceneMarkerID = marker.id;
-        scene.add(marker);
-
-        // show ti le marker
-        let markerScale = document.getElementById('markerScale');
-        markerScale.value = data.data[0].scale;
-      }
-    });
+      });
+    }
   }
   // Set Marker scale
   function setMarkerScale() {
-    let markerScale = document.getElementById("markerScale").value;
-    let marker = scene.getObjectById(currentSceneMarkerID);
-    marker.getObjectById(currentSceneMarkerID).scale.set(markerScale, markerScale, markerScale);
-  }
-  function loadActionList() {
-    productAPI.loadMarker(markerID).then((data) => {
-      let actionArr = data.data;
-      let actionList = document.getElementById("actionList");
-      actionList.innerHTML = "";
-      for (let i = 0; i < actionArr.length; i++) {
-        let li = document.createElement("li");
-        li.appendChild(document.createTextNode(actionArr[i].name));
-        let id = document.createAttribute("id");
-        id.value = actionArr[i].actionID + actionArr[i].name;
-        li.setAttributeNode(id);
-        actionList.appendChild(li);
-        document.getElementById(id.value).onclick = function () {
-          loadARContentByActionID(actionArr[i].actionID);
-        };
-      }
-    });
-  }
+    productAPI.getMarker(markerID).then((data) => {
+      let markerScale = document.getElementById("markerScale").value;
+      let currentMarkerScale = data.data[0].scale;
+      let markerID = data.data[0].markerID;
+      let realScale = markerScale / currentMarkerScale;
+      let marker = scene.getObjectById(currentSceneMarkerID);
+      marker.getObjectById(currentSceneMarkerID).scale.set(realScale, realScale, realScale);
+      productAPI.setMarkerScale(markerScale, markerID).then((data) => {
 
-  function getCurrentActionID() {
-    if (currentActionID == 0) {
-      // get id action khoi tao
-      productAPI.getMarkerID(markerID).then((data) => {
-        currentActionID = data.data[0].actionID;
-        loadObjectList();
-        loadARContentByActionID(currentActionID);
       })
-    }
+    })
+  }
+  function getCurrentActionID(currentMarkerID) {
+    productAPI.getMarkerID(currentMarkerID).then((data) => {
+      setCurrentActionID(data.data[0].actionID);
+    })
   }
 
   function addAction() {
-    let actionName = document.getElementById("actionName").value;
-    productAPI.addAction(actionName, markerID).then((data) => {
-      currentActionID = data.data.insertId;
-      loadActionList();
-    });
-  }
-
-  //Upload arContent temp
-  function uploadArContentTemp() {
-    let arContentFile = document.getElementById("uploadFileArContent").files[0];
-    let formData = new FormData();
-    formData.append("file", arContentFile);
-    formData.append("actionID", currentActionID);
-    productAPI.uploadArContentTemp(formData).then((data) => {
-      loadTempARContentList();
-    });
-  }
-
-  // Load danh sach noi dung da tai TempARContentList
-  function loadTempARContentList() {
-    let tempARContentList = document.getElementById("tempARContentList");
-    //get All
-    productAPI.getTempARContent(markerID).then((data) => {
-      let ARContent = data.data;
-      tempARContentList.innerHTML = "";
-      for (let i = 0; i < ARContent.length; i++) {
-        let li = document.createElement("li");
-        li.appendChild(document.createTextNode(ARContent[i].filename));
-        let id = document.createAttribute("id");
-        id.value = ARContent[i].filename + ARContent[i].contentID;
-        li.setAttributeNode(id);
-        tempARContentList.appendChild(li);
-        if (ARContent[i].URL[ARContent[i].URL.length - 1] == "b") {
-          document.getElementById(id.value).onclick = function () {
-            show3dModel(ARContent[i].URL, ARContent[i].contentID);
-          };
-        } else if (ARContent[i].URL[ARContent[i].URL.length - 1] == "g") {
-          document.getElementById(id.value).onclick = function () {
-            show2DImage(ARContent[i].URL, ARContent[i].contentID);
-          };
-        }
+    if (markerID != null) {
+      let actionName = document.getElementById("actionName").value;
+      if (actionName.length == 0) {
+        toast.error('Vui lòng nhập tên hành động muốn thêm!')
+      } else {
+        productAPI.addAction(actionName, markerID).then((data) => {
+          setCurrentActionID(data.data.insertId);
+        });
       }
-    });
+    }
   }
-
   // show 3D model
-  function show3dModel(URL, contentID) {
+  let show3DModel = (URL, contentID) => {
     const loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderConfig({ type: 'js' });
+    draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+    loader.setDRACOLoader(draco);
     loader.load(
       URL,
       function (gltf) {
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[gltf.animations.length - 1]);
+          let animationHere = mixer.clipAction(gltf.animations[gltf.animations.length - 1]);
+          animationHere.play();
+          // animationArray.push(animationHere);
+        }
         scene.add(gltf.scene);
         domEvents.addEventListener(
           gltf.scene,
           "dblclick",
           function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
             currentID = gltf.scene.id;
             transformControls.detach();
             transformControls.attach(gltf.scene);
             transformControls.setMode("translate");
             scene.add(transformControls);
             showFormEdit();
+            showGuide();
             // create new instance of this arcontent and set istemp = false;
           });
         productAPI
@@ -307,7 +356,6 @@ export default function Create() {
           .then((data) => {
             gltf.scene.contentID = data.data.contentID;
             gltf.scene.type = "3DModel";
-            addObjectList(data.data.filename, data.data.contentID);
           },
             false
           );
@@ -322,7 +370,7 @@ export default function Create() {
   }
 
   //Show 2D image
-  function show2DImage(URL, contentID) {
+  let show2DImage = (URL, contentID) => {
     var img = new Image();
     img.src = URL;
     img.onload = function () {
@@ -335,17 +383,37 @@ export default function Create() {
       var geometry = new THREE.PlaneGeometry(img.width * px2m, img.height * px2m);
       // combine our image geometry and material into a mesh
       var imageTexture = new THREE.Mesh(geometry, material);
+      imageTexture.position.set(-0.06, 0.06, -0.06);
       scene.add(imageTexture);
       domEvents.addEventListener(
         imageTexture,
         "dblclick",
         function (event) {
+          if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            if (currentObject.config !== undefined) {
+              document.getElementById("fixButton").style.display = "none"
+            }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none";
+              let video = scene.getObjectById(currentID).video;
+              video.pause();
+            }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none";
+              let audio = scene.getObjectById(currentID).audio;
+              audio.pause();
+              let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+              activeAnimation.paused = true;
+            }
+          }
           currentID = imageTexture.id;
           transformControls.detach();
           transformControls.attach(imageTexture);
           transformControls.setMode("translate");
           scene.add(transformControls);
           showFormEdit();
+          showGuide();
         },
         false
       );
@@ -358,7 +426,6 @@ export default function Create() {
         .then((data) => {
           imageTexture.contentID = data.data.contentID;
           imageTexture.type = "2DImage"
-          addObjectList(data.data.filename, data.data.contentID);
         });
     };
   }
@@ -404,29 +471,181 @@ export default function Create() {
     var textTexture = new THREE.Mesh(geometry, material);
     texture.redraw();
     scene.add(textTexture);
+    textTexture.position.set(0.06, 0.06, -0.06);
     textObject.actionID = currentActionID;
     productAPI.saveText(textObject, textUpdatedContentID).then((data) => {
       textTexture.contentID = data.data.contentID;
       textTexture.type = "2DText";
       textTexture.config = configTextture;
-      addObjectList(data.data.filename, data.data.contentID);
     });
     domEvents.addEventListener(
       textTexture,
       "dblclick",
       function (event) {
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          if (currentObject.config !== undefined) {
+            document.getElementById("fixButton").style.display = "none"
+          }
+          if (currentObject.video !== undefined) {
+            document.getElementById("formVideo").style.display = "none";
+            let video = scene.getObjectById(currentID).video;
+            video.pause();
+          }
+          if (currentObject.audio !== undefined) {
+            document.getElementById("formAudio").style.display = "none";
+            let audio = scene.getObjectById(currentID).audio;
+            audio.pause();
+            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+            activeAnimation.paused = true;
+          }
+        }
         currentID = textTexture.id;
         transformControls.detach();
         transformControls.attach(textTexture);
         transformControls.setMode("translate");
         scene.add(transformControls);
         showFormEdit();
+        showGuide();
         getFormTextContent();
         currentText = texture;
       },
       false
     );
     return textTexture.id;
+  }
+
+  let showVideo = (URL, contentID) => {
+    // Create video object
+    let video = document.createElement('video');
+    video.src = URL; // Set video address
+    video.setAttribute("crossorigin", "anonymous");
+    let videoTexture = new THREE.VideoTexture(video)
+    let videoGeometry = new THREE.PlaneGeometry(1920 * px2m, 1080 * px2m);
+    videoTexture.needsUpdate = true;
+    let videoMaterial = new THREE.MeshPhongMaterial({
+      side: THREE.DoubleSide,
+      map: videoTexture,
+    });
+    let videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+    videoMesh.video = video;
+    scene.add(videoMesh);
+    domEvents.addEventListener(
+      videoMesh,
+      "dblclick",
+      function (event) {
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          if (currentObject.config !== undefined) {
+            document.getElementById("fixButton").style.display = "none"
+          }
+          if (currentObject.video !== undefined) {
+            document.getElementById("formVideo").style.display = "none";
+            let video = scene.getObjectById(currentID).video;
+            video.pause();
+          }
+          if (currentObject.audio !== undefined) {
+            document.getElementById("formAudio").style.display = "none";
+            let audio = scene.getObjectById(currentID).audio;
+            audio.pause();
+            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+            activeAnimation.paused = true;
+          }
+        }
+        currentID = videoMesh.id;
+        transformControls.detach();
+        transformControls.attach(videoMesh);
+        transformControls.setMode("translate");
+        scene.add(transformControls);
+        showFormEdit();
+        showGuide();
+        showFormVideo();
+      },
+      false
+    );
+    // create new instance arcontent duoc chon
+    productAPI
+      .addNewInstanceARContent({
+        contentID: contentID,
+        actionID: currentActionID,
+      })
+      .then((data) => {
+        videoMesh.contentID = data.data.contentID;
+        videoMesh.type = "video"
+      });
+  }
+
+  // Show mp3
+  function showMp3(URL, contentID) {
+    const loader = new GLTFLoader();
+    let speakerModelURL = ConfigURL.serverURL + '/speaker/speaker.glb'
+    loader.load(
+      speakerModelURL,
+      function (gltf) {
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
+          // let animationHere = mixer.clipAction(gltf.animations[0]);
+          // animationHere.play();
+        }
+        let audio = new Audio(URL);
+        gltf.scene.audio = audio;
+        scene.add(gltf.scene);
+        gltf.scene.position.set(0.1, 0.1, -0.1);
+        gltf.scene.scale.set(0.015, 0.015, 0.015);
+        gltf.scene.rotation.set(0, degreeToRadian(-30), 0);
+        domEvents.addEventListener(
+          gltf.scene,
+          "dblclick",
+          function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
+            currentID = gltf.scene.id;
+            transformControls.detach();
+            transformControls.attach(gltf.scene);
+            transformControls.setMode("translate");
+            scene.add(transformControls);
+            showFormEdit();
+            showGuide();
+            showFormAudio();
+            // create new instance of this arcontent and set istemp = false;
+          });
+        productAPI
+          .addNewInstanceARContent({
+            contentID: contentID,
+            actionID: currentActionID,
+          })
+          .then((data) => {
+            gltf.scene.contentID = data.data.contentID;
+            gltf.scene.type = "speaker";
+          },
+            false
+          );
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 
   // load objects list in the scene
@@ -440,6 +659,10 @@ export default function Create() {
         li.appendChild(document.createTextNode(ARContent[i].filename + ` - ` + ARContent[i].contentID));
         objectList.appendChild(li);
       }
+      //styles
+      document.getElementById("objectList").style.fontSize = "15px";
+      document.getElementById("objectList").style.textDecoration = "none";
+      document.getElementById("objectList").style.fontWeight = " normal";
     });
   }
   function addObjectList(filename, contentID) {
@@ -465,29 +688,47 @@ export default function Create() {
       }
     }
   }
-  function loadARContentByActionID(actionID) {
-    currentActionID = actionID;
+  let loadARContentByActionID = (actionID) => {
     clearAllContent();
-    productAPI.getAllARContentChoosen(actionID).then((data) => {
-      loadObjectList();
-      let ARContent = data.data;
-      for (let i = 0; i < ARContent.length; i++) {
-        let filename = ARContent[i].filename;
-        if (filename[filename.length - 1] == "b") {
-          load3DModel(ARContent[i]);
-        } else if (filename[filename.length - 1] == "g") {
-          load2DImage(ARContent[i]);
-        } else if (filename == "text") {
-          load2DText(ARContent[i]);
+    if (actionID != null) {
+      productAPI.getAllARContentChoosen(actionID).then((data) => {
+        // loadObjectList();
+        let ARContent = data.data;
+        for (let i = 0; i < ARContent.length; i++) {
+          let filename = ARContent[i].filename;
+          if (filename[filename.length - 1] == "b") {
+            load3DModel(ARContent[i]);
+          } else if (filename[filename.length - 1] == "g") {
+            load2DImage(ARContent[i]);
+          } else if (filename == "text") {
+            load2DText(ARContent[i]);
+          } else if (filename[filename.length - 1] == "4") {
+            loadVideo(ARContent[i]);
+          } else if (filename[filename.length - 1] == "3") {
+            loadMp3(ARContent[i]);
+          }
         }
-      }
-    });
+      });
+    }
   }
   function load3DModel(ARContent) {
+    console.log("load dog")
     const loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderConfig({ type: 'js' });
+    draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+    loader.setDRACOLoader(draco);
     loader.load(
       ARContent.URL,
       function (gltf) {
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[gltf.animations.length - 1]);
+          let animationHere = mixer.clipAction(gltf.animations[gltf.animations.length - 1]);
+          animationHere.play();
+          // animationArray.push(animationHere);
+        }
         gltf.scene.contentID = ARContent.contentID;
         gltf.scene.type = "3DModel"
         scene.add(gltf.scene);
@@ -506,18 +747,37 @@ export default function Create() {
           gltf.scene,
           "dblclick",
           function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
             currentID = gltf.scene.id;
             transformControls.detach();
             transformControls.attach(gltf.scene);
             transformControls.setMode("translate");
             scene.add(transformControls);
             showFormEdit();
+            showGuide();
           },
           false
         );
       },
       (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+        // console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
       },
       (error) => {
         console.log(error);
@@ -550,17 +810,36 @@ export default function Create() {
         ARContent.yRotation,
         ARContent.zRotation
       );
-      imageTexture.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zS);
+      imageTexture.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
       domEvents.addEventListener(
         imageTexture,
         "dblclick",
         function (event) {
+          if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            if (currentObject.config !== undefined) {
+              document.getElementById("fixButton").style.display = "none"
+            }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none";
+              let video = scene.getObjectById(currentID).video;
+              video.pause();
+            }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none";
+              let audio = scene.getObjectById(currentID).audio;
+              audio.pause();
+              let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+              activeAnimation.paused = true;
+            }
+          }
           currentID = imageTexture.id;
           transformControls.detach();
           transformControls.attach(imageTexture);
           transformControls.setMode("translate");
           scene.add(transformControls);
           showFormEdit();
+          showGuide();
         },
         false
       );
@@ -623,6 +902,24 @@ export default function Create() {
           textTexture,
           "dblclick",
           function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
             currentID = textTexture.id;
             transformControls.detach();
             transformControls.attach(textTexture);
@@ -631,45 +928,186 @@ export default function Create() {
             currentText = texture;
             getFormTextContent();
             showFormEdit();
+            showGuide();
           },
           false
         );
       }
     });
   }
-
-  function saveAction() {
-    // Lam chung chua lam text
-    let actionID = currentActionID;
-    productAPI.getAllARContentByActionID(actionID).then((data) => {
-      let ARContentArr = data.data;
-      let contenIDFileArr = [];
-      // let maNoiDungTextArr = [];
-      for (let i = 0; i < ARContentArr.length; i++) {
-        contenIDFileArr.push(ARContentArr[i].contentID);
-      }
-      for (let i = 0; i < contenIDFileArr.length; i++) {
-        for (let j = 0; j < scene.children.length; j++) {
-          if (scene.children[j].contentID == contenIDFileArr[i]) {
-            let ARContent = {
-              contentID: scene.children[j].contentID,
-              xPosition: scene.children[j].position.x,
-              yPosition: scene.children[j].position.y,
-              zPosition: scene.children[j].position.z,
-              xRotation: scene.children[j].rotation.x,
-              yRotation: scene.children[j].rotation.y,
-              zRotation: scene.children[j].rotation.z,
-              xScale: scene.children[j].scale.x,
-              yScale: scene.children[j].scale.y,
-              zScale: scene.children[j].scale.z,
-            };
-            productAPI.updateARContent(ARContent).then((data) => {
-              // console.log(data);
-            });
+  function loadVideo(ARContent) {
+    // Create video object
+    let video = document.createElement('video');
+    video.src = ARContent.URL; // Set video address
+    video.setAttribute("crossorigin", "anonymous");
+    let videoTexture = new THREE.VideoTexture(video)
+    let videoGeometry = new THREE.PlaneGeometry(1920 * px2m, 1080 * px2m);
+    videoTexture.needsUpdate = true;
+    let videoMaterial = new THREE.MeshPhongMaterial({
+      side: THREE.DoubleSide,
+      map: videoTexture,
+    });
+    let videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+    videoMesh.video = video;
+    scene.add(videoMesh);
+    videoMesh.contentID = ARContent.contentID;
+    videoMesh.type = "video"
+    scene.add(videoMesh);
+    videoMesh.position.set(
+      ARContent.xPosition,
+      ARContent.yPosition,
+      ARContent.zPosition
+    );
+    videoMesh.rotation.set(
+      ARContent.xRotation,
+      ARContent.yRotation,
+      ARContent.zRotation
+    );
+    videoMesh.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+    domEvents.addEventListener(
+      videoMesh,
+      "dblclick",
+      function (event) {
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          if (currentObject.config !== undefined) {
+            document.getElementById("fixButton").style.display = "none"
+          }
+          if (currentObject.video !== undefined) {
+            document.getElementById("formVideo").style.display = "none";
+            let video = scene.getObjectById(currentID).video;
+            video.pause();
+          }
+          if (currentObject.audio !== undefined) {
+            document.getElementById("formAudio").style.display = "none";
+            let audio = scene.getObjectById(currentID).audio;
+            audio.pause();
+            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+            activeAnimation.paused = true;
           }
         }
+        currentID = videoMesh.id;
+        transformControls.detach();
+        transformControls.attach(videoMesh);
+        transformControls.setMode("translate");
+        scene.add(transformControls);
+        showFormEdit();
+        showFormVideo();
+        showGuide();
+      },
+      false
+    );
+  }
+
+  function loadMp3(ARContent) {
+    const loader = new GLTFLoader();
+    let speakerModelURL = ConfigURL.serverURL + '/speaker/speaker.glb';
+    loader.load(
+      speakerModelURL,
+      function (gltf) {
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
+          // let animationHere = mixer.clipAction(gltf.animations[0]);
+        }
+        gltf.scene.contentID = ARContent.contentID;
+        gltf.scene.type = "speaker"
+        let audio = new Audio(ARContent.URL);
+        gltf.scene.audio = audio;
+        scene.add(gltf.scene);
+        gltf.scene.position.set(
+          ARContent.xPosition,
+          ARContent.yPosition,
+          ARContent.zPosition
+        );
+        gltf.scene.rotation.set(
+          ARContent.xRotation,
+          ARContent.yRotation,
+          ARContent.zRotation
+        );
+        gltf.scene.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+        domEvents.addEventListener(
+          gltf.scene,
+          "dblclick",
+          function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
+            currentID = gltf.scene.id;
+            transformControls.detach();
+            transformControls.attach(gltf.scene);
+            transformControls.setMode("translate");
+            scene.add(transformControls);
+            showFormEdit();
+            showGuide();
+            showFormAudio();
+          },
+          false
+        );
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.log(error);
       }
-    });
+    );
+  }
+
+  function saveAction() {
+    if (currentActionID != null) {
+      let actionID = currentActionID;
+      // Lay tat ca noi dung ma ko phai tam
+      productAPI.getAllARContentByActionID(actionID).then((data) => {
+        let ARContentArr = data.data;
+        // Neu noi dung k phai tam, so sanh contentid voi contentid con trong scene neu trung thi update
+        for (let i = 0; i < ARContentArr.length; i++) {
+          ARContentArr[i].getUpdated = false;
+          for (let j = 0; j < scene.children.length; j++) {
+            if (scene.children[j].contentID == ARContentArr[i].contentID) {
+              let ARContent = {
+                contentID: scene.children[j].contentID,
+                xPosition: scene.children[j].position.x,
+                yPosition: scene.children[j].position.y,
+                zPosition: scene.children[j].position.z,
+                xRotation: scene.children[j].rotation.x,
+                yRotation: scene.children[j].rotation.y,
+                zRotation: scene.children[j].rotation.z,
+                xScale: scene.children[j].scale.x,
+                yScale: scene.children[j].scale.y,
+                zScale: scene.children[j].scale.z,
+              };
+              ARContentArr[i].getUpdated = true;
+              productAPI.updateARContent(ARContent).then((data) => {
+                // console.log(data);
+              });
+            }
+          }
+        }
+        ARContentArr.map((element, i) => {
+          if (element.getUpdated == false) {
+            console.log(element.contentID);
+            deleteARContent(element.contentID);
+          }
+        })
+      });
+    }
   }
   function setEventTransform() {
     window.addEventListener("keydown", function (event) {
@@ -703,18 +1141,56 @@ export default function Create() {
           break;
         case "Escape":
           if (currentID != 0) {
+            document.getElementById("xPosition").disabled = true;
+            document.getElementById("yPosition").disabled = true;
+            document.getElementById("zPosition").disabled = true;
+            document.getElementById("xScale").disabled = true;
+            document.getElementById("yScale").disabled = true;
+            document.getElementById("zScale").disabled = true;
+            document.getElementById("xRotation").disabled = true;
+            document.getElementById("yRotation").disabled = true;
+            document.getElementById("zRotation").disabled = true;
+            hideGuide();
             let currentObject = scene.getObjectById(currentID);
             if (currentObject.config !== undefined) {
               document.getElementById("fixButton").style.display = "none"
             }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none"
+            }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none"
+            }
+            //disable input
             transformControls.detach();
             scene.remove(transformControls);
           }
           break;
         case "Delete":
           if (currentID != 0) {
-            deleteARContent();
+            document.getElementById("xPosition").disabled = true;
+            document.getElementById("yPosition").disabled = true;
+            document.getElementById("zPosition").disabled = true;
+            document.getElementById("xScale").disabled = true;
+            document.getElementById("yScale").disabled = true;
+            document.getElementById("zScale").disabled = true;
+            document.getElementById("xRotation").disabled = true;
+            document.getElementById("yRotation").disabled = true;
+            document.getElementById("zRotation").disabled = true;
             let currentObject = scene.getObjectById(currentID);
+            if (currentObject.config !== undefined) {
+              document.getElementById("fixButton").style.display = "none"
+            }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none";
+              let video = scene.getObjectById(currentID).video;
+              video.pause();
+            }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none";
+              let audio = scene.getObjectById(currentID).audio;
+              audio.pause();
+            }
             transformControls.detach();
             scene.remove(currentObject);
             scene.remove(transformControls);
@@ -725,16 +1201,16 @@ export default function Create() {
               false
             );
             currentID = 0;
+            hideGuide();
+            hideFixButton();
           }
       }
     });
   }
-  function deleteARContent() {
-    let contentID = scene.getObjectById(currentID).contentID;
+  function deleteARContent(contentID) {
     productAPI
       .deleteARContent(contentID)
       .then((data) => {
-        loadObjectList();
       });
   }
 
@@ -745,44 +1221,57 @@ export default function Create() {
   }
   function showPosition() {
     if (currentID != 0) {
+      document.getElementById("xPosition").disabled = false;
+      document.getElementById("yPosition").disabled = false;
+      document.getElementById("zPosition").disabled = false;
       let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xPosition").value = currentObject.position.x;
-      document.getElementById("yPosition").value = currentObject.position.y;
-      document.getElementById("zPosition").value = currentObject.position.z;
+      let cmPositionX = currentObject.position.x * 100;
+      let roundCmPositionX = cmPositionX.toFixed(2);
+      let cmPositionY = currentObject.position.y * 100;
+      let roundCmPositionY = cmPositionY.toFixed(2);
+      let cmPositionZ = currentObject.position.z * 100;
+      let roundCmPositionZ = cmPositionZ.toFixed(2);
+      document.getElementById("xPosition").value = roundCmPositionX;
+      document.getElementById("yPosition").value = roundCmPositionY;
+      document.getElementById("zPosition").value = roundCmPositionZ;
     }
   }
   function showScale() {
+    document.getElementById("xScale").disabled = false;
+    document.getElementById("yScale").disabled = false;
+    document.getElementById("zScale").disabled = false;
     if (currentID != 0) {
       let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xScale").value = currentObject.scale.x;
-      document.getElementById("yScale").value = currentObject.scale.y;
-      if (currentObject.type == "2DImage" || currentObject.type == "2DText") {
+      document.getElementById("xScale").value = parseFloat(currentObject.scale.x).toFixed(2);
+      document.getElementById("yScale").value = parseFloat(currentObject.scale.y).toFixed(2);
+      if (currentObject.type == "2DImage" || currentObject.type == "2DText" || currentObject.type == "video") {
         document.getElementById("zScale").value = 1;
         document.getElementById("zScale").disabled = true;
       } else {
-        document.getElementById("zScale").value = currentObject.scale.z;
+        document.getElementById("zScale").value = parseFloat(currentObject.scale.z).toFixed(2);
+        document.getElementById("zScale").disabled = false;
       }
     }
   }
   function showRotation() {
     if (currentID != 0) {
+      document.getElementById("xRotation").disabled = false;
+      document.getElementById("yRotation").disabled = false;
+      document.getElementById("zRotation").disabled = false;
       let currentObject = scene.getObjectById(currentID);
-      document.getElementById("xRotation").value = radianToDegree(
-        currentObject.rotation.x
-      );
-      document.getElementById("yRotation").value = radianToDegree(
-        currentObject.rotation.y
-      );
-      document.getElementById("zRotation").value = radianToDegree(
-        currentObject.rotation.z
-      );
+      let rotationX = radianToDegree(currentObject.rotation.x);
+      let rotationY = radianToDegree(currentObject.rotation.y);
+      let rotationZ = radianToDegree(currentObject.rotation.z);
+      document.getElementById("xRotation").value = parseFloat(rotationX).toFixed(2);
+      document.getElementById("yRotation").value = parseFloat(rotationY).toFixed(2);
+      document.getElementById("zRotation").value = parseFloat(rotationZ).toFixed(2);
     }
   }
   function setPosition() {
     let currentObject = scene.getObjectById(currentID);
-    let xPosition = document.getElementById("xPosition").value.trim();
-    let yPosition = document.getElementById("yPosition").value.trim();
-    let zPosition = document.getElementById("zPosition").value.trim();
+    let xPosition = document.getElementById("xPosition").value;
+    let yPosition = document.getElementById("yPosition").value;
+    let zPosition = document.getElementById("zPosition").value;
 
     if (xPosition.length == 0) {
       xPosition = 0;
@@ -796,7 +1285,10 @@ export default function Create() {
       zPosition = 0;
       document.getElementById("zPosition").value = 0;
     }
-    currentObject.position.set(xPosition, yPosition, zPosition);
+    let xMPosition = xPosition / 100;
+    let yMPosition = yPosition / 100;
+    let zMPosition = zPosition / 100;
+    currentObject.position.set(xMPosition, yMPosition, zMPosition);
   }
   function setScale() {
     let currentObject = scene.getObjectById(currentID);
@@ -819,22 +1311,22 @@ export default function Create() {
   }
   function setRotation() {
     let currentObject = scene.getObjectById(currentID);
-    let xRotaion = document.getElementById("xRotaion").value.trim();
-    let yRotaion = document.getElementById("yRotaion").value.trim();
-    let zRotaion = document.getElementById("zRotaion").value.trim();
-    if (xRotaion.length == 0) {
-      xRotaion = 0;
-      document.getElementById("xRotaion").value = 0;
+    let xRotation = document.getElementById("xRotation").value.trim();
+    let yRotation = document.getElementById("yRotation").value.trim();
+    let zRotation = document.getElementById("zRotation").value.trim();
+    if (xRotation.length == 0) {
+      xRotation = 0;
+      document.getElementById("xRotation").value = 0;
     }
-    if (yRotaion.length == 0) {
-      yRotaion = 0;
-      document.getElementById("yRotaion").value = 0;
+    if (yRotation.length == 0) {
+      yRotation = 0;
+      document.getElementById("yRotation").value = 0;
     }
-    if (zRotaion.length == 0) {
-      zRotaion = 0;
-      document.getElementById("zRotaion").value = 0;
+    if (zRotation.length == 0) {
+      zRotation = 0;
+      document.getElementById("zRotation").value = 0;
     }
-    currentObject.rotation.set(xRotaion, yRotaion, zRotaion);
+    currentObject.rotation.set(degreeToRadian(xRotation), degreeToRadian(yRotation), degreeToRadian(zRotation));
   }
 
   function getFormTextContent() {
@@ -883,27 +1375,91 @@ export default function Create() {
     document.getElementById("fixButton").style.display = "none";
 
   }
+  function playVideo() {
+    let video = scene.getObjectById(currentID).video;
+    video.play();
+  }
+  function pauseVideo() {
+    let video = scene.getObjectById(currentID).video;
+    video.pause();
+  }
+  function playAudio() {
+    let audio = scene.getObjectById(currentID).audio;
+    audio.loop = true;
+    audio.play();
+    let animation = scene.getObjectById(currentID).activeAnimation;
+    animation.play();
+    animation.paused = false;
+  }
+  function pauseAudio() {
+    let audio = scene.getObjectById(currentID).audio;
+    audio.pause();
+    let animation = scene.getObjectById(currentID).activeAnimation;
+    animation.paused = true;
+  }
+  function restartAudio() {
+    let audio = scene.getObjectById(currentID).audio;
+    audio.currentTime = 0;
+  }
+  function showFormVideo() {
+    document.getElementById("formVideo").style.display = "flex";
+  }
+  function showFormAudio() {
+    document.getElementById("formAudio").style.display = "flex";
+  }
   function degreeToRadian(degree) {
     return (degree * Math.PI) / 180.0;
   }
   function radianToDegree(radian) {
     return (radian * 180.0) / Math.PI;
   }
+  function showGuide() {
+    document.getElementById("guide").style.display = "flex"
+  }
+  function hideGuide() {
+    document.getElementById("guide").style.display = "none"
+  }
+  function hideFixButton() {
+    document.getElementById("fixButton").style.display = "none"
+  }
+  function showColorTextPicker() {
+    document.getElementById("colorTextPicker").style.display = "block";
+  }
   return (
     <div>
+      <div>
+        <LessonName lessonID={lessonID}></LessonName>
+      </div>
       <div className={classes.grid}>
-      <div className={classes.column2}>
+        <div className={classes.column2}>
+          <div>
+            {markerID ? (<div style={{ marginLeft: '10%' }}>
+              <MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID}
+                cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker}></MarkerList>
+
+            </div>
+            ) : (<div></div>)}
+          </div>
           <div className={classes.scene} id="sceneRender"></div>
+          <div>
+            <Guide currentActionID={currentActionID}></Guide>
+          </div>
+          <div>
+            <FormVideo playVideo={playVideo} pauseVideo={pauseVideo} currentActionID={currentActionID}></FormVideo>
+          </div>
+          <div>
+            <FormAudio playAudio={playAudio} pauseAudio={pauseAudio} restartAudio={restartAudio} currentActionID={currentActionID}></FormAudio>
+          </div>
           <div
-            style={{ display: "flex", justifyContent: "center" , marginTop: '5%'}}
+            style={{ display: "flex", justifyContent: "center", marginTop: '5%' }}
             id="form-edit-3d"
           >
             <Button
-              variant="outlined"
               color="secondary"
+              className={classes.btn}
               onClick={() => saveAction()}
             >
-              Lưu điểm đánh dấu
+              Lưu hành động
             </Button>
           </div>
         </div>
@@ -911,122 +1467,33 @@ export default function Create() {
           <div>
             <Typography className={classes.title} >1. Thêm hành động</Typography>
           </div>
-          <div className={classes.btnline}>
-            <input className={classes.input} placeholder = "Tên hành động" type="text" id="actionName"></input>
-            <Button
-              style={{ marginTop: "13%", marginLeft: "10%", width: '10px' }}
-              variant="outlined"
-              color="primary"
-              onClick={() => addAction()}
-            >
-              +
-            </Button>
+          <div>
+            <ActionList loadARContentByActionID={loadARContentByActionID} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
+          </div>
+          <div style={{ marginTop: "5%" }}>
+            <Typography className={classes.title}>2. Nội dung AR </Typography>
           </div>
           <div>
-            <Typography>Hành động đã tạo:</Typography>
-          </div>
-          <div>
-            <ul id="actionList"></ul>
-          </div>
-          <div>
-            <Typography className={classes.title}>2. Điểm đánh dấu</Typography>
-          </div>
-          <div style = {{marginTop: '-10%'}} >
-            <Typography color='secondary' variant='caption'>
-              (Hỗ trợ: .jpg, .png)
-            </Typography>
-          </div>
-          <div className={classes.line}>
-            <input
-              className={classes.input}
-              id="uploadFileMarker"
-              type="file"
-            ></input>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "5%",
-            }}
-          >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => uploadMarker()}
-            >
-              Hoàn tất
-            </Button>
-          </div>
-          <div className={classes.xline}>
-            <Typography>Tỉ lệ: </Typography>
-          <input
-              id="markerScale"
-              type="number"
-              min="0"
-              className={classes.input2}
-              onBlur={() => setMarkerScale()}
-            ></input>
-            </div>
-          <div>
-            <Typography className={classes.title}>3. Nội dung AR </Typography>
-          </div>
-          <div style = {{marginTop: '-10%'}} >
-            <Typography color='secondary' variant='caption'>
-              (Hỗ trợ: .glb, .gltf, .jpg, .png, .mp4, .mp3.)
-            </Typography>
-          </div>
-          <div className={classes.line}>
-            <input
-              className={classes.input}
-              id="uploadFileArContent"
-              type="file"
-            ></input>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "5%",
-            }}
-          >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => uploadArContentTemp()}
-            >
-              Hoàn tất
-            </Button>
-          </div>
-          <div className={classes.line}>
-            <Typography>Nội dung đã tải: </Typography>
-          </div>
-          <div className={classes.line}>
-            <ul id="tempARContentList"></ul>
-          </div>
-          <div className={classes.line}>
-            <Typography>Đối tượng: </Typography>
-          </div>
-          <div className={classes.line}>
-            <ul id="objectList"></ul>
+            <TempARContentList currentActionID={currentActionID} markerID={markerID} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo} showMp3={showMp3}></TempARContentList>
           </div>
         </div>
         <div className={classes.column3}>
-          <Typography className={classes.title}>4. Thêm văn bản</Typography>
+          <Typography className={classes.title}>3. Thêm văn bản</Typography>
           <div className={classes.inline}>
             <Typography>Nội dung: </Typography>
             <TextareaAutosize
               className={classes.input2}
+              rowsMin={5}
               aria-label="empty textarea"
-              placeholder="Nội dung"
+              placeholder="Mỗi dòng tối đa 70 kí tự"
               id="text"
             ></TextareaAutosize>
           </div>
           <div className={classes.inline}>
             <Typography>Font chữ: </Typography>
             <select className={classes.input2} id="font">
-              <option value="timenewromans">Time new romans</option>
               <option value="arial">Arial</option>
+              {/* <option value="timenewromans">Time new romans</option> */}
             </select>
           </div>
           <div className={classes.inline}>
@@ -1037,135 +1504,41 @@ export default function Create() {
               <option value="30">30</option>
               <option value="40">40</option>
               <option value="50">50</option>
+              <option value="70">70</option>
+              <option value="90">90</option>
+              <option value="100">100</option>
             </select>
           </div>
-          <div className={classes.inline}>
-            <Typography>Màu chữ: </Typography>
-            <input className={classes.input2} id="color" type="text"></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Màu nền: </Typography>
-            <input className={classes.input2} id="backgroundColor" type="text"></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Độ trong: </Typography>
-            <div style={{ marginTop: "-7%" }}>
-              <input type="checkbox" id="isTransparent"></input>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => show2DText(0)}
-              >
-                Thêm
-              </Button>
-              <Button
-                id="fixButton" style={{ display: "none" }}
-                variant="outlined"
-                color="secondary"
-                onClick={() => update2DText()}
-              >
-                Sửa
-              </Button>
-            </div>
-          </div>
-          <div className={classes.inline}>
-            <Typography className={classes.title}> 5. Vị trí</Typography>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ X:</Typography>
-            <input
-              id="xPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ Y:</Typography>
-            <input
-              id="yPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tọa độ Z:</Typography>
-            <input
-              id="zPosition"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setPosition()}
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography className={classes.title}> 6. Tỉ lệ</Typography>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ X:</Typography>
-            <input
-              id="xScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ Y:</Typography>
-            <input
-              id="yScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-            ></input>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Tỉ lệ Z:</Typography>
-            <input
-              id="zScale"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setScale()}
-            ></input>
+          <div>
+            <TextColorPicker></TextColorPicker>
           </div>
           <div>
-            <Typography className={classes.title}>7. Góc xoay</Typography>
+            <TextBackgroundColorPicker></TextBackgroundColorPicker>
+          </div>
+          <div className={classes.inline2}>
+            <Typography>Trong suốt: </Typography>
+            <div style={{ marginTop: "-10px", marginLeft: "1%" }}>
+              <input type="checkbox" id="isTransparent"></input>
+            </div>
+            <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
+          </div>
+          <div style={{ marginTop: "5%" }}>
+            <Typography className={classes.title}> 4. Vị trí (cm)</Typography>
+          </div>
+          <div>
+            <SetCoordinate setPosition={setPosition} currentActionID={currentActionID}></SetCoordinate>
           </div>
           <div className={classes.inline}>
-            <Typography>Trục X:</Typography>
-            <input
-              id="xRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-            ></input>
+            <Typography className={classes.title}> 5. Tỉ lệ</Typography>
           </div>
-          <div className={classes.inline}>
-            <Typography>Trục Y:</Typography>
-            <input
-              id="yRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-            ></input>
+          <div>
+            <SetScale setScale={setScale} currentActionID={currentActionID}></SetScale>
           </div>
-          <div className={classes.inline}>
-            <Typography>Trục Z:</Typography>
-            <input
-              id="zRotation"
-              type="number"
-              step="any"
-              className={classes.input2}
-              onBlur={() => setRotation()}
-            ></input>
+          <div>
+            <Typography className={classes.title}>6. Góc xoay (&#8451;)</Typography>
+          </div>
+          <div>
+            <SetRotation setRotation={setRotation} currentActionID={currentActionID}></SetRotation>
           </div>
           <div className={classes.inline}></div>
           <br></br>
