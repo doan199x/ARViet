@@ -139,7 +139,8 @@ export default function Guide() {
               variant="contained"
               color="secondary"
             >
-              Bắt đầu ngay
+              <a href='../../file/guide.pdf' style = {{textDecoration: 'none', color: 'black'}} download> Hướng dẫn</a>
+             
             </Button>
           </div>
         </div>
@@ -147,7 +148,7 @@ export default function Guide() {
           <ReactPlayer
             width="768px"
             height="432px"
-            url="https://www.youtube.com/watch?v=ysz5S6PUM-U"
+            url="https://www.youtube.com/watch?v=2-AmAO_lXGo"
           />
         </div>
         {/* */}
