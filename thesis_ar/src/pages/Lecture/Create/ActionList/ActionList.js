@@ -203,7 +203,7 @@ export default function ActionList(props) {
       </div>
      <div>
      <Typography variant="body2" style = {{marginTop: '5%'}}>Danh sách hành động của marker:</Typography>
-      <div style={{ borderRadius: "5px", borderStyle: "dotted", borderWidth: "1px", height: "120px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
+      <div style={{ borderRadius: "5px", borderStyle: "dotted", borderWidth: "1px", height: "220px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
         {actionList ? (
           <div className={classes.data}>
             {actionList

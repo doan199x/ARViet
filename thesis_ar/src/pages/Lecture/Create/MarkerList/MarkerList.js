@@ -206,11 +206,11 @@ export default function MarkerList(props) {
               <div>
                 <Button
                   onClick={() => addMarker()}
-                  style={{width: "160px", height: "50px" }}
+                  style={{ width: "160px", height: "50px" }}
                   color="primary"
                   variant="outlined"
                 >
-                  <AddIcon/> Thêm marker
+                  <AddIcon /> Thêm marker
                 </Button>
               </div>
               {markerList
@@ -227,16 +227,16 @@ export default function MarkerList(props) {
                     data={ele}
                   />
                 ))}
-  <div>
-            <Button
-              onClick={() => deleteMarker()}
-              style={{ width: "160px", height: "50px"  }}
-              color="secondary"
-              variant="outlined"
-            >
-              <DeleteForeverIcon/> Xóa marker
-            </Button>
-          </div>
+              <div>
+                <Button
+                  onClick={() => deleteMarker()}
+                  style={{ width: "160px", height: "50px" }}
+                  color="secondary"
+                  variant="outlined"
+                >
+                  <DeleteForeverIcon /> Xóa marker
+                </Button>
+              </div>
             </div>
           </div>
         ) : (
@@ -260,42 +260,45 @@ export default function MarkerList(props) {
               onChange={() => uploadMarker()}
             ></input>
           </div>
-          <Typography style= {{fontStyle: 'italic'}}>
-                  (Marker phải là hình ảnh. Bạn nên xem lại hướng dẫn nếu chưa hiểu về công nghệ AR.)
-            </Typography>
+          <Typography style={{ fontStyle: 'italic' }}>
+            (Marker phải là hình ảnh. Bạn nên xem lại hướng dẫn nếu chưa hiểu về công nghệ AR.)
+          </Typography>
         </div>
         <div>
-            {open ? (
-              <div>
-                <Dialog
-                  open={open}
-                  TransitionComponent={Transition}
-                  keepMounted
-                  onClose={handleClose}
-                  aria-labelledby="alert-dialog-slide-title"
-                  aria-describedby="alert-dialog-slide-description"
-                >
-                  <DialogTitle id="alert-dialog-slide-title">{`Bạn muốn xoá điểm đánh dấu này`}</DialogTitle>
-                  <DialogContent>
-                    <DialogContentText id="alert-dialog-slide-description">
-                      Một khi đã xoá, bạn sẽ không thể nào khôi phục lại thao
-                      tác này được.
-                    </DialogContentText>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={handleDelete} className={classes.btn}>
-                      Xoá
-                    </Button>
-                    <Button onClick={handleClose} className={classes.btn2}>
-                      Huỷ
-                    </Button>
-                  </DialogActions>
-                </Dialog>
-              </div>
-            ) : (
-              <></>
-            )}
-          </div>
+          {open ? (
+            <div>
+              <Dialog
+                open={open}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-slide-title"
+                aria-describedby="alert-dialog-slide-description"
+              >
+                <DialogTitle id="alert-dialog-slide-title">{`Bạn muốn xoá điểm đánh dấu này`}</DialogTitle>
+                <DialogContent>
+                  <DialogContentText id="alert-dialog-slide-description">
+                    Một khi đã xoá, bạn sẽ không thể nào khôi phục lại thao
+                    tác này được.
+                  </DialogContentText>
+                  <DialogContentText id="alert-dialog-slide-description">
+                    Danh sách marker sẽ được cập nhật lại theo thứ tự.
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleDelete} className={classes.btn}>
+                    Xoá
+                  </Button>
+                  <Button onClick={handleClose} className={classes.btn2}>
+                    Huỷ
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </div>
+          ) : (
+            <></>
+          )}
+        </div>
       </div>
     </div>
   );

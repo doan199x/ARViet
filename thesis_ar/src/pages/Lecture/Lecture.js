@@ -186,7 +186,7 @@ export default function Lecture(data) {
       />
       <CardMedia
         className={classes.media}
-        image={logourl}
+        image={lecture.markerDefault.URL}
         title="Paella dish"
       />
       <CardContent>
@@ -195,6 +195,9 @@ export default function Lecture(data) {
           </Typography>
           <Typography paragraph>
           Thời gian tạo: {lecture.created}
+          </Typography>
+          <Typography paragraph>
+          Mã chia sẻ: {lecture.lessonID}
           </Typography>
       </CardContent>
       </Link>

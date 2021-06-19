@@ -70,6 +70,7 @@ export default function LectureList() {
       await productAPI
         .lecture(userid)
         .then((data) => {
+          console.log(data);
           if (data.data.length > 0) {
             const lec = clone(data.data);
             setLectures(lec);

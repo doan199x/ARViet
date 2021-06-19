@@ -1426,7 +1426,7 @@ export default function Create() {
     document.getElementById("colorTextPicker").style.display = "block";
   }
   return (
-    <div className = {classes.root}>
+    <div className={classes.root}>
       <div>
         <LessonName lessonID={lessonID}></LessonName>
       </div>
@@ -1470,7 +1470,7 @@ export default function Create() {
           <div>
             <ActionList loadARContentByActionID={loadARContentByActionID} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
           </div>
-          <div style={{ marginTop: "5%" }}>
+          <div style={{marginTop: "5%"}}>
             <Typography className={classes.title}>2. Nội dung AR </Typography>
           </div>
           <div>
@@ -1478,55 +1478,55 @@ export default function Create() {
           </div>
         </div>
         <div className={classes.column3}>
-          <Typography className={classes.title}>3. Thêm văn bản</Typography>
           <div>
-                      {/* <div className={classes.inline}> */}
-            <Typography>Nội dung phải ít hơn 70 ký tự: </Typography>
-            <TextareaAutosize
-              className={classes.input2}
-              rowsMin={4}
-              style={{width: '220px'}}
-              aria-label="empty textarea"
-              placeholder="Mỗi dòng tối đa 70 kí tự"
-              id="text"
-            ></TextareaAutosize>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Font chữ: </Typography>
-            <select className={classes.input2} id="font">
-              <option value="arial">Arial</option>
-              {/* <option value="timenewromans">Time new romans</option> */}
-            </select>
-          </div>
-          <div className={classes.inline}>
-            <Typography>Cỡ chữ: </Typography>
-            <select className={classes.input2} id="size">
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="30">30</option>
-              <option value="40">40</option>
-              <option value="50">50</option>
-              <option value="70">70</option>
-              <option value="90">90</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-          <div>
-            <TextColorPicker></TextColorPicker>
-          </div>
-          <div>
-            <TextBackgroundColorPicker></TextBackgroundColorPicker>
-          </div>
-          <div>
-            <div  className={classes.inline2}>
-            <Typography> Không nền: </Typography>
-            <div style={{ marginTop: "-15px", marginLeft: "3%" }}>
-              <input type="checkbox" id="isTransparent"></input>
+            <Typography className={classes.title}>3. Thêm văn bản</Typography>
+            <div>
+              <TextareaAutosize
+                className={classes.input2}
+                rowsMin={5}
+                style={{ width: '220px' }}
+                aria-label="empty textarea"
+                placeholder="Mỗi dòng tối đa 70 kí tự"
+                id="text"
+              ></TextareaAutosize>
             </div>
+            <div className={classes.inline}>
+              <Typography>Font chữ: </Typography>
+              <select className={classes.input2} id="font">
+                <option value="arial">Arial</option>
+                {/* <option value="timenewromans">Time new romans</option> */}
+              </select>
             </div>
-            <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
+            <div className={classes.inline}>
+              <Typography>Cỡ chữ: </Typography>
+              <select className={classes.input2} id="size">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="40">40</option>
+                <option value="50">50</option>
+                <option value="70">70</option>
+                <option value="90">90</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <div>
+              <TextColorPicker></TextColorPicker>
+            </div>
+            <div>
+              <TextBackgroundColorPicker></TextBackgroundColorPicker>
+            </div>
+            <div>
+              <div className={classes.inline2}>
+                <Typography> Không nền: </Typography>
+                <div style={{ marginTop: "-15px", marginLeft: "3%" }}>
+                  <input type="checkbox" id="isTransparent"></input>
+                </div>
+              </div>
+              <ButtonText show2DText={show2DText} update2DText={update2DText} currentActionID={currentActionID}></ButtonText>
+            </div>
           </div>
-          <div style={{ marginTop: "5%" }}>
+          <div>
             <Typography className={classes.title}> 4. Vị trí (cm)</Typography>
           </div>
           <div>
