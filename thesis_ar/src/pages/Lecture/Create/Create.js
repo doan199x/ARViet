@@ -432,87 +432,92 @@ export default function Create() {
 
   // show 2D Text
   function show2DText(textUpdatedContentID) {
-    let font = document.getElementById("font").value;
-    let textObject = {
-      text: document.getElementById("text").value,
-      size: document.getElementById("size").value,
-      color: document.getElementById("color").value,
-      backgroundColor: document.getElementById("backgroundColor").value,
-      isTransparent: false,
-      font: font,
-    };
-    let configTextture = {
-      alignment: "center",
-      color: textObject.color,
-      fontFamily: textObject.font,
-      fontSize: parseInt(textObject.size),
-      text: [textObject.text].join("\n"),
-    };
-    if (document.getElementById("isTransparent").checked == true) {
-      textObject.isTransparent = true;
+    let text = document.getElementById("text").value;
+    if (text.length == 0) {
+      toast.error('Vui lòng nhập nội dung văn bản')
     } else {
-      configTextture.backgroundColor = textObject.backgroundColor;
+      let font = document.getElementById("font").value;
+      let textObject = {
+        text: document.getElementById("text").value,
+        size: document.getElementById("size").value,
+        color: document.getElementById("color").value,
+        backgroundColor: document.getElementById("backgroundColor").value,
+        isTransparent: false,
+        font: font,
+      };
+      let configTextture = {
+        alignment: "center",
+        color: textObject.color,
+        fontFamily: textObject.font,
+        fontSize: parseInt(textObject.size),
+        text: [textObject.text].join("\n"),
+      };
+      if (document.getElementById("isTransparent").checked == true) {
+        textObject.isTransparent = true;
+      } else {
+        configTextture.backgroundColor = textObject.backgroundColor;
+      }
+      if (font == "timenewromans") {
+        configTextture.fontFamily = '"Times New Roman", Times, serif';
+      } else if (font == "arial") {
+        configTextture.fontFamily = "Arial, Helvetica, sans-serif";
+      }
+      let texture = new TextTexture(configTextture);
+      let material = new THREE.MeshLambertMaterial({
+        map: texture,
+        transparent: textObject.isTransparent,
+        side: THREE.DoubleSide,
+      });
+      var geometry = new THREE.PlaneGeometry(
+        texture.width * px2m,
+        texture.height * px2m
+      );
+      var textTexture = new THREE.Mesh(geometry, material);
+      texture.redraw();
+      scene.add(textTexture);
+      textTexture.position.set(0.06, 0.06, -0.06);
+      textObject.actionID = currentActionID;
+      productAPI.saveText(textObject, textUpdatedContentID).then((data) => {
+        textTexture.contentID = data.data.contentID;
+        textTexture.type = "2DText";
+        textTexture.config = configTextture;
+      });
+      domEvents.addEventListener(
+        textTexture,
+        "dblclick",
+        function (event) {
+          if (currentID != 0) {
+            let currentObject = scene.getObjectById(currentID);
+            if (currentObject.config !== undefined) {
+              document.getElementById("fixButton").style.display = "none"
+            }
+            if (currentObject.video !== undefined) {
+              document.getElementById("formVideo").style.display = "none";
+              let video = scene.getObjectById(currentID).video;
+              video.pause();
+            }
+            if (currentObject.audio !== undefined) {
+              document.getElementById("formAudio").style.display = "none";
+              let audio = scene.getObjectById(currentID).audio;
+              audio.pause();
+              let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+              activeAnimation.paused = true;
+            }
+          }
+          currentID = textTexture.id;
+          transformControls.detach();
+          transformControls.attach(textTexture);
+          transformControls.setMode("translate");
+          scene.add(transformControls);
+          showFormEdit();
+          showGuide();
+          getFormTextContent();
+          currentText = texture;
+        },
+        false
+      );
+      return textTexture.id;
     }
-    if (font == "timenewromans") {
-      configTextture.fontFamily = '"Times New Roman", Times, serif';
-    } else if (font == "arial") {
-      configTextture.fontFamily = "Arial, Helvetica, sans-serif";
-    }
-    let texture = new TextTexture(configTextture);
-    let material = new THREE.MeshLambertMaterial({
-      map: texture,
-      transparent: textObject.isTransparent,
-      side: THREE.DoubleSide,
-    });
-    var geometry = new THREE.PlaneGeometry(
-      texture.width * px2m,
-      texture.height * px2m
-    );
-    var textTexture = new THREE.Mesh(geometry, material);
-    texture.redraw();
-    scene.add(textTexture);
-    textTexture.position.set(0.06, 0.06, -0.06);
-    textObject.actionID = currentActionID;
-    productAPI.saveText(textObject, textUpdatedContentID).then((data) => {
-      textTexture.contentID = data.data.contentID;
-      textTexture.type = "2DText";
-      textTexture.config = configTextture;
-    });
-    domEvents.addEventListener(
-      textTexture,
-      "dblclick",
-      function (event) {
-        if (currentID != 0) {
-          let currentObject = scene.getObjectById(currentID);
-          if (currentObject.config !== undefined) {
-            document.getElementById("fixButton").style.display = "none"
-          }
-          if (currentObject.video !== undefined) {
-            document.getElementById("formVideo").style.display = "none";
-            let video = scene.getObjectById(currentID).video;
-            video.pause();
-          }
-          if (currentObject.audio !== undefined) {
-            document.getElementById("formAudio").style.display = "none";
-            let audio = scene.getObjectById(currentID).audio;
-            audio.pause();
-            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
-            activeAnimation.paused = true;
-          }
-        }
-        currentID = textTexture.id;
-        transformControls.detach();
-        transformControls.attach(textTexture);
-        transformControls.setMode("translate");
-        scene.add(transformControls);
-        showFormEdit();
-        showGuide();
-        getFormTextContent();
-        currentText = texture;
-      },
-      false
-    );
-    return textTexture.id;
   }
 
   let showVideo = (URL, contentID) => {
@@ -1106,6 +1111,7 @@ export default function Create() {
             deleteARContent(element.contentID);
           }
         })
+        toast.info('Lưu thành công');
       });
     }
   }
@@ -1470,7 +1476,7 @@ export default function Create() {
           <div>
             <ActionList loadARContentByActionID={loadARContentByActionID} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
           </div>
-          <div style={{marginTop: "5%"}}>
+          <div style={{ marginTop: "5%" }}>
             <Typography className={classes.title}>2. Nội dung AR </Typography>
           </div>
           <div>
