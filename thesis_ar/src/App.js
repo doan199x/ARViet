@@ -46,6 +46,9 @@ function App() {
             <Route exact path="/signup">
               <Signup />
             </Route>
+            <Route exact path="/guide">
+                  <Guide/>
+                </Route>
             <Userprotect>
               <Switch>
                 <Route exact path="/lecture">
@@ -53,9 +56,6 @@ function App() {
                 </Route>
                 <Route exact path="/lecture/:lecid">
                   <Create />
-                </Route>
-                <Route exact path="/guide">
-                  <Guide/>
                 </Route>
                 <Route>
                   <Error />
