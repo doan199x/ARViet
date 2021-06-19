@@ -8,6 +8,10 @@ const config = require("../utils/config")
 router.post("/", async (req, res) => {
   try {
     const lecture = await lectureModel.findLecture(req.body.userid);
+    for (let i =0;i<lecture.length;i++){
+      let markers = await markerModel.getByLessonID(lecture[i].lessonID);
+      lecture[i].markerDefault = markers[0];
+    }
     res.send(lecture);
   }
   catch (error) {
