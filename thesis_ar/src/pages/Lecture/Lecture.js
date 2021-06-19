@@ -26,6 +26,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import { productAPI } from '../../config/productAPI';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -113,6 +114,7 @@ export default function Lecture(data) {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
   const history = useHistory();
+  const [copied,setCopied] = useState(false);
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -123,6 +125,9 @@ export default function Lecture(data) {
   };
   const handleClose = () => {
     setOpen(false);
+  };
+  const Copy = () => {
+    toast.info('Đã sao chép mã bài giảng!')
   };
   const handleDelete = async () => {
     if (lecture.lessonID)
@@ -191,14 +196,15 @@ export default function Lecture(data) {
       />
       <CardContent>
       <Typography paragraph>
+          Chia sẻ mã bài giảng cho học viên: {lecture.lessonID}
+          </Typography>
+      <Typography paragraph>
           Thời gian cập nhật: {lecture.updated}
           </Typography>
           <Typography paragraph>
           Thời gian tạo: {lecture.created}
           </Typography>
-          <Typography paragraph>
-          Mã chia sẻ: {lecture.lessonID}
-          </Typography>
+         
       </CardContent>
       </Link>
       <CardActions disableSpacing>
@@ -207,11 +213,16 @@ export default function Lecture(data) {
           style = {{color: '#ff542b'}}
           onClick={handleClickOpen}/>
         </IconButton>
-        {/* <IconButton aria-label="share">
-          <ShareIcon 
+        <IconButton aria-label="share">
+        <CopyToClipboard text={lecture.lessonID}
+          onCopy={Copy}>
+           <ShareIcon 
             style = {{color: '#5ca7ff'}}
             />
-        </IconButton> */}
+        </CopyToClipboard>
+        
+
+        </IconButton>
         <IconButton
           className={clsx(classes.expand, {
             [classes.expandOpen]: expanded,
