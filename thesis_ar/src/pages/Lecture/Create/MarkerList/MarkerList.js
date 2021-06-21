@@ -146,6 +146,7 @@ export default function MarkerList(props) {
   let cbsetCurrentMarkerID = (data) => {
     setCurrentMarkerID(data);
     props.cbsetCurrentMarkerID(data);
+    props.removeKeyDown();
   };
   let cbsetCurrentActionID = (data) => {
     props.cbsetCurrentActionID(data);
