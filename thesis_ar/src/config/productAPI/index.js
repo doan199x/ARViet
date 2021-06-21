@@ -91,7 +91,10 @@ export const productAPI = {
   deleteLecture: (lecid) => {
     return AXIOS_INSTANCE.post(API.DELETE, { lecid });
   },
-  getLessonName: (lessonID)=>{
+  getLessonName: (lessonID) => {
     return AXIOS_INSTANCE.post('lecture/name', { lessonID });
+  },
+  getARContentByContentID: (contentID) => {
+    return AXIOS_INSTANCE.get('/arcontent/contentID', { params: { contentID: contentID } });
   }
 }

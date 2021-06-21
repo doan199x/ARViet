@@ -47,27 +47,27 @@ export default function ButtonText(props) {
             <Button
                 variant="outlined"
                 color="primary"
-                className = {classes.btn}
+                className={classes.btn}
                 onClick={() => show2DText()}
             >
-                    <AddIcon/>
-               Thêm
-           
+                <AddIcon />
+                Thêm
+
             </Button>
             <Button
                 id="fixButton" style={{ display: "none" }}
                 variant="outlined"
                 color="primary"
-                className = {classes.btn}
+                className={classes.btn}
                 onClick={() => update2DText()}
             >
                 {/* <FontAwesomeIcon
                     icon={faEdit} size="lg" color="#3F51B5"
                     style = {{marginTop: '-5%'}} />
                      */}
-                          <FontAwesomeIcon icon={faEdit} size="lg" color="#3F51B5" />
-                  Sửa &nbsp;
-             
+                <FontAwesomeIcon icon={faEdit} size="lg" color="#3F51B5" />
+                Sửa &nbsp;
+
             </Button>
         </div>
     );
