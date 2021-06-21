@@ -40,7 +40,7 @@ export default function ButtonText(props) {
             }
         }
 
-    }, [change]);
+    }, [change,props.currentActionID]);
     function getOption() {
         setElementArr(props.elementArr);
         setChange(change + 1);

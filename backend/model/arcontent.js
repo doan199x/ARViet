@@ -69,5 +69,5 @@ module.exports = {
     getARContentByID: async (contentID) => {
         const sql = `select* from ARContent where contentID=${contentID}`;
         return await db.load(sql);
-    }
+    },
 };

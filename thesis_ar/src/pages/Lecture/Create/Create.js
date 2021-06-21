@@ -150,19 +150,20 @@ export default function Create() {
   //state
   const [markerID, setMarkerID] = useState(null);
   const [currentActionID, setCurrentActionID] = useState(null);
+  const [keydown, setKeydown] = useState(false);
   useEffect(async () => {
     if (markerID == null) {
       console.log("load null");
       await productAPI.getMarkerByLessonID(lessonID).then(data => {
         let sceneRender = document.getElementById("sceneRender");
+        sceneRender.innerHTML = "";
         sceneRender.appendChild(renderer.domElement);
         setMarkerID(data.data[0].markerID);
       })
     } else {
       let sceneRender = document.getElementById("sceneRender");
-      sceneRender.innerHTML = ""
+      sceneRender.innerHTML = "";
       sceneRender.appendChild(renderer.domElement);
-      setEventTransform();
       showMarker();
       getCurrentActionID(markerID);
     }
@@ -172,11 +173,11 @@ export default function Create() {
     let sceneRender = document.getElementById("sceneRender");
     sceneRender.innerHTML = ""
     sceneRender.appendChild(renderer.domElement);
-    setEventTransform();
     showMarker();
     loadARContentByActionID(currentActionID);
     document.getElementById("contentName").innerHTML = "Tên ĐT: ";
     document.getElementById("optionFatherContent").disabled = true;
+    setKeyEvent();
   }, [currentActionID])
 
 
@@ -695,7 +696,7 @@ export default function Create() {
                 setContentName(data.data);
                 setSelectedDropdown();
                 deleteOptionSelf();
-                showHideChildElement();
+                showHideChildElement()
               });
           },
             false
@@ -1229,128 +1230,131 @@ export default function Create() {
       });
     }
   }
-  function setEventTransform() {
-    window.addEventListener("keydown", function (event) {
-      switch (event.key) {
-        case "t":
-          if (currentID != 0) {
-            let currentObject = scene.getObjectById(currentID);
-            transformControls.detach();
-            transformControls.attach(currentObject);
-            transformControls.setMode("translate");
-            scene.add(transformControls);
-          }
-          break;
-        case "r":
-          if (currentID != 0) {
-            let currentObject = scene.getObjectById(currentID);
-            transformControls.detach();
-            transformControls.attach(currentObject);
-            transformControls.setMode("rotate");
-            scene.add(transformControls);
-          }
-          break;
-        case "s":
-          if (currentID != 0) {
-            let currentObject = scene.getObjectById(currentID);
-            transformControls.detach();
-            transformControls.attach(currentObject);
-            transformControls.setMode("scale");
-            scene.add(transformControls);
-          }
-          break;
-        case "Escape":
-          if (currentID != 0) {
-            document.getElementById("xPosition").disabled = true;
-            document.getElementById("yPosition").disabled = true;
-            document.getElementById("zPosition").disabled = true;
-            document.getElementById("xScale").disabled = true;
-            document.getElementById("yScale").disabled = true;
-            document.getElementById("zScale").disabled = true;
-            document.getElementById("xRotation").disabled = true;
-            document.getElementById("yRotation").disabled = true;
-            document.getElementById("zRotation").disabled = true;
-            hideGuide();
-            let currentObject = scene.getObjectById(currentID);
-            if (currentObject.config !== undefined) {
-              document.getElementById("fixButton").style.display = "none"
+  function setKeyEvent() {
+    if (keydown == false) {
+      window.addEventListener("keydown", function (event) {
+        setKeydown(true);
+        switch (event.key) {
+          case "t":
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              transformControls.detach();
+              transformControls.attach(currentObject);
+              transformControls.setMode("translate");
+              scene.add(transformControls);
             }
-            if (currentObject.video !== undefined) {
-              document.getElementById("formVideo").style.display = "none"
+            break;
+          case "r":
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              transformControls.detach();
+              transformControls.attach(currentObject);
+              transformControls.setMode("rotate");
+              scene.add(transformControls);
             }
-            if (currentObject.audio !== undefined) {
-              document.getElementById("formAudio").style.display = "none"
+            break;
+          case "s":
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              transformControls.detach();
+              transformControls.attach(currentObject);
+              transformControls.setMode("scale");
+              scene.add(transformControls);
             }
-            document.getElementById("contentName").innerHTML = `Tên ĐT: `;
-            document.getElementById("optionFatherContent").disabled = true;
-            //disable input
-            transformControls.detach();
-            scene.remove(transformControls);
-          }
-          break;
-        case "Delete":
-          if (currentID != 0) {
-            document.getElementById("xPosition").disabled = true;
-            document.getElementById("yPosition").disabled = true;
-            document.getElementById("zPosition").disabled = true;
-            document.getElementById("xScale").disabled = true;
-            document.getElementById("yScale").disabled = true;
-            document.getElementById("zScale").disabled = true;
-            document.getElementById("xRotation").disabled = true;
-            document.getElementById("yRotation").disabled = true;
-            document.getElementById("zRotation").disabled = true;
-            let currentObject = scene.getObjectById(currentID);
-            // check child
-            let check = false;
-            for (let i = 0; i < scene.children.length; i++) {
-              if (scene.children[i].fatherElement !== undefined) {
-                if (scene.children[i].fatherElement.fatherID == currentObject.contentID) {
-                  check = true;
-                }
-              }
-            }
-            if (check == true) {
-              toast.error("Đối tượng còn liên kết với đối tượng con")
-            } else {
+            break;
+          case "Escape":
+            if (currentID != 0) {
+              document.getElementById("xPosition").disabled = true;
+              document.getElementById("yPosition").disabled = true;
+              document.getElementById("zPosition").disabled = true;
+              document.getElementById("xScale").disabled = true;
+              document.getElementById("yScale").disabled = true;
+              document.getElementById("zScale").disabled = true;
+              document.getElementById("xRotation").disabled = true;
+              document.getElementById("yRotation").disabled = true;
+              document.getElementById("zRotation").disabled = true;
+              hideGuide();
+              let currentObject = scene.getObjectById(currentID);
               if (currentObject.config !== undefined) {
                 document.getElementById("fixButton").style.display = "none"
               }
               if (currentObject.video !== undefined) {
-                document.getElementById("formVideo").style.display = "none";
-                let video = scene.getObjectById(currentID).video;
-                video.pause();
+                document.getElementById("formVideo").style.display = "none"
               }
               if (currentObject.audio !== undefined) {
-                document.getElementById("formAudio").style.display = "none";
-                let audio = scene.getObjectById(currentID).audio;
-                audio.pause();
+                document.getElementById("formAudio").style.display = "none"
               }
+              document.getElementById("contentName").innerHTML = `Tên ĐT: `;
               document.getElementById("optionFatherContent").disabled = true;
+              //disable input
               transformControls.detach();
-              scene.remove(currentObject);
               scene.remove(transformControls);
-              let indexRemove = 0;
-              for (let i = 0; i < elementArr.length; i++) {
-                if (elementArr[i].contentID == currentObject.contentID) {
-                  indexRemove = i;
-                  break;
+            }
+            break;
+          case "Delete":
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              // check child
+              let check = false;
+              for (let i = 0; i < scene.children.length; i++) {
+                if (scene.children[i].fatherElement !== undefined) {
+                  if (scene.children[i].fatherElement.fatherID == currentObject.contentID) {
+                    check = true;
+                  }
                 }
               }
-              elementArr.splice(indexRemove, 1);
-              document.getElementById("contentName").innerHTML = `Tên ĐT: `;
-              domEvents.removeEventListener(
-                currentObject,
-                "dblclick",
-                function () { },
-                false
-              );
-              currentID = 0;
-              hideGuide();
-              hideFixButton();
+              if (check == true) {
+                toast.error("Đối tượng còn liên kết với đối tượng con");
+              } else {
+                document.getElementById("xPosition").disabled = true;
+                document.getElementById("yPosition").disabled = true;
+                document.getElementById("zPosition").disabled = true;
+                document.getElementById("xScale").disabled = true;
+                document.getElementById("yScale").disabled = true;
+                document.getElementById("zScale").disabled = true;
+                document.getElementById("xRotation").disabled = true;
+                document.getElementById("yRotation").disabled = true;
+                document.getElementById("zRotation").disabled = true;
+                if (currentObject.config !== undefined) {
+                  document.getElementById("fixButton").style.display = "none"
+                }
+                if (currentObject.video !== undefined) {
+                  document.getElementById("formVideo").style.display = "none";
+                  let video = scene.getObjectById(currentID).video;
+                  video.pause();
+                }
+                if (currentObject.audio !== undefined) {
+                  document.getElementById("formAudio").style.display = "none";
+                  let audio = scene.getObjectById(currentID).audio;
+                  audio.pause();
+                }
+                document.getElementById("optionFatherContent").disabled = true;
+                transformControls.detach();
+                scene.remove(currentObject);
+                scene.remove(transformControls);
+                let indexRemove = 0;
+                for (let i = 0; i < elementArr.length; i++) {
+                  if (elementArr[i].contentID == currentObject.contentID) {
+                    indexRemove = i;
+                    break;
+                  }
+                }
+                elementArr.splice(indexRemove, 1);
+                document.getElementById("contentName").innerHTML = `Tên ĐT: `;
+                domEvents.removeEventListener(
+                  currentObject,
+                  "dblclick",
+                  function () { },
+                  false
+                );
+                currentID = 0;
+                hideGuide();
+                hideFixButton();
+              }
             }
-          }
-      }
-    });
+        }
+      });
+    }
   }
   function deleteARContent(contentID) {
     productAPI
@@ -1664,7 +1668,7 @@ export default function Create() {
         }
       }
     }
-    if (changed == true){
+    if (changed == true) {
       if (currentObject.isHideChild == true) {
         currentObject.isHideChild = false;
       } else {
@@ -1715,7 +1719,7 @@ export default function Create() {
             <Typography className={classes.title} >1. Thêm hành động</Typography>
           </div>
           <div>
-            <ActionList loadARContentByActionID={loadARContentByActionID} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
+            <ActionList cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
           </div>
           <div style={{ marginTop: "5%" }}>
             <Typography className={classes.title}>2. Nội dung AR </Typography>
