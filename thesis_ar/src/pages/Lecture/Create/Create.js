@@ -1290,7 +1290,6 @@ export default function Create() {
         }
         break;
       case "Delete":
-        console.log("sdkm");
         if (currentID != 0) {
           let currentObject = scene.getObjectById(currentID);
           // check child
@@ -1722,7 +1721,7 @@ export default function Create() {
             <Typography className={classes.title} >1. Thêm hành động</Typography>
           </div>
           <div>
-            <ActionList cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
+            <ActionList removeKeyDown={removeKeyDown} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
           </div>
           <div style={{ marginTop: "5%" }}>
             <Typography className={classes.title}>2. Nội dung AR </Typography>

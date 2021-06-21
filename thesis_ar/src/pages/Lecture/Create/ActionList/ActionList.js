@@ -135,6 +135,7 @@ export default function ActionList(props) {
   let cbsetCurrentActionID = (data) => {
     setCurrentActionID(data);
     props.cbsetCurrentActionID(data);
+    props.removeKeyDown();
   }
   function addAction() {
     let actionName = document.getElementById("actionName").value;
