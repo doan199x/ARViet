@@ -77,6 +77,8 @@ create table ARContent(
     isFile boolean,
     isTemp boolean,
     isChoosen boolean default false,
+    fatherID int default null,
+    fatherName varchar(200) default "",
     primary key (contentID)
 );
 create table TextARContent(

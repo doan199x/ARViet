@@ -41,7 +41,8 @@ module.exports = {
     update: async (ARContent) => {
         const sql = `update ARContent set xPosition = ${ARContent.xPosition}, yPosition = ${ARContent.yPosition}, zPosition = ${ARContent.zPosition},
         xScale = ${ARContent.xScale},yScale = ${ARContent.yScale},zScale = ${ARContent.zScale},
-        xRotation = ${ARContent.xRotation},yRotation = ${ARContent.yRotation},zRotation = ${ARContent.zRotation},isChoosen = ${ARContent.isChoosen}
+        xRotation = ${ARContent.xRotation},yRotation = ${ARContent.yRotation},zRotation = ${ARContent.zRotation},isChoosen = ${ARContent.isChoosen},
+        fatherID = ${ARContent.fatherID}, fatherName = "${ARContent.fatherName}"
         where contentID = ${ARContent.contentID};
         `
         return await db.load(sql);
@@ -57,12 +58,16 @@ module.exports = {
         `
         return await db.load(sql);
     },
-    getByActionID: async(actionID)=>{
+    getByActionID: async (actionID) => {
         const sql = `select* from ARContent where actionID = ${actionID} and isChoosen = true`;
         return await db.load(sql);
     },
-    getTempByActionID: async(actionID)=>{
+    getTempByActionID: async (actionID) => {
         const sql = `select* from ARContent where actionID = ${actionID} and isTemp = true and isFile = true`;
+        return await db.load(sql);
+    },
+    getARContentByID: async (contentID) => {
+        const sql = `select* from ARContent where contentID=${contentID}`;
         return await db.load(sql);
     }
 };

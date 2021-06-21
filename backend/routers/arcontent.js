@@ -240,4 +240,14 @@ router.delete("/", async (req, res, next) => {
     next(err);
   }
 })
+
+router.get("/contentID", async (req, res, next) => {
+  try {
+    contentID = req.query.contentID;
+    await ARContentModel.getARContentByID(contentID);
+    res.json([]);
+  } catch (err) {
+    next(err);
+  }
+})
 module.exports = router;
