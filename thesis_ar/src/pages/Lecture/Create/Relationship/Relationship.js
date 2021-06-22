@@ -7,7 +7,7 @@ import { Button, Typography } from "@material-ui/core";
 const useStyles = makeStyles((theme) => ({
     inline: {
         display: "grid",
-        gridTemplateColumns: "25% 65%",
+        gridTemplateColumns: "80%",
         justifyContent: "",
         marginTop: "5%",
     },
@@ -21,8 +21,8 @@ export default function ButtonText(props) {
     // const [currentMarkerID, setCurrentMarkerID] = useState(null);
     const [currenObject, setCurrentObject] = React.useState(null);
     useEffect(async () => {
+        console.log(change);
         if (change == 0) {
-
         } else {
             if (gotten == false) {
                 let currentOptionID = document.getElementById("optionFatherContent").value;
@@ -40,7 +40,11 @@ export default function ButtonText(props) {
             }
         }
 
-    }, [change,props.currentActionID]);
+    }, [change]);
+    useEffect(async () => {
+        console.log(props.elementArr);
+
+    }, [props.changeRelation]);
     function getOption() {
         setElementArr(props.elementArr);
         setChange(change + 1);
@@ -51,10 +55,13 @@ export default function ButtonText(props) {
     return (
         <div>
             <div>
-                <Typography id="contentName">Tên ĐT: </Typography>
+                <Typography>Tên đối tượng: </Typography>
+                <Typography variant="subtitle2" id="contentName"> </Typography>
             </div>
-            <div className={classes.inline}>
-                <Typography>Cha: </Typography>
+            <div style={{ marginTop: "5%"}}>
+                <Typography>Nội dung AR gốc: </Typography>
+            </div>
+            <div className={classes.inline} style={{ marginTop: "-0.1%"}}>
                 <select id="optionFatherContent" onClick={() => getOption()} onChange={() => changeOption()}>
                     <option selected value={null}>Không</option>
                     {elementArr.map((e, key) => {

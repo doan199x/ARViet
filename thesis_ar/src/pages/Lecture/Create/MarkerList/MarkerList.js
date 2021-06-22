@@ -7,6 +7,7 @@ import {
   Input,
   makeStyles,
   Typography,
+  Link
 } from "@material-ui/core";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -147,6 +148,7 @@ export default function MarkerList(props) {
     setCurrentMarkerID(data);
     props.cbsetCurrentMarkerID(data);
     props.removeKeyDown();
+    props.initSelect();
   };
   let cbsetCurrentActionID = (data) => {
     props.cbsetCurrentActionID(data);
@@ -261,9 +263,12 @@ export default function MarkerList(props) {
               onChange={() => uploadMarker()}
             ></input>
           </div>
-          <Typography style={{ fontStyle: 'italic' }}>
-            (Marker phải là hình ảnh. Bạn nên xem lại hướng dẫn nếu chưa hiểu về công nghệ AR.)
-          </Typography>
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            <Typography style={{ fontStyle: 'italic' }}>
+              (Bạn có thể nhấn chuột hai lần để chọn đối tượng trên marker)&nbsp;
+            </Typography>
+            <Link style={{ fontSize: '15px' }} href="/guide">  Xem lại hướng dẫn?</Link>
+          </div>
         </div>
         <div>
           {open ? (

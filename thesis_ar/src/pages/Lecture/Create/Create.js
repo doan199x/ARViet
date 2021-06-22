@@ -39,7 +39,7 @@ import {
   makeStyles,
   TextareaAutosize,
   TextField,
-  Typography,
+  Typography
 } from "@material-ui/core";
 import background from '../../../img/43.jpg'
 //styles
@@ -150,6 +150,7 @@ export default function Create() {
   //state
   const [markerID, setMarkerID] = useState(null);
   const [currentActionID, setCurrentActionID] = useState(null);
+  const [changeRelation,setChangeRelation] = useState(0);
   useEffect(async () => {
     if (markerID == null) {
       console.log("load null");
@@ -175,7 +176,7 @@ export default function Create() {
       sceneRender.appendChild(renderer.domElement);
       showMarker();
       loadARContentByActionID(currentActionID);
-      document.getElementById("contentName").innerHTML = "Tên ĐT: ";
+      document.getElementById("contentName").innerHTML = "";
       document.getElementById("optionFatherContent").disabled = true;
       setKeyEvent();
     }
@@ -733,7 +734,7 @@ export default function Create() {
     } else {
       contentName = filename.split("-", 1) + filename.slice(filename.length - 4, filename.length) + "-" + ARContent.contentID;
     }
-    document.getElementById("contentName").innerHTML = `Tên ĐT: ${contentName}`;
+    document.getElementById("contentName").innerHTML = `${contentName}`;
   }
   function clearAllContent() {
     let length = scene.children.length;
@@ -1282,7 +1283,7 @@ export default function Create() {
           if (currentObject.audio !== undefined) {
             document.getElementById("formAudio").style.display = "none"
           }
-          document.getElementById("contentName").innerHTML = `Tên ĐT: `;
+          document.getElementById("contentName").innerHTML = ``;
           document.getElementById("optionFatherContent").disabled = true;
           //disable input
           transformControls.detach();
@@ -1338,7 +1339,7 @@ export default function Create() {
               }
             }
             elementArr.splice(indexRemove, 1);
-            document.getElementById("contentName").innerHTML = `Tên ĐT: `;
+            document.getElementById("contentName").innerHTML = ``;
             domEvents.removeEventListener(
               currentObject,
               "dblclick",
@@ -1678,6 +1679,9 @@ export default function Create() {
       }
     }
   }
+  function initSelect(){
+    // elementArr=[];
+  }
   return (
     <div className={classes.root}>
       <div>
@@ -1687,7 +1691,7 @@ export default function Create() {
         <div className={classes.column2}>
           <div>
             {markerID ? (<div>
-              <MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID}
+              <MarkerList initSelect={initSelect} lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID}
                 cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker} removeKeyDown={removeKeyDown}></MarkerList>
 
             </div>
@@ -1730,13 +1734,13 @@ export default function Create() {
             <TempARContentList currentActionID={currentActionID} markerID={markerID} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo} showMp3={showMp3}></TempARContentList>
           </div>
           <div style={{ marginTop: "5%" }}>
-            <Typography className={classes.title}>3. Thiết lập quan hệ </Typography>
-            <Relationship elementArr={elementArr} currentID={currentID} currentActionID={currentActionID} deleteOptionSelf={deleteOptionSelf} setFather={setFather}></Relationship>
+            <Typography className={classes.title}>3. Nội dung AR Bổ sung </Typography>
+            <Relationship changeRelation={changeRelation} elementArr={elementArr} currentID={currentID} currentActionID={currentActionID} deleteOptionSelf={deleteOptionSelf} setFather={setFather}></Relationship>
           </div>
         </div>
         <div className={classes.column3}>
           <div>
-            <Typography className={classes.title}>3. Thêm văn bản</Typography>
+            <Typography className={classes.title}>4. Thêm văn bản</Typography>
             <div>
               <TextareaAutosize
                 className={classes.input2}
@@ -1784,19 +1788,19 @@ export default function Create() {
             </div>
           </div>
           <div>
-            <Typography className={classes.title}> 4. Vị trí (cm)</Typography>
+            <Typography className={classes.title}> 5. Vị trí (cm)</Typography>
           </div>
           <div>
             <SetCoordinate setPosition={setPosition} currentActionID={currentActionID}></SetCoordinate>
           </div>
           <div className={classes.inline}>
-            <Typography className={classes.title}> 5. Tỉ lệ</Typography>
+            <Typography className={classes.title}> 6. Tỉ lệ</Typography>
           </div>
           <div>
             <SetScale setScale={setScale} currentActionID={currentActionID}></SetScale>
           </div>
           <div>
-            <Typography className={classes.title}>6. Góc xoay (&#8451;)</Typography>
+            <Typography className={classes.title}>7. Góc xoay (&#8451;)</Typography>
           </div>
           <div>
             <SetRotation setRotation={setRotation} currentActionID={currentActionID}></SetRotation>
