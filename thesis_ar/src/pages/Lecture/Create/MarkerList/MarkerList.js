@@ -5,6 +5,7 @@ import {
   Divider,
   IconButton,
   Input,
+  Link,
   makeStyles,
   Typography,
 } from "@material-ui/core";
@@ -260,9 +261,12 @@ export default function MarkerList(props) {
               onChange={() => uploadMarker()}
             ></input>
           </div>
-          <Typography style={{ fontStyle: 'italic' }}>
-            (Marker phải là hình ảnh. Bạn nên xem lại hướng dẫn nếu chưa hiểu về công nghệ AR.)
+         <div style={{display: 'flex', flexDirection: 'row', alignItems:'center'}}>
+         <Typography style={{ fontStyle: 'italic' }}>
+            (Bạn có thể nhấn chuột hai lần để chọn đối tượng trên marker)&nbsp;
           </Typography>
+          <Link style={{ fontSize: '15px' }} href = "/guide">  Xem lại hướng dẫn?</Link>
+         </div>
         </div>
         <div>
           {open ? (

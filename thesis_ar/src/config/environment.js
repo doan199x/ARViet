@@ -6,7 +6,7 @@ const envInfo = {
   dev: {
     BASE_URL: "http://localhost:3001",
     // BASE_URL: "deploy"
-    // BASE_URL: "http://192.168.1.4:3001/"
+    //BASE_URL: "http://192.168.1.4:3001/"
   },
 };
 

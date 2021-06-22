@@ -25,7 +25,7 @@ export default function ButtonText(props) {
       {lessonName ? (
         <div className={classes.title}>
            <h5 style={{ textAlign: "center", color: "#2d4786" }}>
-            Bài giảng: {lessonName} - Mã chia sẻ: {props.lessonID}
+            Bài giảng: {lessonName} - Mã bài giảng: {props.lessonID}
           </h5>
         </div>
       ) : (
