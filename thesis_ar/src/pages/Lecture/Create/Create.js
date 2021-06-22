@@ -29,6 +29,7 @@ import FormVideo from "./FormVideo/FormVideo"
 import ButtonText from "./ButtonText/ButtonText"
 import FormAudio from "./FormAudio/FormAudio"
 import LessonName from "./LessonName/LessonName"
+import Relationship from "./Relationship/Relationship"
 import Guide from "./Guide/Guide"
 import { ConfigURL } from "../../../config/config"
 import { toast } from "react-toastify";
@@ -38,7 +39,7 @@ import {
   makeStyles,
   TextareaAutosize,
   TextField,
-  Typography,
+  Typography
 } from "@material-ui/core";
 import background from '../../../img/43.jpg'
 //styles
@@ -134,7 +135,6 @@ export default function Create() {
   const param = useParams();
   const lessonID = param.lecid;
   let camera, renderer;
-  // let arrayTextObject = [];
   let currentID = 0;
   let currentSceneMarkerID = 0;
   let currentText = null;
@@ -146,34 +146,40 @@ export default function Create() {
   let animationArray = [];
   let scene = new THREE.Scene();
   let lessonName = null;
+  let elementArr = [];
   //state
   const [markerID, setMarkerID] = useState(null);
   const [currentActionID, setCurrentActionID] = useState(null);
+  const [changeRelation,setChangeRelation] = useState(0);
   useEffect(async () => {
     if (markerID == null) {
       console.log("load null");
       await productAPI.getMarkerByLessonID(lessonID).then(data => {
         let sceneRender = document.getElementById("sceneRender");
+        sceneRender.innerHTML = "";
         sceneRender.appendChild(renderer.domElement);
         setMarkerID(data.data[0].markerID);
       })
     } else {
       let sceneRender = document.getElementById("sceneRender");
-      sceneRender.innerHTML = ""
+      sceneRender.innerHTML = "";
       sceneRender.appendChild(renderer.domElement);
-      setEventTransform();
       showMarker();
       getCurrentActionID(markerID);
     }
   }, [markerID])
 
   useEffect(async () => {
-    let sceneRender = document.getElementById("sceneRender");
-    sceneRender.innerHTML = ""
-    sceneRender.appendChild(renderer.domElement);
-    setEventTransform();
-    showMarker();
-    loadARContentByActionID(currentActionID);
+    if (currentActionID != null) {
+      let sceneRender = document.getElementById("sceneRender");
+      sceneRender.innerHTML = ""
+      sceneRender.appendChild(renderer.domElement);
+      showMarker();
+      loadARContentByActionID(currentActionID);
+      document.getElementById("contentName").innerHTML = "";
+      document.getElementById("optionFatherContent").disabled = true;
+      setKeyEvent();
+    }
   }, [currentActionID])
 
 
@@ -316,38 +322,13 @@ export default function Create() {
           animationHere.play();
           // animationArray.push(animationHere);
         }
+        let fatherEle = {
+          fatherID: null,
+          fatherName: ""
+        }
+        gltf.scene.fatherElement = fatherEle;
+        gltf.scene.isHideChild = false;
         scene.add(gltf.scene);
-        domEvents.addEventListener(
-          gltf.scene,
-          "dblclick",
-          function (event) {
-            if (currentID != 0) {
-              let currentObject = scene.getObjectById(currentID);
-              if (currentObject.config !== undefined) {
-                document.getElementById("fixButton").style.display = "none"
-              }
-              if (currentObject.video !== undefined) {
-                document.getElementById("formVideo").style.display = "none";
-                let video = scene.getObjectById(currentID).video;
-                video.pause();
-              }
-              if (currentObject.audio !== undefined) {
-                document.getElementById("formAudio").style.display = "none";
-                let audio = scene.getObjectById(currentID).audio;
-                audio.pause();
-                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
-                activeAnimation.paused = true;
-              }
-            }
-            currentID = gltf.scene.id;
-            transformControls.detach();
-            transformControls.attach(gltf.scene);
-            transformControls.setMode("translate");
-            scene.add(transformControls);
-            showFormEdit();
-            showGuide();
-            // create new instance of this arcontent and set istemp = false;
-          });
         productAPI
           .addNewInstanceARContent({
             contentID: contentID,
@@ -356,6 +337,41 @@ export default function Create() {
           .then((data) => {
             gltf.scene.contentID = data.data.contentID;
             gltf.scene.type = "3DModel";
+            addElementArr(data.data);
+            domEvents.addEventListener(
+              gltf.scene,
+              "dblclick",
+              function (event) {
+                if (currentID != 0) {
+                  let currentObject = scene.getObjectById(currentID);
+                  if (currentObject.config !== undefined) {
+                    document.getElementById("fixButton").style.display = "none"
+                  }
+                  if (currentObject.video !== undefined) {
+                    document.getElementById("formVideo").style.display = "none";
+                    let video = scene.getObjectById(currentID).video;
+                    video.pause();
+                  }
+                  if (currentObject.audio !== undefined) {
+                    document.getElementById("formAudio").style.display = "none";
+                    let audio = scene.getObjectById(currentID).audio;
+                    audio.pause();
+                    let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                    activeAnimation.paused = true;
+                  }
+                }
+                currentID = gltf.scene.id;
+                transformControls.detach();
+                transformControls.attach(gltf.scene);
+                transformControls.setMode("translate");
+                scene.add(transformControls);
+                showFormEdit();
+                showGuide();
+                setContentName(data.data);
+                setSelectedDropdown();
+                deleteOptionSelf();
+                showHideChildElement();
+              });
           },
             false
           );
@@ -384,39 +400,13 @@ export default function Create() {
       // combine our image geometry and material into a mesh
       var imageTexture = new THREE.Mesh(geometry, material);
       imageTexture.position.set(-0.06, 0.06, -0.06);
+      let fatherEle = {
+        fatherID: null,
+        fatherName: ""
+      }
+      imageTexture.fatherElement = fatherEle;
+      imageTexture.isHideChild = false;
       scene.add(imageTexture);
-      domEvents.addEventListener(
-        imageTexture,
-        "dblclick",
-        function (event) {
-          if (currentID != 0) {
-            let currentObject = scene.getObjectById(currentID);
-            if (currentObject.config !== undefined) {
-              document.getElementById("fixButton").style.display = "none"
-            }
-            if (currentObject.video !== undefined) {
-              document.getElementById("formVideo").style.display = "none";
-              let video = scene.getObjectById(currentID).video;
-              video.pause();
-            }
-            if (currentObject.audio !== undefined) {
-              document.getElementById("formAudio").style.display = "none";
-              let audio = scene.getObjectById(currentID).audio;
-              audio.pause();
-              let activeAnimation = scene.getObjectById(currentID).activeAnimation;
-              activeAnimation.paused = true;
-            }
-          }
-          currentID = imageTexture.id;
-          transformControls.detach();
-          transformControls.attach(imageTexture);
-          transformControls.setMode("translate");
-          scene.add(transformControls);
-          showFormEdit();
-          showGuide();
-        },
-        false
-      );
       // create new instance arcontent duoc chon
       productAPI
         .addNewInstanceARContent({
@@ -426,177 +416,107 @@ export default function Create() {
         .then((data) => {
           imageTexture.contentID = data.data.contentID;
           imageTexture.type = "2DImage"
+          addElementArr(data.data);
+          domEvents.addEventListener(
+            imageTexture,
+            "dblclick",
+            function (event) {
+              if (currentID != 0) {
+                let currentObject = scene.getObjectById(currentID);
+                if (currentObject.config !== undefined) {
+                  document.getElementById("fixButton").style.display = "none"
+                }
+                if (currentObject.video !== undefined) {
+                  document.getElementById("formVideo").style.display = "none";
+                  let video = scene.getObjectById(currentID).video;
+                  video.pause();
+                }
+                if (currentObject.audio !== undefined) {
+                  document.getElementById("formAudio").style.display = "none";
+                  let audio = scene.getObjectById(currentID).audio;
+                  audio.pause();
+                  let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                  activeAnimation.paused = true;
+                }
+              }
+              currentID = imageTexture.id;
+              transformControls.detach();
+              transformControls.attach(imageTexture);
+              transformControls.setMode("translate");
+              scene.add(transformControls);
+              showFormEdit();
+              showGuide();
+              setContentName(data.data);
+              setSelectedDropdown();
+              deleteOptionSelf();
+              showHideChildElement();
+            },
+            false
+          );
         });
     };
   }
 
   // show 2D Text
   function show2DText(textUpdatedContentID) {
-    let font = document.getElementById("font").value;
-    let textObject = {
-      text: document.getElementById("text").value,
-      size: document.getElementById("size").value,
-      color: document.getElementById("color").value,
-      backgroundColor: document.getElementById("backgroundColor").value,
-      isTransparent: false,
-      font: font,
-    };
-    let configTextture = {
-      alignment: "center",
-      color: textObject.color,
-      fontFamily: textObject.font,
-      fontSize: parseInt(textObject.size),
-      text: [textObject.text].join("\n"),
-    };
-    if (document.getElementById("isTransparent").checked == true) {
-      textObject.isTransparent = true;
+    let text = document.getElementById("text").value;
+    if (text.length == 0) {
+      toast.error('Vui lòng nhập nội dung văn bản')
     } else {
-      configTextture.backgroundColor = textObject.backgroundColor;
-    }
-    if (font == "timenewromans") {
-      configTextture.fontFamily = '"Times New Roman", Times, serif';
-    } else if (font == "arial") {
-      configTextture.fontFamily = "Arial, Helvetica, sans-serif";
-    }
-    let texture = new TextTexture(configTextture);
-    let material = new THREE.MeshLambertMaterial({
-      map: texture,
-      transparent: textObject.isTransparent,
-      side: THREE.DoubleSide,
-    });
-    var geometry = new THREE.PlaneGeometry(
-      texture.width * px2m,
-      texture.height * px2m
-    );
-    var textTexture = new THREE.Mesh(geometry, material);
-    texture.redraw();
-    scene.add(textTexture);
-    textTexture.position.set(0.06, 0.06, -0.06);
-    textObject.actionID = currentActionID;
-    productAPI.saveText(textObject, textUpdatedContentID).then((data) => {
-      textTexture.contentID = data.data.contentID;
-      textTexture.type = "2DText";
-      textTexture.config = configTextture;
-    });
-    domEvents.addEventListener(
-      textTexture,
-      "dblclick",
-      function (event) {
-        if (currentID != 0) {
-          let currentObject = scene.getObjectById(currentID);
-          if (currentObject.config !== undefined) {
-            document.getElementById("fixButton").style.display = "none"
-          }
-          if (currentObject.video !== undefined) {
-            document.getElementById("formVideo").style.display = "none";
-            let video = scene.getObjectById(currentID).video;
-            video.pause();
-          }
-          if (currentObject.audio !== undefined) {
-            document.getElementById("formAudio").style.display = "none";
-            let audio = scene.getObjectById(currentID).audio;
-            audio.pause();
-            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
-            activeAnimation.paused = true;
-          }
-        }
-        currentID = textTexture.id;
-        transformControls.detach();
-        transformControls.attach(textTexture);
-        transformControls.setMode("translate");
-        scene.add(transformControls);
-        showFormEdit();
-        showGuide();
-        getFormTextContent();
-        currentText = texture;
-      },
-      false
-    );
-    return textTexture.id;
-  }
-
-  let showVideo = (URL, contentID) => {
-    // Create video object
-    let video = document.createElement('video');
-    video.src = URL; // Set video address
-    video.setAttribute("crossorigin", "anonymous");
-    let videoTexture = new THREE.VideoTexture(video)
-    let videoGeometry = new THREE.PlaneGeometry(1920 * px2m, 1080 * px2m);
-    videoTexture.needsUpdate = true;
-    let videoMaterial = new THREE.MeshPhongMaterial({
-      side: THREE.DoubleSide,
-      map: videoTexture,
-    });
-    let videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
-    videoMesh.video = video;
-    scene.add(videoMesh);
-    domEvents.addEventListener(
-      videoMesh,
-      "dblclick",
-      function (event) {
-        if (currentID != 0) {
-          let currentObject = scene.getObjectById(currentID);
-          if (currentObject.config !== undefined) {
-            document.getElementById("fixButton").style.display = "none"
-          }
-          if (currentObject.video !== undefined) {
-            document.getElementById("formVideo").style.display = "none";
-            let video = scene.getObjectById(currentID).video;
-            video.pause();
-          }
-          if (currentObject.audio !== undefined) {
-            document.getElementById("formAudio").style.display = "none";
-            let audio = scene.getObjectById(currentID).audio;
-            audio.pause();
-            let activeAnimation = scene.getObjectById(currentID).activeAnimation;
-            activeAnimation.paused = true;
-          }
-        }
-        currentID = videoMesh.id;
-        transformControls.detach();
-        transformControls.attach(videoMesh);
-        transformControls.setMode("translate");
-        scene.add(transformControls);
-        showFormEdit();
-        showGuide();
-        showFormVideo();
-      },
-      false
-    );
-    // create new instance arcontent duoc chon
-    productAPI
-      .addNewInstanceARContent({
-        contentID: contentID,
-        actionID: currentActionID,
-      })
-      .then((data) => {
-        videoMesh.contentID = data.data.contentID;
-        videoMesh.type = "video"
+      let font = document.getElementById("font").value;
+      let textObject = {
+        text: document.getElementById("text").value,
+        size: document.getElementById("size").value,
+        color: document.getElementById("color").value,
+        backgroundColor: document.getElementById("backgroundColor").value,
+        isTransparent: false,
+        font: font,
+      };
+      let configTextture = {
+        alignment: "center",
+        color: textObject.color,
+        fontFamily: textObject.font,
+        fontSize: parseInt(textObject.size),
+        text: [textObject.text].join("\n"),
+      };
+      if (document.getElementById("isTransparent").checked == true) {
+        textObject.isTransparent = true;
+      } else {
+        configTextture.backgroundColor = textObject.backgroundColor;
+      }
+      if (font == "timenewromans") {
+        configTextture.fontFamily = '"Times New Roman", Times, serif';
+      } else if (font == "arial") {
+        configTextture.fontFamily = "Arial, Helvetica, sans-serif";
+      }
+      let texture = new TextTexture(configTextture);
+      let material = new THREE.MeshLambertMaterial({
+        map: texture,
+        transparent: textObject.isTransparent,
+        side: THREE.DoubleSide,
       });
-  }
-
-  // Show mp3
-  function showMp3(URL, contentID) {
-    const loader = new GLTFLoader();
-    let speakerModelURL = ConfigURL.serverURL + '/speaker/speaker.glb'
-    loader.load(
-      speakerModelURL,
-      function (gltf) {
-        if (gltf.animations.length > 0) {
-          let mixer = new THREE.AnimationMixer(gltf.scene);
-          mixers.push(mixer);
-          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
-          // let animationHere = mixer.clipAction(gltf.animations[0]);
-          // animationHere.play();
-        }
-        let audio = new Audio(URL);
-        gltf.scene.audio = audio;
-        scene.add(gltf.scene);
-        gltf.scene.position.set(0.1, 0.1, -0.1);
-        gltf.scene.scale.set(0.015, 0.015, 0.015);
-        gltf.scene.rotation.set(0, degreeToRadian(-30), 0);
+      var geometry = new THREE.PlaneGeometry(
+        texture.width * px2m,
+        texture.height * px2m
+      );
+      var textTexture = new THREE.Mesh(geometry, material);
+      texture.redraw();
+      let fatherEle = {
+        fatherID: null,
+        fatherName: ""
+      }
+      textTexture.isHideChild = false;
+      textTexture.fatherElement = fatherEle;
+      scene.add(textTexture);
+      textTexture.position.set(0.06, 0.06, -0.06);
+      textObject.actionID = currentActionID;
+      productAPI.saveText(textObject, textUpdatedContentID).then((data) => {
+        textTexture.contentID = data.data.contentID;
+        textTexture.type = "2DText";
+        textTexture.config = configTextture;
+        addElementArr(data.data);
         domEvents.addEventListener(
-          gltf.scene,
+          textTexture,
           "dblclick",
           function (event) {
             if (currentID != 0) {
@@ -617,16 +537,125 @@ export default function Create() {
                 activeAnimation.paused = true;
               }
             }
-            currentID = gltf.scene.id;
+            currentID = textTexture.id;
             transformControls.detach();
-            transformControls.attach(gltf.scene);
+            transformControls.attach(textTexture);
             transformControls.setMode("translate");
             scene.add(transformControls);
             showFormEdit();
             showGuide();
-            showFormAudio();
-            // create new instance of this arcontent and set istemp = false;
-          });
+            getFormTextContent();
+            currentText = texture;
+            setContentName(data.data);
+            setSelectedDropdown();
+            deleteOptionSelf();
+            showHideChildElement();
+          },
+          false
+        );
+      });
+      return textTexture.id;
+    }
+  }
+
+  let showVideo = (URL, contentID) => {
+    // Create video object
+    let video = document.createElement('video');
+    video.src = URL; // Set video address
+    video.setAttribute("crossorigin", "anonymous");
+    let videoTexture = new THREE.VideoTexture(video)
+    let videoGeometry = new THREE.PlaneGeometry(1920 * px2m, 1080 * px2m);
+    videoTexture.needsUpdate = true;
+    let videoMaterial = new THREE.MeshPhongMaterial({
+      side: THREE.DoubleSide,
+      map: videoTexture,
+    });
+    let videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+    videoMesh.video = video;
+    let fatherEle = {
+      fatherID: null,
+      fatherName: ""
+    }
+    videoMesh.fatherElement = fatherEle;
+    videoMesh.isHideChild = false;
+    scene.add(videoMesh);
+    // create new instance arcontent duoc chon
+    productAPI
+      .addNewInstanceARContent({
+        contentID: contentID,
+        actionID: currentActionID,
+      })
+      .then((data) => {
+        videoMesh.contentID = data.data.contentID;
+        videoMesh.type = "video"
+        addElementArr(data.data);
+        domEvents.addEventListener(
+          videoMesh,
+          "dblclick",
+          function (event) {
+            if (currentID != 0) {
+              let currentObject = scene.getObjectById(currentID);
+              if (currentObject.config !== undefined) {
+                document.getElementById("fixButton").style.display = "none"
+              }
+              if (currentObject.video !== undefined) {
+                document.getElementById("formVideo").style.display = "none";
+                let video = scene.getObjectById(currentID).video;
+                video.pause();
+              }
+              if (currentObject.audio !== undefined) {
+                document.getElementById("formAudio").style.display = "none";
+                let audio = scene.getObjectById(currentID).audio;
+                audio.pause();
+                let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                activeAnimation.paused = true;
+              }
+            }
+            currentID = videoMesh.id;
+            transformControls.detach();
+            transformControls.attach(videoMesh);
+            transformControls.setMode("translate");
+            scene.add(transformControls);
+            showFormEdit();
+            showGuide();
+            showFormVideo();
+            setContentName(data.data);
+            setSelectedDropdown();
+            deleteOptionSelf();
+            showHideChildElement();
+          },
+          false
+        );
+      });
+  }
+
+  // Show mp3
+  function showMp3(URL, contentID) {
+    const loader = new GLTFLoader();
+    let speakerModelURL = ConfigURL.serverURL + '/speaker/speaker.glb'
+    loader.load(
+      speakerModelURL,
+      function (gltf) {
+        if (gltf.animations.length > 0) {
+          let mixer = new THREE.AnimationMixer(gltf.scene);
+          mixers.push(mixer);
+          gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
+          // let animationHere = mixer.clipAction(gltf.animations[0]);
+          // animationHere.play();
+        }
+        let audio = new Audio(URL);
+        gltf.scene.audio = audio;
+        let fatherEle = {
+          fatherID: null,
+          fatherName: ""
+        }
+        gltf.scene.fatherElement = fatherEle;
+        gltf.scene.isHideChild = false;
+        scene.add(gltf.scene);
+        gltf.scene.position.set(0.1, 0.1, -0.1);
+        gltf.scene.scale.set(0.015, 0.015, 0.015);
+        gltf.scene.rotation.set(0, degreeToRadian(-30), 0);
+
         productAPI
           .addNewInstanceARContent({
             contentID: contentID,
@@ -635,6 +664,42 @@ export default function Create() {
           .then((data) => {
             gltf.scene.contentID = data.data.contentID;
             gltf.scene.type = "speaker";
+            addElementArr(data.data);
+            domEvents.addEventListener(
+              gltf.scene,
+              "dblclick",
+              function (event) {
+                if (currentID != 0) {
+                  let currentObject = scene.getObjectById(currentID);
+                  if (currentObject.config !== undefined) {
+                    document.getElementById("fixButton").style.display = "none"
+                  }
+                  if (currentObject.video !== undefined) {
+                    document.getElementById("formVideo").style.display = "none";
+                    let video = scene.getObjectById(currentID).video;
+                    video.pause();
+                  }
+                  if (currentObject.audio !== undefined) {
+                    document.getElementById("formAudio").style.display = "none";
+                    let audio = scene.getObjectById(currentID).audio;
+                    audio.pause();
+                    let activeAnimation = scene.getObjectById(currentID).activeAnimation;
+                    activeAnimation.paused = true;
+                  }
+                }
+                currentID = gltf.scene.id;
+                transformControls.detach();
+                transformControls.attach(gltf.scene);
+                transformControls.setMode("translate");
+                scene.add(transformControls);
+                showFormEdit();
+                showGuide();
+                showFormAudio();
+                setContentName(data.data);
+                setSelectedDropdown();
+                deleteOptionSelf();
+                showHideChildElement()
+              });
           },
             false
           );
@@ -647,29 +712,29 @@ export default function Create() {
       }
     );
   }
-
-  // load objects list in the scene
-  function loadObjectList() {
-    let objectList = document.getElementById("objectList");
-    objectList.innerHTML = "";
-    productAPI.getAllARContentChoosen(currentActionID).then((data) => {
-      let ARContent = data.data;
-      for (let i = 0; i < ARContent.length; i++) {
-        let li = document.createElement("li");
-        li.appendChild(document.createTextNode(ARContent[i].filename + ` - ` + ARContent[i].contentID));
-        objectList.appendChild(li);
-      }
-      //styles
-      document.getElementById("objectList").style.fontSize = "15px";
-      document.getElementById("objectList").style.textDecoration = "none";
-      document.getElementById("objectList").style.fontWeight = " normal";
-    });
+  function addElementArr(ARContent) {
+    let filename = ARContent.filename;
+    let contentName;
+    if (filename == "text") {
+      contentName = filename + "-" + ARContent.contentID;
+    } else {
+      contentName = filename.split("-", 1) + filename.slice(filename.length - 4, filename.length) + "-" + ARContent.contentID;
+    }
+    let element = {
+      contentID: ARContent.contentID,
+      contentName: contentName
+    }
+    elementArr.push(element);
   }
-  function addObjectList(filename, contentID) {
-    let objectList = document.getElementById("objectList");
-    let li = document.createElement("li");
-    li.appendChild(document.createTextNode(filename + ` - ` + contentID));
-    objectList.appendChild(li);
+  function setContentName(ARContent) {
+    let filename = ARContent.filename;
+    let contentName;
+    if (filename == "text") {
+      contentName = filename + "-" + ARContent.contentID;
+    } else {
+      contentName = filename.split("-", 1) + filename.slice(filename.length - 4, filename.length) + "-" + ARContent.contentID;
+    }
+    document.getElementById("contentName").innerHTML = `${contentName}`;
   }
   function clearAllContent() {
     let length = scene.children.length;
@@ -712,7 +777,6 @@ export default function Create() {
     }
   }
   function load3DModel(ARContent) {
-    console.log("load dog")
     const loader = new GLTFLoader();
     const draco = new DRACOLoader();
     draco.setDecoderConfig({ type: 'js' });
@@ -730,7 +794,13 @@ export default function Create() {
           // animationArray.push(animationHere);
         }
         gltf.scene.contentID = ARContent.contentID;
+        gltf.scene.isHideChild = false;
         gltf.scene.type = "3DModel"
+        let fatherEle = {
+          fatherID: ARContent.fatherID,
+          fatherName: ARContent.fatherName
+        }
+        gltf.scene.fatherElement = fatherEle;
         scene.add(gltf.scene);
         gltf.scene.position.set(
           ARContent.xPosition,
@@ -743,6 +813,7 @@ export default function Create() {
           ARContent.zRotation
         );
         gltf.scene.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+        addElementArr(ARContent);
         domEvents.addEventListener(
           gltf.scene,
           "dblclick",
@@ -772,6 +843,10 @@ export default function Create() {
             scene.add(transformControls);
             showFormEdit();
             showGuide();
+            setContentName(ARContent);
+            setSelectedDropdown();
+            deleteOptionSelf();
+            showHideChildElement();
           },
           false
         );
@@ -798,7 +873,13 @@ export default function Create() {
       // combine our image geometry and material into a mesh
       var imageTexture = new THREE.Mesh(geometry, material);
       imageTexture.contentID = ARContent.contentID;
-      imageTexture.type = "2DImage"
+      let fatherEle = {
+        fatherID: ARContent.fatherID,
+        fatherName: ARContent.fatherName
+      }
+      imageTexture.fatherElement = fatherEle;
+      imageTexture.type = "2DImage";
+      imageTexture.isHideChild = false;
       scene.add(imageTexture);
       imageTexture.position.set(
         ARContent.xPosition,
@@ -811,6 +892,7 @@ export default function Create() {
         ARContent.zRotation
       );
       imageTexture.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+      addElementArr(ARContent);
       domEvents.addEventListener(
         imageTexture,
         "dblclick",
@@ -840,6 +922,10 @@ export default function Create() {
           scene.add(transformControls);
           showFormEdit();
           showGuide();
+          setContentName(ARContent);
+          setSelectedDropdown();
+          deleteOptionSelf();
+          showHideChildElement();
         },
         false
       );
@@ -882,6 +968,12 @@ export default function Create() {
         textTexture.contentID = ARContent.contentID;
         textTexture.type = "2DText";
         textTexture.config = configTextture;
+        let fatherEle = {
+          fatherID: ARContent.fatherID,
+          fatherName: ARContent.fatherName
+        }
+        textTexture.fatherElement = fatherEle;
+        textTexture.isHideChild = false;
         scene.add(textTexture);
         textTexture.position.set(
           ARContent.xPosition,
@@ -898,6 +990,7 @@ export default function Create() {
           ARContent.yScale,
           ARContent.zScale
         );
+        addElementArr(ARContent);
         domEvents.addEventListener(
           textTexture,
           "dblclick",
@@ -929,6 +1022,10 @@ export default function Create() {
             getFormTextContent();
             showFormEdit();
             showGuide();
+            setContentName(ARContent);
+            setSelectedDropdown();
+            deleteOptionSelf();
+            showHideChildElement();
           },
           false
         );
@@ -948,7 +1045,13 @@ export default function Create() {
       map: videoTexture,
     });
     let videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+    videoMesh.isHideChild = false;
     videoMesh.video = video;
+    let fatherEle = {
+      fatherID: ARContent.fatherID,
+      fatherName: ARContent.fatherName
+    }
+    videoMesh.fatherElement = fatherEle;
     scene.add(videoMesh);
     videoMesh.contentID = ARContent.contentID;
     videoMesh.type = "video"
@@ -964,6 +1067,7 @@ export default function Create() {
       ARContent.zRotation
     );
     videoMesh.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+    addElementArr(ARContent);
     domEvents.addEventListener(
       videoMesh,
       "dblclick",
@@ -994,6 +1098,10 @@ export default function Create() {
         showFormEdit();
         showFormVideo();
         showGuide();
+        setContentName(ARContent);
+        setSelectedDropdown();
+        deleteOptionSelf();
+        showHideChildElement();
       },
       false
     );
@@ -1011,10 +1119,17 @@ export default function Create() {
           gltf.scene.activeAnimation = mixer.clipAction(gltf.animations[0]);
           // let animationHere = mixer.clipAction(gltf.animations[0]);
         }
+
         gltf.scene.contentID = ARContent.contentID;
         gltf.scene.type = "speaker"
         let audio = new Audio(ARContent.URL);
         gltf.scene.audio = audio;
+        let fatherEle = {
+          fatherID: ARContent.fatherID,
+          fatherName: ARContent.fatherName
+        }
+        gltf.scene.fatherElement = fatherEle;
+        gltf.scene.isHideChild = false;
         scene.add(gltf.scene);
         gltf.scene.position.set(
           ARContent.xPosition,
@@ -1027,6 +1142,7 @@ export default function Create() {
           ARContent.zRotation
         );
         gltf.scene.scale.set(ARContent.xScale, ARContent.yScale, ARContent.zScale);
+        addElementArr(ARContent);
         domEvents.addEventListener(
           gltf.scene,
           "dblclick",
@@ -1057,6 +1173,10 @@ export default function Create() {
             showFormEdit();
             showGuide();
             showFormAudio();
+            setContentName(ARContent);
+            setSelectedDropdown();
+            deleteOptionSelf();
+            showHideChildElement();
           },
           false
         );
@@ -1092,6 +1212,8 @@ export default function Create() {
                 xScale: scene.children[j].scale.x,
                 yScale: scene.children[j].scale.y,
                 zScale: scene.children[j].scale.z,
+                fatherID: scene.children[j].fatherElement.fatherID,
+                fatherName: scene.children[j].fatherElement.fatherName
               };
               ARContentArr[i].getUpdated = true;
               productAPI.updateARContent(ARContent).then((data) => {
@@ -1106,41 +1228,83 @@ export default function Create() {
             deleteARContent(element.contentID);
           }
         })
+        toast.info('Lưu thành công');
       });
     }
   }
-  function setEventTransform() {
-    window.addEventListener("keydown", function (event) {
-      switch (event.key) {
-        case "t":
-          if (currentID != 0) {
-            let currentObject = scene.getObjectById(currentID);
-            transformControls.detach();
-            transformControls.attach(currentObject);
-            transformControls.setMode("translate");
-            scene.add(transformControls);
+  const setKeyDown = function (event) {
+    switch (event.key) {
+      case "t":
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          transformControls.detach();
+          transformControls.attach(currentObject);
+          transformControls.setMode("translate");
+          scene.add(transformControls);
+        }
+        break;
+      case "r":
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          transformControls.detach();
+          transformControls.attach(currentObject);
+          transformControls.setMode("rotate");
+          scene.add(transformControls);
+        }
+        break;
+      case "s":
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          transformControls.detach();
+          transformControls.attach(currentObject);
+          transformControls.setMode("scale");
+          scene.add(transformControls);
+        }
+        break;
+      case "Escape":
+        if (currentID != 0) {
+          document.getElementById("xPosition").disabled = true;
+          document.getElementById("yPosition").disabled = true;
+          document.getElementById("zPosition").disabled = true;
+          document.getElementById("xScale").disabled = true;
+          document.getElementById("yScale").disabled = true;
+          document.getElementById("zScale").disabled = true;
+          document.getElementById("xRotation").disabled = true;
+          document.getElementById("yRotation").disabled = true;
+          document.getElementById("zRotation").disabled = true;
+          hideGuide();
+          let currentObject = scene.getObjectById(currentID);
+          if (currentObject.config !== undefined) {
+            document.getElementById("fixButton").style.display = "none"
           }
-          break;
-        case "r":
-          if (currentID != 0) {
-            let currentObject = scene.getObjectById(currentID);
-            transformControls.detach();
-            transformControls.attach(currentObject);
-            transformControls.setMode("rotate");
-            scene.add(transformControls);
+          if (currentObject.video !== undefined) {
+            document.getElementById("formVideo").style.display = "none"
           }
-          break;
-        case "s":
-          if (currentID != 0) {
-            let currentObject = scene.getObjectById(currentID);
-            transformControls.detach();
-            transformControls.attach(currentObject);
-            transformControls.setMode("scale");
-            scene.add(transformControls);
+          if (currentObject.audio !== undefined) {
+            document.getElementById("formAudio").style.display = "none"
           }
-          break;
-        case "Escape":
-          if (currentID != 0) {
+          document.getElementById("contentName").innerHTML = ``;
+          document.getElementById("optionFatherContent").disabled = true;
+          //disable input
+          transformControls.detach();
+          scene.remove(transformControls);
+        }
+        break;
+      case "Delete":
+        if (currentID != 0) {
+          let currentObject = scene.getObjectById(currentID);
+          // check child
+          let check = false;
+          for (let i = 0; i < scene.children.length; i++) {
+            if (scene.children[i].fatherElement !== undefined) {
+              if (scene.children[i].fatherElement.fatherID == currentObject.contentID) {
+                check = true;
+              }
+            }
+          }
+          if (check == true) {
+            toast.error("Đối tượng còn liên kết với đối tượng con");
+          } else {
             document.getElementById("xPosition").disabled = true;
             document.getElementById("yPosition").disabled = true;
             document.getElementById("zPosition").disabled = true;
@@ -1150,34 +1314,6 @@ export default function Create() {
             document.getElementById("xRotation").disabled = true;
             document.getElementById("yRotation").disabled = true;
             document.getElementById("zRotation").disabled = true;
-            hideGuide();
-            let currentObject = scene.getObjectById(currentID);
-            if (currentObject.config !== undefined) {
-              document.getElementById("fixButton").style.display = "none"
-            }
-            if (currentObject.video !== undefined) {
-              document.getElementById("formVideo").style.display = "none"
-            }
-            if (currentObject.audio !== undefined) {
-              document.getElementById("formAudio").style.display = "none"
-            }
-            //disable input
-            transformControls.detach();
-            scene.remove(transformControls);
-          }
-          break;
-        case "Delete":
-          if (currentID != 0) {
-            document.getElementById("xPosition").disabled = true;
-            document.getElementById("yPosition").disabled = true;
-            document.getElementById("zPosition").disabled = true;
-            document.getElementById("xScale").disabled = true;
-            document.getElementById("yScale").disabled = true;
-            document.getElementById("zScale").disabled = true;
-            document.getElementById("xRotation").disabled = true;
-            document.getElementById("yRotation").disabled = true;
-            document.getElementById("zRotation").disabled = true;
-            let currentObject = scene.getObjectById(currentID);
             if (currentObject.config !== undefined) {
               document.getElementById("fixButton").style.display = "none"
             }
@@ -1191,9 +1327,19 @@ export default function Create() {
               let audio = scene.getObjectById(currentID).audio;
               audio.pause();
             }
+            document.getElementById("optionFatherContent").disabled = true;
             transformControls.detach();
             scene.remove(currentObject);
             scene.remove(transformControls);
+            let indexRemove = 0;
+            for (let i = 0; i < elementArr.length; i++) {
+              if (elementArr[i].contentID == currentObject.contentID) {
+                indexRemove = i;
+                break;
+              }
+            }
+            elementArr.splice(indexRemove, 1);
+            document.getElementById("contentName").innerHTML = ``;
             domEvents.removeEventListener(
               currentObject,
               "dblclick",
@@ -1204,14 +1350,35 @@ export default function Create() {
             hideGuide();
             hideFixButton();
           }
-      }
-    });
+        }
+    }
+  }
+  function removeKeyDown() {
+    window.removeEventListener("keydown", setKeyDown);
+  }
+  function setKeyEvent() {
+    window.addEventListener("keydown", setKeyDown);
   }
   function deleteARContent(contentID) {
     productAPI
       .deleteARContent(contentID)
       .then((data) => {
       });
+  }
+  function setFather() {
+    let selectedFatherID = document.getElementById("optionFatherContent");
+    let fatherName = selectedFatherID.options[selectedFatherID.selectedIndex].text;
+    let fatherID = selectedFatherID.value;
+    if (fatherName == "Không") {
+      fatherName = "";
+      fatherID = null;
+    }
+    let fatherElement = {
+      fatherID: fatherID,
+      fatherName: fatherName
+    }
+    console.log(fatherElement);
+    scene.getObjectById(currentID).fatherElement = fatherElement;
   }
 
   function showFormEdit() {
@@ -1425,6 +1592,96 @@ export default function Create() {
   function showColorTextPicker() {
     document.getElementById("colorTextPicker").style.display = "block";
   }
+  function setSelectedDropdown() {
+    let fatherElement = scene.getObjectById(currentID).fatherElement;
+    if (fatherElement !== undefined) {
+      let fatherSelect = document.getElementById("optionFatherContent");
+      if (fatherSelect.options.length == 1) {
+        fatherSelect.options[0] = null;
+        if (fatherElement.fatherID == null) {
+          let initOption = document.createElement('option');
+          initOption.value = null;
+          initOption.text = "Không";
+          initOption.selected = true;
+          fatherSelect.appendChild(initOption);
+        } else {
+          let initOption = document.createElement('option');
+          initOption.value = fatherElement.fatherID;
+          initOption.text = fatherElement.fatherName;
+          initOption.selected = true;
+          fatherSelect.appendChild(initOption);
+          fatherSelect.options[0].selected = true;
+        }
+      } else {
+        fatherSelect.value = fatherElement.fatherID;
+      }
+    }
+  }
+  function deleteOptionSelf() {
+    if (currentID != 0) {
+      let currentObject = scene.getObjectById(currentID);
+      let selectedFatherID = document.getElementById("optionFatherContent");
+      if (currentObject.contentID !== undefined) {
+        let check = false;
+        for (let i = 0; i < scene.children.length; i++) {
+          if (scene.children[i].fatherElement !== undefined) {
+            if (currentObject.contentID == scene.children[i].fatherElement.fatherID) {
+              check = true;
+              break;
+            }
+          }
+        }
+        if (check == true) {
+          selectedFatherID.disabled = true;
+        } else {
+          selectedFatherID.disabled = false;
+          for (let i = 0; i < selectedFatherID.length; i++) {
+            selectedFatherID.options[i].disabled = false;
+            for (let j = 0; j < scene.children.length; j++) {
+              if (scene.children[j].fatherElement !== undefined) {
+                if (scene.children[j].contentID == selectedFatherID.options[i].value && scene.children[j].fatherElement.fatherID != null) {
+                  selectedFatherID.options[i].disabled = true;
+                }
+              }
+            }
+          }
+          for (let i = 0; i < selectedFatherID.length; i++) {
+            if (selectedFatherID.options[i].value == currentObject.contentID) {
+              selectedFatherID.options[i].disabled = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  function showHideChildElement() {
+    let currentObject = scene.getObjectById(currentID);
+    let changed = false;
+    for (let i = 0; i < scene.children.length; i++) {
+      if (scene.children[i].fatherElement !== undefined) {
+        if (scene.children[i].fatherElement.fatherID == currentObject.contentID) {
+          if (currentObject.isHideChild == false) {
+            scene.children[i].visible = false;
+            changed = true;
+          } else {
+            scene.children[i].visible = true;
+            changed = true;
+          }
+        }
+      }
+    }
+    if (changed == true) {
+      if (currentObject.isHideChild == true) {
+        currentObject.isHideChild = false;
+      } else {
+        currentObject.isHideChild = true;
+      }
+    }
+  }
+  function initSelect(){
+    // elementArr=[];
+  }
   return (
     <div className={classes.root}>
       <div>
@@ -1434,8 +1691,8 @@ export default function Create() {
         <div className={classes.column2}>
           <div>
             {markerID ? (<div>
-              <MarkerList lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID}
-                cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker}></MarkerList>
+              <MarkerList initSelect={initSelect} lessonID={lessonID} cbsetCurrentActionID={cbsetCurrentActionID}
+                cbsetCurrentMarkerID={cbsetCurrentMarkerID} showMarker={showMarker} removeKeyDown={removeKeyDown}></MarkerList>
 
             </div>
             ) : (<div></div>)}
@@ -1468,18 +1725,22 @@ export default function Create() {
             <Typography className={classes.title} >1. Thêm hành động</Typography>
           </div>
           <div>
-            <ActionList loadARContentByActionID={loadARContentByActionID} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
+            <ActionList removeKeyDown={removeKeyDown} cbsetCurrentActionID={cbsetCurrentActionID} markerID={markerID}></ActionList>
           </div>
-          <div style={{marginTop: "5%"}}>
+          <div style={{ marginTop: "5%" }}>
             <Typography className={classes.title}>2. Nội dung AR </Typography>
           </div>
           <div>
             <TempARContentList currentActionID={currentActionID} markerID={markerID} show3DModel={show3DModel} show2DImage={show2DImage} showVideo={showVideo} showMp3={showMp3}></TempARContentList>
           </div>
+          <div style={{ marginTop: "5%" }}>
+            <Typography className={classes.title}>3. Nội dung AR Bổ sung </Typography>
+            <Relationship changeRelation={changeRelation} elementArr={elementArr} currentID={currentID} currentActionID={currentActionID} deleteOptionSelf={deleteOptionSelf} setFather={setFather}></Relationship>
+          </div>
         </div>
         <div className={classes.column3}>
           <div>
-            <Typography className={classes.title}>3. Thêm văn bản</Typography>
+            <Typography className={classes.title}>4. Thêm văn bản</Typography>
             <div>
               <TextareaAutosize
                 className={classes.input2}
@@ -1527,19 +1788,19 @@ export default function Create() {
             </div>
           </div>
           <div>
-            <Typography className={classes.title}> 4. Vị trí (cm)</Typography>
+            <Typography className={classes.title}> 5. Vị trí (cm)</Typography>
           </div>
           <div>
             <SetCoordinate setPosition={setPosition} currentActionID={currentActionID}></SetCoordinate>
           </div>
           <div className={classes.inline}>
-            <Typography className={classes.title}> 5. Tỉ lệ</Typography>
+            <Typography className={classes.title}> 6. Tỉ lệ</Typography>
           </div>
           <div>
             <SetScale setScale={setScale} currentActionID={currentActionID}></SetScale>
           </div>
           <div>
-            <Typography className={classes.title}>6. Góc xoay (&#8451;)</Typography>
+            <Typography className={classes.title}>7. Góc xoay (&#8451;)</Typography>
           </div>
           <div>
             <SetRotation setRotation={setRotation} currentActionID={currentActionID}></SetRotation>

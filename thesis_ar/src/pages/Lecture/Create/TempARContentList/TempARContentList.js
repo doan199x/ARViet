@@ -92,7 +92,7 @@ export default function TempARContentList(props) {
             <div style={{ marginTop: "10px" }}>
                 <Typography variant='body2'>Nội dung đã tải lên:</Typography>
             </div>
-            <div style={{ borderRadius: "5px", borderWidth: "1px", borderStyle: "dotted", height: "220px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
+            <div style={{ borderRadius: "5px", borderWidth: "1px", borderStyle: "dotted", height: "120px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
                 {tempARContentList ? (
                     <div className={classes.data}>
                         {tempARContentList

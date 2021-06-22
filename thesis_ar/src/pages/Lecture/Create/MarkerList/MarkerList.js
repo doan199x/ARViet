@@ -8,6 +8,7 @@ import {
   Link,
   makeStyles,
   Typography,
+  Link,
 } from "@material-ui/core";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -28,8 +29,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faEdit, faPlus } from "@fortawesome/free-solid-svg-icons";
 import Slide from "@material-ui/core/Slide";
 import { toast } from "react-toastify";
-import AddIcon from '@material-ui/icons/Add';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import AddIcon from "@material-ui/icons/Add";
+import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 
 const useStyles = makeStyles((theme) => ({
   data: {
@@ -69,9 +70,9 @@ const useStyles = makeStyles((theme) => ({
   centerline: {
     // display: "grid",
     // gridTemplateColumns: "auto auto auto",
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center'
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
   root: {
     width: "350px",
@@ -147,6 +148,8 @@ export default function MarkerList(props) {
   let cbsetCurrentMarkerID = (data) => {
     setCurrentMarkerID(data);
     props.cbsetCurrentMarkerID(data);
+    props.removeKeyDown();
+    props.initSelect();
   };
   let cbsetCurrentActionID = (data) => {
     props.cbsetCurrentActionID(data);
@@ -261,12 +264,22 @@ export default function MarkerList(props) {
               onChange={() => uploadMarker()}
             ></input>
           </div>
-         <div style={{display: 'flex', flexDirection: 'row', alignItems:'center'}}>
-         <Typography style={{ fontStyle: 'italic' }}>
-            (Bạn có thể nhấn chuột hai lần để chọn đối tượng trên marker)&nbsp;
-          </Typography>
-          <Link style={{ fontSize: '15px' }} href = "/guide">  Xem lại hướng dẫn?</Link>
-         </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <Typography style={{ fontStyle: "italic" }}>
+              (Bạn có thể nhấn chuột hai lần để chọn đối tượng trên
+              marker)&nbsp;
+            </Typography>
+            <Link style={{ fontSize: "15px" }} href="/guide">
+              {" "}
+              Xem lại hướng dẫn?
+            </Link>
+          </div>
         </div>
         <div>
           {open ? (
@@ -282,8 +295,8 @@ export default function MarkerList(props) {
                 <DialogTitle id="alert-dialog-slide-title">{`Bạn muốn xoá điểm đánh dấu này`}</DialogTitle>
                 <DialogContent>
                   <DialogContentText id="alert-dialog-slide-description">
-                    Một khi đã xoá, bạn sẽ không thể nào khôi phục lại thao
-                    tác này được.
+                    Một khi đã xoá, bạn sẽ không thể nào khôi phục lại thao tác
+                    này được.
                   </DialogContentText>
                   <DialogContentText id="alert-dialog-slide-description">
                     Danh sách marker sẽ được cập nhật lại theo thứ tự.

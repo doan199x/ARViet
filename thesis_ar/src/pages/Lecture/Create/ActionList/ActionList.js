@@ -120,8 +120,6 @@ export default function ActionList(props) {
   const [open, setOpen] = useState(false);
   const [open1, setOpen1] = useState(false);
   useEffect(async () => {
-    console.log("vc");
-    console.log(props.markerID);
     if (props.markerID != null) {
       await productAPI.loadMarker(props.markerID).then((data) => {
         if (data.data.length > 0) {
@@ -137,6 +135,7 @@ export default function ActionList(props) {
   let cbsetCurrentActionID = (data) => {
     setCurrentActionID(data);
     props.cbsetCurrentActionID(data);
+    props.removeKeyDown();
   }
   function addAction() {
     let actionName = document.getElementById("actionName").value;
@@ -203,7 +202,7 @@ export default function ActionList(props) {
       </div>
      <div>
      <Typography variant="body2" style = {{marginTop: '5%'}}>Danh sách hành động của marker:</Typography>
-      <div style={{ borderRadius: "5px", borderStyle: "dotted", borderWidth: "1px", height: "220px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
+      <div style={{ borderRadius: "5px", borderStyle: "dotted", borderWidth: "1px", height: "120px", overflow: "auto", width: "90%", marginTop: "10px", marginBottom: "15px" }}>
         {actionList ? (
           <div className={classes.data}>
             {actionList

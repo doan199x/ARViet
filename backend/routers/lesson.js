@@ -102,6 +102,13 @@ router.get("/marker", async (req, res, next) => {
             } else {
               getARContent[k].textARContent = getTextARContent[0];
             }
+            if (getARContent[k].fatherID == null){
+              getARContent[k].fatherARContent = null;
+            }else{
+              let getFatherARContent = await ARContentModel.getARContentByID(getARContent[k].fatherID);
+              getFatherARContent[0].isChildHidden = false;
+              getARContent[k].fatherARContent= getFatherARContent[0];
+            }
           }
           getActionList[j].arContentList = getARContent;
         }
